@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_nav_graph"
+    app:startDestination="@id/navigation_account">
+
+    <fragment
+        android:id="@+id/navigation_account"
+        android:name="com.example.memoraid.AccountFragment"
+        android:label="Account"
+        tools:layout="@layout/fragment_account">
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_games"
+        android:name="com.example.memoraid.GamesFragment"
+        android:label="Maps"
+        tools:layout="@layout/fragment_games" >
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_memories"
+        android:name="com.example.memoraid.MemoriesFragment"
+        android:label="Search"
+        tools:layout="@layout/fragment_memories">
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_health"
+        android:name="com.example.memoraid.HealthFragment"
+        android:label="MyPlaces"
+        tools:layout="@layout/fragment_health">
+    </fragment>
+
+</navigation>
