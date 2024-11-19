@@ -1,7 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/title_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/FrederickaTheGreat"
+        android:text="@string/app_name"
+        android:textSize="50dp"
+        android:textColor="#D3D3D3"
+        android:textStyle="bold"
+        android:gravity="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/login_username"/>
+
+    <EditText
+        android:id="@+id/login_username"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/username"
+        app:layout_constraintBottom_toTopOf="@id/login_password"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintWidth_percent="0.8"
+        android:background="@drawable/edit_text_box"/>
+
+    <EditText
+        android:id="@+id/login_password"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/login_username"
+        app:layout_constraintBottom_toTopOf="@id/login_button"
+        app:layout_constraintWidth_percent="0.8"
+        android:layout_marginTop="5dp"
+        android:inputType="textPassword"
+        android:hint="@string/password"
+        android:background="@drawable/edit_text_box"/>
+
+    <android.widget.Button
+        android:id="@+id/login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="@string/login"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/login_password"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="30dp"
+        android:textColor="@color/black"/>
+
+<!--    <View-->
+<!--        android:id="@+id/left_line"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="1dp"-->
+<!--        android:background="#D3D3D3"-->
+<!--        app:layout_constraintTop_toTopOf="@id/text_or"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/text_or"-->
+<!--        app:layout_constraintEnd_toStartOf="@id/text_or"-->
+<!--        app:layout_constraintStart_toStartOf="@id/login_username"-->
+<!--        app:layout_constraintWidth_percent="0.36" />-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/text_or"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="30dp"-->
+<!--        android:text="OR"-->
+<!--        android:textColor="#808080"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/login_button"-->
+<!--        app:layout_constraintStart_toEndOf="@id/left_line"-->
+<!--        app:layout_constraintEnd_toStartOf="@id/right_line" />-->
+
+<!--    <View-->
+<!--        android:id="@+id/right_line"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="1dp"-->
+<!--        android:background="#D3D3D3"-->
+<!--        app:layout_constraintTop_toTopOf="@id/text_or"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/text_or"-->
+<!--        app:layout_constraintStart_toEndOf="@id/text_or"-->
+<!--        app:layout_constraintEnd_toEndOf="@id/login_username"-->
+<!--        app:layout_constraintWidth_percent="0.36" />-->
+
+    <TextView
+        android:id="@+id/forgot_password_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Forgot Password?"
+        android:textStyle="bold"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginTop="30dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/login_button"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="30dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/forgot_password_button"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/static_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Don't have an account?"
+            android:textStyle="bold"
+            android:textColor="@color/black" />
+
+        <!-- Clickable Text: "Create one!" -->
+        <TextView
+            android:id="@+id/create_account_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" Create one!"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true"
+            android:textColor="@color/black"/>
+    </LinearLayout>
+
+<!--    <android.widget.Button-->
+<!--        android:id="@+id/btn_register"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        android:layout_margin="16dp"-->
+<!--        android:text="@string/register"-->
+<!--        android:textColor="@drawable/text_color_login_register"/>-->
+
+</androidx.constraintlayout.widget.ConstraintLayout>
