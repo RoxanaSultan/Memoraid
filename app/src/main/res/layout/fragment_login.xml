@@ -6,15 +6,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <TextView
-        android:id="@+id/title_text"
+        android:id="@+id/title_login"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/FrederickaTheGreat"
         android:text="@string/app_name"
         android:textSize="50dp"
         android:textColor="#D3D3D3"
         android:textStyle="bold"
         android:gravity="center"
+        android:fontFamily="@font/frederickathegreat"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
