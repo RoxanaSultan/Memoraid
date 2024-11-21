@@ -2,5 +2,8 @@
     <string name="app_name">Memoraid</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
     <string name="login">Login</string>
+    <string name="Continue">Continue</string>
+    <string name="email_phone">Phone number or e-mail address</string>
 </resources>

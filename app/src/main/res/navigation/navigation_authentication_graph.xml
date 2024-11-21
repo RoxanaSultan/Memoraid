@@ -11,7 +11,7 @@
         android:label="Login"
         tools:layout="@layout/fragment_login">
         <action
-            android:id="@+id/action_fragment_login_to_fragment_register"
+            android:id="@+id/create_account_button"
             app:destination="@id/fragment_register" />
 
     </fragment>
@@ -20,6 +20,6 @@
         android:id="@+id/fragment_register"
         android:name="com.example.memoraid.RegisterFragment"
         android:label="Register"
-        tools:layout="@layout/fragment_register"/>
+        tools:layout="@layout/fragment_register_account_information"/>
 
 </navigation>

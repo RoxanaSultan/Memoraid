@@ -10,7 +10,7 @@ class RegisterFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_register, container, false)
+        return inflater.inflate(R.layout.fragment_register_account_information, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
