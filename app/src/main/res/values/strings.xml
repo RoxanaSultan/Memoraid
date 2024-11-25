@@ -6,4 +6,6 @@
     <string name="login">Login</string>
     <string name="Continue">Continue</string>
     <string name="email_phone">Phone number or e-mail address</string>
+    <string name="firstname">First name</string>
+    <string name="lastname">Last name</string>
 </resources>

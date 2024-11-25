@@ -31,7 +31,7 @@ class LoginFragment : Fragment() {
 
         // Set click listener to navigate to the register fragment
         createAccountButton.setOnClickListener {
-            findNavController().navigate(R.id.fragment_register)
+            findNavController().navigate(R.id.fragment_register_account_info)
         }
     }
 }
