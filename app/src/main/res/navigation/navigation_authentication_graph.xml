@@ -13,6 +13,9 @@
         <action
             android:id="@+id/create_account_button"
             app:destination="@id/fragment_register_account_info" />
+        <action
+            android:id="@+id/login_button"
+            app:destination="@id/fragment_account" />
 
     </fragment>
 
@@ -31,19 +34,25 @@
         android:name="com.example.memoraid.RegisterOptionalAccountInformationFragment"
         android:label="RegisterOptionalAccountInformationFragment"
         tools:layout="@layout/fragment_register_account_information">
+        <action
+            android:id="@+id/second_register_continue_button"
+            app:destination="@id/fragment_register_patients" />
     </fragment>
-    <action
-        android:id="@+id/second_register_continue_button"
-        app:destination="@id/fragment_register_patients" />
 
     <fragment
         android:id="@+id/fragment_register_patients"
         android:name="com.example.memoraid.RegisterPatientsFragment"
         android:label="RegisterPatientsFragment"
         tools:layout="@layout/fragment_register_account_information">
+    <action
+        android:id="@+id/register_finish_button"
+        app:destination="@id/fragment_login" />
     </fragment>
-<!--    <action-->
-<!--        android:id="@+id/register_finish_button"-->
-<!--        app:destination="@id/fragment_register_optional_account_information" />-->
 
+    <activity
+        android:id="@+id/fragment_account"
+        android:name="com.example.memoraid.MainActivity"
+        android:label="MainActivity"
+        tools:layout="@layout/activity_main">
+    </activity>
 </navigation>

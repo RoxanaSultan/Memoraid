@@ -24,7 +24,7 @@
         android:id="@+id/login_username"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="@string/username"
+        android:hint="@string/email_phone"
         app:layout_constraintBottom_toTopOf="@id/login_password"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
