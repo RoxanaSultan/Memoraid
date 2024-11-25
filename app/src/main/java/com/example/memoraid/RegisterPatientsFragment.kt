@@ -6,8 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.Button
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
+import com.example.memoraid.viewModels.RegistrationViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 class RegisterPatientsFragment : Fragment() {
 
@@ -15,6 +18,7 @@ class RegisterPatientsFragment : Fragment() {
     private lateinit var termsCheckbox: CheckBox
     private lateinit var finishButton: Button
     private lateinit var recyclerView: RecyclerView
+    private lateinit var sharedViewModel: RegistrationViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,17 +35,37 @@ class RegisterPatientsFragment : Fragment() {
         finishButton = view.findViewById(R.id.register_finish_button)
         recyclerView = view.findViewById(R.id.recycler_view_patients_list)
 
+        // Get the shared ViewModel
+        sharedViewModel = activity?.let {
+            androidx.lifecycle.ViewModelProvider(it)[RegistrationViewModel::class.java]
+        }!!
+
         caretakerCheckbox.setOnCheckedChangeListener { _, isChecked ->
             recyclerView.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
 
         finishButton.setOnClickListener {
-            if (termsCheckbox.isChecked) {
-                // Navigate to the next step (e.g., success screen or dashboard)
-                // Example: findNavController().navigate(R.id.action_registerPatientsFragment_to_homeFragment)
+            // Get data from ViewModel
+            val email = sharedViewModel.email
+            val password = sharedViewModel.password
+            if (!email.isNullOrEmpty() && !password.isNullOrEmpty()) {
+                registerUser(email, password)
             } else {
-                // Show an alert or toast to inform the user they need to agree to terms
+                Toast.makeText(requireContext(), "Error: Missing data", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun registerUser(email: String, password: String) {
+        val auth = FirebaseAuth.getInstance()
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(requireContext(), "Registration complete!", Toast.LENGTH_SHORT).show()
+                    // Navigate to the next screen or finish the activity
+                } else {
+                    Toast.makeText(requireContext(), "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                }
+            }
     }
 }

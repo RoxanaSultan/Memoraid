@@ -42,7 +42,6 @@
         app:layout_constraintBottom_toTopOf="@id/register_password"
         app:layout_constraintWidth_percent="0.8"
         android:layout_marginTop="10dp"
-        android:inputType="textPassword"
         android:hint="@string/email_phone"
         android:background="@drawable/edit_text_box"/>
 

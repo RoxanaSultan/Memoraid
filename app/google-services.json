@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "214547328037",
+    "project_id": "memoraid-application",
+    "storage_bucket": "memoraid-application.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:214547328037:android:f6a8340ec38b00bff2e3cc",
+        "android_client_info": {
+          "package_name": "com.example.memoraid"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZV4Er9oO_8h-YGDdSS6xsb9TBt5pFeGc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
