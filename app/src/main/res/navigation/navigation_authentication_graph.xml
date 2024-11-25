@@ -21,17 +21,17 @@
         android:name="com.example.memoraid.RegisterAccountInformationFragment"
         android:label="Register"
         tools:layout="@layout/fragment_register_account_information">
-<!--        <action-->
-<!--            android:id="@+id/first_register_continue_button"-->
-<!--            app:destination="@id/fragment_register_optional_account_info" />-->
+        <action
+            android:id="@+id/first_register_continue_button"
+            app:destination="@id/fragment_register_optional_account_info" />
     </fragment>
 
-<!--    <fragment-->
-<!--        android:id="@+id/fragment_register_optional_account_info"-->
-<!--        android:name="com.example.memoraid.RegisterOptionalAccountInformationFragment"-->
-<!--        android:label="Register"-->
-<!--        tools:layout="@layout/fragment_register_account_information">-->
-<!--    </fragment>-->
+    <fragment
+        android:id="@+id/fragment_register_optional_account_info"
+        android:name="com.example.memoraid.RegisterOptionalAccountInformationFragment"
+        android:label="Register"
+        tools:layout="@layout/fragment_register_account_information">
+    </fragment>
 <!--    <action-->
 <!--        android:id="@+id/second_register_continue_button"-->
 <!--        app:destination="@id/fragment_register_optional_account_information" />-->
