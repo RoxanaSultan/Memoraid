@@ -1,13 +1,13 @@
 package com.example.memoraid.models
+import java.sql.Timestamp
 
 data class User(
-    val userId: String = "",
+    val id: String = "",
     val username: String = "",
-    val emailPhone: String = "",
-    val password: String = "",
-    val firstName: String = "",
-    val lastName: String = "",
-    val birthday: String = "",
-    val profilePictureUrl: String = "",
-    val role: String = ""
+    val emailOrPhone: String = "",
+    val firstName: String? = "",
+    val lastName: String? = "",
+    val role: String = "", // Either "patient" or "caretaker"
+    val profilePictureUrl: String? = null,
+    val birthday: Timestamp? = null // Optional: Store as "yyyy-MM-dd" or Timestamp
 )
