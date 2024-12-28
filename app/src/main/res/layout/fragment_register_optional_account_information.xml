@@ -22,7 +22,7 @@
         android:id="@+id/add_picture_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Picture"
+        android:text="@string/addpicture"
         android:textColor="@color/black"
         app:layout_constraintTop_toBottomOf="@id/profile_picture"
         app:layout_constraintBottom_toTopOf="@id/register_firstname"
@@ -36,11 +36,12 @@
         android:layout_height="wrap_content"
         android:hint="@string/firstname"
         app:layout_constraintBottom_toTopOf="@id/register_lastname"
+        app:layout_constraintTop_toBottomOf="@id/add_picture_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintWidth_percent="0.8"
+        android:layout_marginTop="10dp"
         android:background="@drawable/edit_text_box"/>
 
     <EditText
@@ -50,12 +51,36 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/register_firstname"
-        app:layout_constraintBottom_toTopOf="@id/second_register_continue_button"
+        app:layout_constraintBottom_toTopOf="@id/register_phone_number"
         app:layout_constraintWidth_percent="0.8"
         android:layout_marginTop="10dp"
-        android:inputType="textPassword"
         android:hint="@string/lastname"
         android:background="@drawable/edit_text_box"/>
+
+    <EditText
+        android:id="@+id/register_phone_number"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/register_lastname"
+        app:layout_constraintBottom_toTopOf="@id/register_birthdate"
+        app:layout_constraintWidth_percent="0.8"
+        android:layout_marginTop="10dp"
+        android:inputType="phone"
+        android:hint="@string/phonenumber"
+        android:background="@drawable/edit_text_box"/>
+
+    <CalendarView
+        android:id="@+id/register_birthdate"
+        android:layout_width="316dp"
+        android:layout_height="304dp"
+        android:layout_marginTop="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/register_phone_number"
+        app:layout_constraintWidth_percent="0.8" />
+
 
     <android.widget.Button
         android:id="@+id/second_register_continue_button"
@@ -64,10 +89,10 @@
         android:text="@string/Continue"
         android:textColor="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/register_lastname"
+        app:layout_constraintTop_toBottomOf="@id/register_birthdate"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="0dp"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

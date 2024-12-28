@@ -1,109 +1,119 @@
 package com.example.memoraid
 
+import RegisterViewModel
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.example.memoraid.viewModels.RegistrationViewModel
+import com.example.memoraid.databinding.FragmentRegisterAccountInformationBinding
 import com.google.firebase.auth.FirebaseAuth
 
 class RegisterAccountInformationFragment : Fragment() {
 
-    private val sharedViewModel: RegistrationViewModel by activityViewModels() // Shared ViewModel
+    private lateinit var binding: FragmentRegisterAccountInformationBinding
+    private val sharedViewModel: RegisterViewModel by activityViewModels()
     private lateinit var auth: FirebaseAuth
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(R.layout.fragment_register_account_information, container, false)
+        // Initialize ViewBinding
+        binding = FragmentRegisterAccountInformationBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        auth = FirebaseAuth.getInstance() // Initialize Firebase Auth
+        // Initialize Firebase Auth
+        auth = FirebaseAuth.getInstance()
 
-        val emailField: EditText = view.findViewById(R.id.register_email_phone_number)
-        val passwordField: EditText = view.findViewById(R.id.register_password)
-        val confirmPasswordField: EditText = view.findViewById(R.id.register_confirm_password)
-        val continueButton: Button = view.findViewById(R.id.first_register_continue_button)
+        // Set up click listener for the continue button
+        binding.firstRegisterContinueButton.setOnClickListener {
+            val username = binding.registerUsername.text.toString().trim()
+            val email = binding.registerEmailPhoneNumber.text.toString().trim()
+            val password = binding.registerPassword.text.toString().trim()
+            val confirmPassword = binding.registerConfirmPassword.text.toString().trim()
 
-        continueButton.setOnClickListener {
-            val email = emailField.text.toString().trim()
-            val password = passwordField.text.toString().trim()
-            val confirmPassword = confirmPasswordField.text.toString().trim()
-
-            if (validateInputs(email, password, confirmPassword)) {
-                checkEmailAndNavigate(email, password, continueButton)
+            if (validateInput(email, password, confirmPassword)) {
+                // Call checkEmail and proceed based on the result
+                checkEmail(email) { isValid ->
+                    if (isValid) {
+                        sharedViewModel.setUsername(username)
+                        sharedViewModel.setEmail(email)
+                        sharedViewModel.setPassword(password)
+                        navigateToOptionalInfo()
+                    }
+                }
             }
         }
     }
 
-    private fun validateInputs(email: String, password: String, confirmPassword: String): Boolean {
-        if (email.isEmpty()) {
-            Toast.makeText(requireContext(), "Email is required", Toast.LENGTH_SHORT).show()
-            return false
-        }
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(requireContext(), "Invalid email", Toast.LENGTH_SHORT).show()
-            return false
-        }
-        if (password.isEmpty()) {
-            Toast.makeText(requireContext(), "Password is required", Toast.LENGTH_SHORT).show()
-            return false
-        }
-        if (password != confirmPassword) {
-            Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show()
-            return false
-        }
-        if (password.length < 8) {
-            Toast.makeText(
-                requireContext(),
-                "Password must be at least 8 characters",
-                Toast.LENGTH_SHORT
-            ).show()
-            return false
+    private fun validateInput(email: String, password: String, confirmPassword: String): Boolean {
+        when {
+            email.isEmpty() -> {
+                Toast.makeText(requireContext(), "Email is required", Toast.LENGTH_SHORT).show()
+                return false
+            }
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                Toast.makeText(requireContext(), "Invalid email", Toast.LENGTH_SHORT).show()
+                return false
+            }
+            //TODO: check if the email is already registered
+            password.isEmpty() -> {
+                Toast.makeText(requireContext(), "Password is required", Toast.LENGTH_SHORT).show()
+                return false
+            }
+            password != confirmPassword -> {
+                Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show()
+                return false
+            }
+            password.length < 8 -> {
+                Toast.makeText(requireContext(), "Password must be at least 8 characters", Toast.LENGTH_SHORT).show()
+                return false
+            }
         }
         return true
     }
 
-    // TODO: check if the email is indeed real
-    // TODO: check if the email is already registered
-    private fun checkEmailAndNavigate(email: String, password: String, continueButton: Button) {
-        continueButton.isEnabled = false // Disable button to prevent multiple clicks during processing
+    private fun checkEmail(email: String, callback: (Boolean) -> Unit) {
+        binding.firstRegisterContinueButton.isEnabled = false // Disable button temporarily
 
         auth.fetchSignInMethodsForEmail(email)
             .addOnCompleteListener { task ->
-                continueButton.isEnabled = true // Re-enable button after the task is completed
+                binding.firstRegisterContinueButton.isEnabled = true // Re-enable button
 
                 if (task.isSuccessful) {
                     val result = task.result
                     if (result?.signInMethods?.isNotEmpty() == true) {
                         // Email is already registered
                         Toast.makeText(requireContext(), "This email is already registered.", Toast.LENGTH_LONG).show()
+                        callback(false) // Call callback with false
                     } else {
                         // Email is valid and not registered
-                        sharedViewModel.email = email
-                        sharedViewModel.password = password
-                        findNavController().navigate(R.id.fragment_register_optional_account_info)
+                        callback(true) // Call callback with true
                     }
                 } else {
                     // Error occurred
                     val errorMessage = task.exception?.message ?: "An unknown error occurred."
                     Toast.makeText(requireContext(), "Error: $errorMessage", Toast.LENGTH_LONG).show()
+                    callback(false) // Call callback with false in case of error
                 }
             }
             .addOnFailureListener { exception ->
-                continueButton.isEnabled = true // Re-enable button in case of failure
+                binding.firstRegisterContinueButton.isEnabled = true // Re-enable button
                 val errorMessage = exception.localizedMessage ?: "An unknown error occurred."
                 Toast.makeText(requireContext(), "Error: $errorMessage", Toast.LENGTH_LONG).show()
+                callback(false) // Call callback with false in case of failure
             }
+    }
+
+    private fun navigateToOptionalInfo() {
+        findNavController().navigate(R.id.fragment_register_optional_account_info)
     }
 }

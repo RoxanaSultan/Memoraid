@@ -1,6 +1,6 @@
 package com.example.memoraid.models
 
+// Caretaker model inherits from User
 data class Caretaker(
-    val caretakerId: String = "",
-    val assignedPatients: List<String> = listOf()
-)
+    val assignedPatients: List<String> = listOf() // List of patient IDs
+) : User()

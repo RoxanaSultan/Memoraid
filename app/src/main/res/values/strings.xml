@@ -8,4 +8,7 @@
     <string name="email_phone">E-mail address</string>
     <string name="firstname">First name</string>
     <string name="lastname">Last name</string>
+    <string name="phonenumber">Phone number</string>
+    <string name="birthdate">Birthdate</string>
+    <string name="addpicture">Add picture</string>
 </resources>
