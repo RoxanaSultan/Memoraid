@@ -31,8 +31,8 @@ class RegisterViewModel : ViewModel() {
     private val _birthdate = MutableLiveData<String>()
     val birthdate: LiveData<String> get() = _birthdate
 
-    private val profilePictureUrl = MutableLiveData<String>()
-    val profilePicture: LiveData<String> get() = profilePictureUrl
+    private val _profilePictureUrl = MutableLiveData<String>()
+    val profilePictureUrl: LiveData<String> get() = _profilePictureUrl
 
     fun setPassword(password: String) {
         _password.value = password
@@ -71,6 +71,6 @@ class RegisterViewModel : ViewModel() {
     }
 
     fun setProfilePicture(value: String) {
-        profilePictureUrl.value = value
+        _profilePictureUrl.value = value
     }
 }

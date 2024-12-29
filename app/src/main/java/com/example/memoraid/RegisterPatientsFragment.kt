@@ -90,7 +90,7 @@ class RegisterPatientsFragment : Fragment() {
         val role = if (caretakerStatus) "caretaker" else "patient"
         val phoneNumber = sharedViewModel.phoneNumber.value
         val birthdate = sharedViewModel.birthdate.value
-        val profilePicture = sharedViewModel.profilePicture.value
+        val profilePictureUrl = sharedViewModel.profilePictureUrl.value
         sharedViewModel.setRole(role)
 
         // Create a userInfo map with all the data
@@ -103,7 +103,7 @@ class RegisterPatientsFragment : Fragment() {
             "role" to role,
             "phoneNumber" to phoneNumber,
             "birthdate" to birthdate,
-            "profilePictureUrl" to profilePicture
+            "profilePictureUrl" to profilePictureUrl
         )
 
         //TODO: Add a field for the user's profile picture URL
