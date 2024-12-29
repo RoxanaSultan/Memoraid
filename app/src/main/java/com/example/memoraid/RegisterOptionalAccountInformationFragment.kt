@@ -1,34 +1,51 @@
 package com.example.memoraid
 
 import RegisterViewModel
+import android.app.AlertDialog
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.memoraid.databinding.FragmentRegisterOptionalAccountInformationBinding
 import com.google.firebase.storage.FirebaseStorage
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 class RegisterOptionalAccountInformationFragment : Fragment() {
+
     private lateinit var binding: FragmentRegisterOptionalAccountInformationBinding
     private val sharedViewModel: RegisterViewModel by activityViewModels()
     private var selectedImageUri: Uri? = null
+    private var photoUri: Uri? = null
     private val storage = FirebaseStorage.getInstance()
 
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        if (uri != null) {
-            selectedImageUri = uri
-            binding.profilePicture.setImageURI(uri)
+        uri?.let {
+            selectedImageUri = it
+            binding.profilePicture.setImageURI(it)
+        }
+    }
+
+    private val cameraLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success && photoUri != null) {
+            selectedImageUri = photoUri
+            binding.profilePicture.setImageURI(photoUri)
         }
     }
 
@@ -36,7 +53,6 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Initialize view binding
         binding = FragmentRegisterOptionalAccountInformationBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -48,7 +64,7 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         var selectedMonth = 0
         var selectedDayOfMonth = 0
 
-        // Capture the date from the CalendarView
+        // CalendarView date selection
         binding.registerBirthdate.setOnDateChangeListener { _, year, month, dayOfMonth ->
             selectedYear = year
             selectedMonth = month
@@ -56,51 +72,107 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         }
 
         binding.addPictureButton.setOnClickListener {
-            imagePickerLauncher.launch("image/*")
+            showImageSourceDialog()
         }
 
-        // Handle the continue button click
         binding.secondRegisterContinueButton.setOnClickListener {
-            val firstName = binding.registerFirstname.text.toString().trim()
-            val lastName = binding.registerLastname.text.toString().trim()
-            val phoneNumber = binding.registerPhoneNumber.text.toString().trim()
-
-            // Format the selected date
-            val calendar = Calendar.getInstance()
-            calendar.set(selectedYear, selectedMonth, selectedDayOfMonth)
-            val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-            val birthdate = dateFormat.format(calendar.time)
-
-            // Upload the image or use the default image
-            if (selectedImageUri != null) {
-                uploadImageToFirebase()  // Upload the selected image
-            } else {
-                sharedViewModel.setProfilePicture("default_image_url")  // Set default image URL if no image is selected
-            }
-
-            // Pass data to the ViewModel
-            sharedViewModel.setFirstName(if (firstName.isEmpty()) "No first name" else firstName)
-            sharedViewModel.setLastName(if (lastName.isEmpty()) "No last name" else lastName)
-            sharedViewModel.setPhoneNumber(if (phoneNumber.isEmpty()) "No phone number" else phoneNumber)
-            sharedViewModel.setBirthdate(if (birthdate.isEmpty()) "No birthdate" else birthdate)
-
-            findNavController().navigate(R.id.fragment_register_patients)
+            handleContinue(selectedYear, selectedMonth, selectedDayOfMonth)
         }
     }
 
-    private fun uploadImageToFirebase() {
+    private fun showImageSourceDialog() {
+        val options = arrayOf("Take a Picture", "Choose from Gallery")
+        AlertDialog.Builder(requireContext())
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> checkAndRequestPermissions()
+                    1 -> chooseImageFromGallery()
+                }
+            }
+            .show()
+    }
+
+    private fun checkAndRequestPermissions() {
+        val cameraPermission = android.Manifest.permission.CAMERA
+        if (requireContext().checkSelfPermission(cameraPermission) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(cameraPermission), 1001)
+        } else {
+            takePicture()
+        }
+    }
+
+    private fun takePicture() {
+        val photoFile = createImageFile()
+        photoUri = FileProvider.getUriForFile(requireContext(), "com.example.memoraid.fileprovider", photoFile)
+        cameraLauncher.launch(photoUri)
+    }
+
+    private fun chooseImageFromGallery() {
+        imagePickerLauncher.launch("image/*")
+    }
+
+    private fun createImageFile(): File {
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile("JPEG_${timestamp}_", ".jpg", storageDir)
+    }
+
+    private fun handleContinue(year: Int, month: Int, dayOfMonth: Int) {
+        val firstName = binding.registerFirstname.text.toString().trim()
+        val lastName = binding.registerLastname.text.toString().trim()
+        val phoneNumber = binding.registerPhoneNumber.text.toString().trim()
+
+        val calendar = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
+        val birthdate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(calendar.time)
+
+        if (selectedImageUri != null) {
+            uploadImageToFirebase { imageUrl ->
+                sharedViewModel.setProfilePicture(imageUrl)
+                proceedToNextStep(firstName, lastName, phoneNumber, birthdate)
+            }
+        } else {
+            sharedViewModel.setProfilePicture("default_image_url")
+            proceedToNextStep(firstName, lastName, phoneNumber, birthdate)
+        }
+    }
+
+    private fun uploadImageToFirebase(onSuccess: (String) -> Unit) {
         val storageRef = storage.reference.child("profile_pictures/${System.currentTimeMillis()}.jpg")
         selectedImageUri?.let { uri ->
             storageRef.putFile(uri)
                 .addOnSuccessListener {
                     storageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                        // Set the download URL in the ViewModel after the upload is successful
-                        sharedViewModel.setProfilePicture(downloadUrl.toString())
+                        onSuccess(downloadUrl.toString())
                     }
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(requireContext(), "Failed to upload image: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
+        }
+    }
+
+    private fun proceedToNextStep(
+        firstName: String,
+        lastName: String,
+        phoneNumber: String,
+        birthdate: String
+    ) {
+        sharedViewModel.setFirstName(if (firstName.isEmpty()) "No first name" else firstName)
+        sharedViewModel.setLastName(if (lastName.isEmpty()) "No last name" else lastName)
+        sharedViewModel.setPhoneNumber(if (phoneNumber.isEmpty()) "No phone number" else phoneNumber)
+        sharedViewModel.setBirthdate(if (birthdate.isEmpty()) "No birthdate" else birthdate)
+
+        findNavController().navigate(R.id.fragment_register_patients)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 1001 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            takePicture()
+        } else {
+            Toast.makeText(requireContext(), "Camera permission is required to take pictures.", Toast.LENGTH_SHORT).show()
         }
     }
 }
