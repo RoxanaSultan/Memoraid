@@ -54,10 +54,10 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
             val birthdate = dateFormat.format(calendar.time)
 
             // Pass data to the ViewModel
-            sharedViewModel.setFirstName(firstName)
-            sharedViewModel.setLastName(lastName)
-            sharedViewModel.setPhoneNumber(phoneNumber)
-            sharedViewModel.setBirthdate(birthdate)
+            sharedViewModel.setFirstName(if (firstName.isEmpty()) "No first name" else firstName)
+            sharedViewModel.setLastName(if (lastName.isEmpty()) "No last name" else lastName)
+            sharedViewModel.setPhoneNumber(if (phoneNumber.isEmpty()) "No phone number" else phoneNumber)
+            sharedViewModel.setBirthdate(if (birthdate.isEmpty()) "No birthdate" else birthdate)
 
             // Navigate to the next fragment
             findNavController().navigate(R.id.fragment_register_patients)

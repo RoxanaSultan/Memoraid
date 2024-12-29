@@ -67,7 +67,7 @@ class RegisterPatientsFragment : Fragment() {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    savePatientSelection()
+                    saveUserDetails()
                     findNavController().navigate(R.id.register_finish_button)
                 } else {
                     Toast.makeText(requireContext(), "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
@@ -75,7 +75,7 @@ class RegisterPatientsFragment : Fragment() {
             }
     }
 
-    private fun savePatientSelection() {
+    private fun saveUserDetails() {
         val user = FirebaseAuth.getInstance().currentUser
         val db = FirebaseFirestore.getInstance()
         val userRef = db.collection("users").document(user?.uid ?: "")
@@ -83,14 +83,14 @@ class RegisterPatientsFragment : Fragment() {
         // Gather all the user information from the ViewModel
         val username = sharedViewModel.username.value
         val email = sharedViewModel.email.value
-        val firstName = sharedViewModel.firstName.value ?: "No first name"
-        val lastName = sharedViewModel.lastName.value ?: "No last name"
+        val firstName = sharedViewModel.firstName.value
+        val lastName = sharedViewModel.lastName.value
         val caretakerStatus = binding.checkboxCaretaker.isChecked
-        val patientsList = sharedViewModel.patientsList.value ?: emptyList()
+        val patientsList = sharedViewModel.patientsList.value
         val role = if (caretakerStatus) "caretaker" else "patient"
-        val phoneNumber = sharedViewModel.phoneNumber.value ?: "No phone number"
-        val birthdate = sharedViewModel.birthdate.value ?: "No birthdate"
-        val profilePicture = sharedViewModel.profilePicture.value ?: "No profile picture"
+        val phoneNumber = sharedViewModel.phoneNumber.value
+        val birthdate = sharedViewModel.birthdate.value
+        val profilePicture = sharedViewModel.profilePicture.value
         sharedViewModel.setRole(role)
 
         // Create a userInfo map with all the data
