@@ -1,6 +1,7 @@
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.memoraid.models.PatientModel
 import java.sql.Timestamp
 
 class RegisterViewModel : ViewModel() {

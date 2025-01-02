@@ -97,4 +97,6 @@ dependencies {
     implementation ("com.google.firebase:firebase-storage-ktx")
 
     implementation ("com.google.android.gms:play-services-auth:21.3.0")
+    implementation ("com.squareup.picasso:picasso:2.8")
+
 }
