@@ -1,6 +1,8 @@
 package com.example.memoraid
 
 import RegisterViewModel
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -58,12 +60,23 @@ class RegisterPatientsFragment : Fragment() {
                 return@setOnClickListener
             }
 
+            if (selectedPatients.isEmpty() && binding.checkboxCaretaker.isChecked) {
+                Toast.makeText(requireContext(), "You must select at least one patient.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val emailValue = sharedViewModel.email.value
             val passwordValue = sharedViewModel.password.value
 
             registerUser(emailValue!!, passwordValue!!)
 
             findNavController().navigate(R.id.register_finish_button)
+        }
+
+        // Handle click event for Terms and Conditions link
+        binding.linkTermsConditions.setOnClickListener {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.terms_conditions_url)))
+            startActivity(intent)
         }
     }
 

@@ -71,16 +71,44 @@
         android:hint="@string/phonenumber"
         android:background="@drawable/edit_text_box"/>
 
-    <CalendarView
-        android:id="@+id/register_birthdate"
-        android:layout_width="316dp"
-        android:layout_height="304dp"
-        android:layout_marginTop="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/register_phone_number"
-        app:layout_constraintWidth_percent="0.8" />
+<!--    <CalendarView-->
+<!--        android:id="@+id/register_birthdate"-->
+<!--        android:layout_width="316dp"-->
+<!--        android:layout_height="304dp"-->
+<!--        android:layout_marginTop="10dp"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/register_phone_number"-->
+<!--        app:layout_constraintWidth_percent="0.8" />-->
 
+<LinearLayout
+    android:id="@+id/register_birthdate"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    app:layout_constraintTop_toBottomOf="@id/register_phone_number"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    android:layout_marginTop="10dp"
+    android:gravity="center">
+
+    <NumberPicker
+        android:id="@+id/day_picker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"/>
+
+    <NumberPicker
+        android:id="@+id/month_picker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"/>
+
+    <NumberPicker
+        android:id="@+id/year_picker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</LinearLayout>
 
     <android.widget.Button
         android:id="@+id/second_register_continue_button"

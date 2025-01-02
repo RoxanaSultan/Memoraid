@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -41,6 +42,16 @@ class RegisterAccountInformationFragment : Fragment() {
 
         // Initialize Firestore
         firestore = FirebaseFirestore.getInstance()
+
+//        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+//            override fun handleOnBackPressed() {
+//                // Custom behavior for the back button press
+//                Toast.makeText(requireContext(), "Go Back button pressed", Toast.LENGTH_SHORT).show()
+//
+//                // You can also navigate to a specific fragment or perform cleanup
+//                findNavController().navigateUp() // Navigates to the previous fragment
+//            }
+//        })
 
         // Set up click listener for the continue button
         binding.firstRegisterContinueButton.setOnClickListener {

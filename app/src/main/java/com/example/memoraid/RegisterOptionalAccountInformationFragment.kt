@@ -9,6 +9,7 @@ import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
@@ -60,15 +61,34 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        var selectedYear = 0
-        var selectedMonth = 0
-        var selectedDayOfMonth = 0
+        val dayPicker: NumberPicker = binding.dayPicker
+        val monthPicker: NumberPicker = binding.monthPicker
+        val yearPicker: NumberPicker = binding.yearPicker
 
-        // CalendarView date selection
-        binding.registerBirthdate.setOnDateChangeListener { _, year, month, dayOfMonth ->
-            selectedYear = year
-            selectedMonth = month
-            selectedDayOfMonth = dayOfMonth
+        // Set min and max values for the NumberPickers
+        dayPicker.minValue = 1
+        dayPicker.maxValue = 31
+
+        monthPicker.minValue = 1
+        monthPicker.maxValue = 12
+
+        yearPicker.minValue = 1900
+        yearPicker.maxValue = 2100
+
+        var selectedYear = yearPicker.value
+        var selectedMonth = monthPicker.value
+        var selectedDayOfMonth = dayPicker.value
+
+        dayPicker.setOnValueChangedListener { _, _, newVal ->
+            selectedDayOfMonth = newVal
+        }
+
+        monthPicker.setOnValueChangedListener { _, _, newVal ->
+            selectedMonth = newVal
+        }
+
+        yearPicker.setOnValueChangedListener { _, _, newVal ->
+            selectedYear = newVal
         }
 
         binding.addPictureButton.setOnClickListener {
@@ -122,7 +142,7 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         val lastName = binding.registerLastname.text.toString().trim()
         val phoneNumber = binding.registerPhoneNumber.text.toString().trim()
 
-        val calendar = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
+        val calendar = Calendar.getInstance().apply { set(year, month - 1, dayOfMonth) }
         val birthdate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(calendar.time)
 
         if (selectedImageUri != null) {
@@ -131,7 +151,7 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
                 proceedToNextStep(firstName, lastName, phoneNumber, birthdate)
             }
         } else {
-            sharedViewModel.setProfilePicture("default_image_url")
+            sharedViewModel.setProfilePicture("https://firebasestorage.googleapis.com/v0/b/memoraid-application.firebasestorage.app/o/profile_pictures%2Fdefault_profile_picture.png?alt=media&token=fa0aea7d-b11e-49f9-95f7-4b9f820e3942")
             proceedToNextStep(firstName, lastName, phoneNumber, birthdate)
         }
     }

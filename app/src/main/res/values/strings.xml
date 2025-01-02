@@ -11,4 +11,10 @@
     <string name="phonenumber">Phone number</string>
     <string name="birthdate">Birthdate</string>
     <string name="addpicture">Add picture</string>
+    <string name="iamacaretaker">I am a caretaker</string>
+    <string name="termsandconditions">I agree to the terms and conditions</string>
+    <string name="finish">Finish</string>
+    <string name="name">Name:</string>
+    <string name="view_terms_conditions">View Terms and Conditions</string>
+    <string name="terms_conditions_url">https://sites.google.com/view/memoraidapp/pagina-de-pornire</string>
 </resources>

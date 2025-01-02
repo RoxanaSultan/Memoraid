@@ -42,7 +42,7 @@ class PatientAdapter(
                 .into(binding.patientProfilePicture) // Load image into the ImageView
 
             binding.patientUsername.text = patient.username
-            binding.patientName.text = patient.name
+//            binding.patientName.text = patient.name
             binding.checkboxPatientSelect.setOnCheckedChangeListener { _, isChecked ->
                 onCheckboxChanged(patient, isChecked)
             }
