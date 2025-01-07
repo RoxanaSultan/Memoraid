@@ -43,15 +43,12 @@ class RegisterAccountInformationFragment : Fragment() {
         // Initialize Firestore
         firestore = FirebaseFirestore.getInstance()
 
-//        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
-//            override fun handleOnBackPressed() {
-//                // Custom behavior for the back button press
-//                Toast.makeText(requireContext(), "Go Back button pressed", Toast.LENGTH_SHORT).show()
-//
-//                // You can also navigate to a specific fragment or perform cleanup
-//                findNavController().navigateUp() // Navigates to the previous fragment
-//            }
-//        })
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                sharedViewModel.clearData() // Clear all data stored in the ViewModel
+                findNavController().navigateUp() // Navigates to the previous fragment
+            }
+        })
 
         // Set up click listener for the continue button
         binding.firstRegisterContinueButton.setOnClickListener {

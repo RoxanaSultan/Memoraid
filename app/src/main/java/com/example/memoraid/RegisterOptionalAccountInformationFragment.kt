@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.NumberPicker
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -98,6 +99,13 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         binding.secondRegisterContinueButton.setOnClickListener {
             handleContinue(selectedYear, selectedMonth, selectedDayOfMonth)
         }
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                sharedViewModel.clearData() // Clear all data stored in the ViewModel
+                findNavController().navigateUp() // Navigates to the previous fragment
+            }
+        })
     }
 
     private fun showImageSourceDialog() {

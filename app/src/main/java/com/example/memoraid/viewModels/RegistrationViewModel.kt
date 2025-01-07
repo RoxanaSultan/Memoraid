@@ -74,4 +74,17 @@ class RegisterViewModel : ViewModel() {
     fun setProfilePicture(value: String) {
         _profilePictureUrl.value = value
     }
+
+    fun clearData() {
+        _username.value = ""
+        _password.value = ""
+        _email.value = ""
+        _firstName.value = ""
+        _lastName.value = ""
+        _patientsList.value = emptyList()
+        _role.value = ""
+        _phoneNumber.value = ""
+        _birthdate.value = ""
+        _profilePictureUrl.value = ""
+    }
 }

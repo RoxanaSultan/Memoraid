@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -78,6 +79,13 @@ class RegisterPatientsFragment : Fragment() {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.terms_conditions_url)))
             startActivity(intent)
         }
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                sharedViewModel.clearData() // Clear all data stored in the ViewModel
+                findNavController().navigateUp() // Navigates to the previous fragment
+            }
+        })
     }
 
     private fun setupRecyclerView() {

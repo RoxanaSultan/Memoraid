@@ -17,4 +17,7 @@
     <string name="name">Name:</string>
     <string name="view_terms_conditions">View Terms and Conditions</string>
     <string name="terms_conditions_url">https://sites.google.com/view/memoraidapp/pagina-de-pornire</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="new_password">New Password</string>
 </resources>

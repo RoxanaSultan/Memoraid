@@ -1,6 +1,7 @@
 package com.example.memoraid
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -20,5 +21,16 @@ class AuthenticationActivity : AppCompatActivity() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
+
+        val data: Uri? = intent.data
+        if (data != null && data.path == "/reset-password") {
+            // Deep link detected, navigate to ResetPasswordFragment
+            val fragment = ResetPasswordFragment()
+
+            val transaction = supportFragmentManager.beginTransaction()
+            transaction.replace(R.id.fragment_container, fragment)
+            transaction.addToBackStack(null)
+            transaction.commit()
+        }
     }
 }
