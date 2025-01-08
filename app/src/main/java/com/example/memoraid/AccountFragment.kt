@@ -13,6 +13,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.bumptech.glide.Glide
 import androidx.fragment.app.activityViewModels
+import com.example.memoraid.models.User
 
 class AccountFragment : Fragment() {
 
@@ -22,6 +23,7 @@ class AccountFragment : Fragment() {
     private lateinit var db: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
     private val accountViewModel: AccountViewModel by activityViewModels()
+//    private var user: User? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -58,6 +60,28 @@ class AccountFragment : Fragment() {
                 .placeholder(R.drawable.default_profile_picture)
                 .into(binding.profilePicture)
         }
+//        if (user == null)
+//        {
+//            val currentUser = auth.currentUser?.uid ?: ""
+//            if (currentUser.isNotEmpty()) {
+//                fetchUserData(currentUser)
+//            }
+//        }
+//        else
+//        {
+//            binding.username.text = user!!.username
+//            binding.email.text = user!!.email
+//            binding.firstName.text = user!!.firstName
+//            binding.lastName.text = user!!.lastName
+//            binding.phoneNumber.text = user!!.phoneNumber
+//            binding.birthdate.text = user!!.birthdate
+//
+//            // Load profile picture using Glide (if stored in ViewModel)
+//            val profilePictureUrl = user!!.profilePictureUrl
+//            Glide.with(this).load(profilePictureUrl)
+//                .placeholder(R.drawable.default_profile_picture)
+//                .into(binding.profilePicture)
+//        }
 
         // Set up logout button
         binding.logoutButton.setOnClickListener {
@@ -104,6 +128,17 @@ class AccountFragment : Fragment() {
                 val profilePictureUrl = documentSnapshot.getString("profilePictureUrl") ?: ""
                 val patientsList = documentSnapshot.get("patientsList") as? List<String> ?: emptyList()
                 val role = documentSnapshot.getString("role") ?: ""
+
+//                user = User(
+//                    username,
+//                    email,
+//                    phoneNumber,
+//                    firstName,
+//                    lastName,
+//                    profilePictureUrl,
+//                    role,
+//                    birthdate
+//                )
 
                 // Set data in ViewModel
                 accountViewModel.setFirstName(firstName)
