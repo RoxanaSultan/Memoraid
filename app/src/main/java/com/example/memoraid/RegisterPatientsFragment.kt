@@ -71,6 +71,7 @@ class RegisterPatientsFragment : Fragment() {
 
             registerUser(emailValue!!, passwordValue!!)
 
+            sharedViewModel.clearData() // Clear all data stored in the ViewModel
             findNavController().navigate(R.id.register_finish_button)
         }
 
