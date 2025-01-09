@@ -1,11 +1,13 @@
 package com.example.memoraid
 
 import AccountViewModel
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.text.set
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.memoraid.databinding.FragmentAccountBinding
@@ -47,12 +49,19 @@ class AccountFragment : Fragment() {
             }
         } else {
             // Use data from ViewModel if available
-            binding.username.text = accountViewModel.username.value
-            binding.email.text = accountViewModel.email.value
-            binding.firstName.text = accountViewModel.firstName.value
-            binding.lastName.text = accountViewModel.lastName.value
-            binding.phoneNumber.text = accountViewModel.phoneNumber.value
-            binding.birthdate.text = accountViewModel.birthdate.value
+            binding.username.setText(accountViewModel.username.value ?: "")
+            binding.email.setText(accountViewModel.email.value ?: "")
+            binding.firstName.setText(accountViewModel.firstName.value ?: "")
+            binding.lastName.setText(accountViewModel.lastName.value ?: "")
+            binding.phoneNumber.setText(accountViewModel.phoneNumber.value ?: "")
+            binding.birthdate.setText(accountViewModel.birthdate.value ?: "")
+
+//            binding.username.text = accountViewModel.username.value
+//            binding.email.text = accountViewModel.email.value
+//            binding.firstName.text = accountViewModel.firstName.value
+//            binding.lastName.text = accountViewModel.lastName.value
+//            binding.phoneNumber.text = accountViewModel.phoneNumber.value
+//            binding.birthdate.text = accountViewModel.birthdate.value
 
             // Load profile picture using Glide (if stored in ViewModel)
             val profilePictureUrl = accountViewModel.profilePictureUrl.value
@@ -86,14 +95,68 @@ class AccountFragment : Fragment() {
         // Set up logout button
         binding.logoutButton.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
-            // Navigate back to the login screen or perform other actions
-            findNavController().navigate(R.id.fragment_login)
+//            findNavController().navigate(R.id.action_accountFragment_to_loginFragment)
+            val intent = Intent(requireContext(), AuthenticationActivity::class.java)
+            startActivity(intent)
         }
 
-        binding.editProfileButton.setOnClickListener {
-            // Navigate to the EditProfileFragment
-            // findNavController().navigate(R.id.action_accountFragment_to_editProfileFragment)
+//        binding.editProfileButton.setOnClickListener {
+//            // Navigate to the EditProfileFragment
+//            // findNavController().navigate(R.id.action_accountFragment_to_editProfileFragment)
+//        }
+
+        binding.saveChangesButton.setOnClickListener {
+            // Get updated user data from the EditText fields
+            val username = binding.username.text.toString().trim()
+            val email = binding.email.text.toString().trim()
+            val firstName = binding.firstName.text.toString().trim()
+            val lastName = binding.lastName.text.toString().trim()
+            val phoneNumber = binding.phoneNumber.text.toString().trim()
+            val birthdate = binding.birthdate.text.toString().trim()
+
+            // Update ViewModel with the new values
+            accountViewModel.setUsername(username)
+            accountViewModel.setEmail(email)
+            accountViewModel.setFirstName(firstName)
+            accountViewModel.setLastName(lastName)
+            accountViewModel.setPhoneNumber(phoneNumber)
+            accountViewModel.setBirthdate(birthdate)
+
+            // Get the current user ID
+            val userId = auth.currentUser?.uid ?: ""
+
+            if (userId.isNotEmpty()) {
+                // Update Firestore with the new data
+                val userUpdates = hashMapOf(
+                    "username" to username,
+                    "email" to email,
+                    "firstName" to firstName,
+                    "lastName" to lastName,
+                    "phoneNumber" to phoneNumber,
+                    "birthdate" to birthdate
+                )
+
+                db.collection("users").document(userId)
+                    .update(userUpdates as MutableMap<String, Any>)
+                    .addOnSuccessListener {
+                        // Provide feedback to the user
+                        Toast.makeText(requireContext(), "Changes saved successfully", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener { exception ->
+                        // Handle errors
+                        Toast.makeText(requireContext(), "Error saving changes: ${exception.message}", Toast.LENGTH_LONG).show()
+                    }
+            }
         }
+
+        binding.changePasswordButton.setOnClickListener {
+            findNavController().navigate(R.id.action_accountFragment_to_changePasswordFragment)
+        }
+
+        binding.changePictureButton.setOnClickListener {
+
+        }
+
 
         return view
     }
@@ -151,13 +214,19 @@ class AccountFragment : Fragment() {
                 accountViewModel.setPatientsList(patientsList)
                 accountViewModel.setRole(role)
 
+                binding.username.setText(accountViewModel.username.value ?: "")
+                binding.email.setText(accountViewModel.email.value ?: "")
+                binding.firstName.setText(accountViewModel.firstName.value ?: "")
+                binding.lastName.setText(accountViewModel.lastName.value ?: "")
+                binding.phoneNumber.setText(accountViewModel.phoneNumber.value ?: "")
+                binding.birthdate.setText(accountViewModel.birthdate.value ?: "")
                 // Update UI with data from Firestore
-                binding.username.text = username  // Display the UID or other relevant info
-                binding.email.text = email
-                binding.firstName.text = firstName
-                binding.lastName.text = lastName
-                binding.phoneNumber.text = phoneNumber
-                binding.birthdate.text = birthdate
+//                binding.username.text = username  // Display the UID or other relevant info
+//                binding.email.text = email
+//                binding.firstName.text = firstName
+//                binding.lastName.text = lastName
+//                binding.phoneNumber.text = phoneNumber
+//                binding.birthdate.text = birthdate
 
                 Glide.with(this).load(profilePictureUrl)
                     .placeholder(R.drawable.default_profile_picture)
