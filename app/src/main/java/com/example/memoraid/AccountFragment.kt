@@ -179,8 +179,8 @@ class AccountFragment : Fragment() {
         if (selectedImageUri != null) {
             uploadImageToFirebase { imageUrl ->
                 accountViewModel.setProfilePicture(imageUrl)
+                didAnythingChange = true
             }
-            didAnythingChange = true
         }
 
         if (!didAnythingChange) {
