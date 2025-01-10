@@ -125,6 +125,11 @@ class AccountFragment : Fragment() {
             showImageSourceDialog()
         }
 
+        binding.deletePictureButton.setOnClickListener {
+            binding.profilePicture.setImageResource(R.drawable.default_profile_picture)
+            selectedImageUri = "https://firebasestorage.googleapis.com/v0/b/memoraid-application.firebasestorage.app/o/profile_pictures%2Fdefault_profile_picture.png?alt=media&token=fa0aea7d-b11e-49f9-95f7-4b9f820e3942".toUri()
+        }
+
         return view
     }
 
