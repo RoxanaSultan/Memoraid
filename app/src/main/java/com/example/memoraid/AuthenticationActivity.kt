@@ -7,8 +7,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import com.google.firebase.auth.FirebaseAuth
 
 class AuthenticationActivity : AppCompatActivity() {
 
@@ -31,6 +34,21 @@ class AuthenticationActivity : AppCompatActivity() {
             transaction.replace(R.id.fragment_container, fragment)
             transaction.addToBackStack(null)
             transaction.commit()
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        // Get the current user
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+        // If the user is signed in, navigate to the main screen
+        if (currentUser != null) {
+            // Navigate to the main screen (MainActivity)
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish() // Finish AuthenticationActivity to prevent going back to it
         }
     }
 }

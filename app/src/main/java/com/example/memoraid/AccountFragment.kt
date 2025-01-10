@@ -1,11 +1,14 @@
 package com.example.memoraid
 
 import AccountViewModel
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.Toast
 import androidx.core.text.set
 import androidx.fragment.app.Fragment
@@ -16,6 +19,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.bumptech.glide.Glide
 import androidx.fragment.app.activityViewModels
 import com.example.memoraid.models.User
+import com.google.firebase.auth.EmailAuthProvider
 
 class AccountFragment : Fragment() {
 
@@ -147,19 +151,9 @@ class AccountFragment : Fragment() {
                         Toast.makeText(requireContext(), "Error saving changes: ${exception.message}", Toast.LENGTH_LONG).show()
                     }
 
-                // Update authentication email
-                val currentUser = auth.currentUser
-                if (currentUser != null && currentUser.email != email) {
-                    currentUser.updateEmail(email)
-                        .addOnSuccessListener {
-                            // Email updated successfully
-                            Toast.makeText(requireContext(), "Authentication email updated successfully", Toast.LENGTH_SHORT).show()
-                        }
-                        .addOnFailureListener { exception ->
-                            // Handle errors
-                            Toast.makeText(requireContext(), "Error updating authentication email: ${exception.message}", Toast.LENGTH_LONG).show()
-                        }
-                }
+//                if (email != accountViewModel.email.value) {
+//                    updateEmailWithReauth(email)
+//                }
             }
         }
 
@@ -181,6 +175,61 @@ class AccountFragment : Fragment() {
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
     }
+
+    private fun updateEmailWithReauth(newEmail: String) {
+        val currentUser = auth.currentUser
+
+        if (currentUser != null && currentUser.email != newEmail) {
+            // Show password prompt
+            val passwordInput = EditText(requireContext())
+            passwordInput.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+
+            AlertDialog.Builder(requireContext())
+                .setTitle("Re-authentication Required")
+                .setMessage("Please enter your password to confirm email change.")
+                .setView(passwordInput)
+                .setPositiveButton("Confirm") { _, _ ->
+                    val password = passwordInput.text.toString()
+
+                    // Re-authenticate user
+                    val credential = EmailAuthProvider.getCredential(currentUser.email!!, password)
+                    currentUser.reauthenticate(credential)
+                        .addOnSuccessListener {
+                            // Proceed with email update
+                            currentUser.updateEmail(newEmail)
+                                .addOnSuccessListener {
+                                    // Update Firestore with the new email
+                                    db.collection("users").document(currentUser.uid)
+                                        .update("email", newEmail)
+                                        .addOnSuccessListener {
+                                            Toast.makeText(requireContext(), "Email updated. Please log in again.", Toast.LENGTH_SHORT).show()
+                                            redirectToLogin()
+                                        }
+                                        .addOnFailureListener { e ->
+                                            Toast.makeText(requireContext(), "Error updating Firestore: ${e.message}", Toast.LENGTH_LONG).show()
+                                        }
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(requireContext(), "Error updating email: ${e.message}", Toast.LENGTH_LONG).show()
+                                }
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(requireContext(), "Re-authentication failed: ${e.message}", Toast.LENGTH_LONG).show()
+                        }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+    }
+
+    private fun redirectToLogin() {
+        auth.signOut()  // Log out the user
+        val intent = Intent(requireContext(), AuthenticationActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        requireActivity().finish()
+    }
+
 
     private fun fetchUserData(userId: String) {
         val firestore = FirebaseFirestore.getInstance()
