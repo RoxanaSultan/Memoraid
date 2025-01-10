@@ -146,6 +146,20 @@ class AccountFragment : Fragment() {
                         // Handle errors
                         Toast.makeText(requireContext(), "Error saving changes: ${exception.message}", Toast.LENGTH_LONG).show()
                     }
+
+                // Update authentication email
+                val currentUser = auth.currentUser
+                if (currentUser != null && currentUser.email != email) {
+                    currentUser.updateEmail(email)
+                        .addOnSuccessListener {
+                            // Email updated successfully
+                            Toast.makeText(requireContext(), "Authentication email updated successfully", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { exception ->
+                            // Handle errors
+                            Toast.makeText(requireContext(), "Error updating authentication email: ${exception.message}", Toast.LENGTH_LONG).show()
+                        }
+                }
             }
         }
 

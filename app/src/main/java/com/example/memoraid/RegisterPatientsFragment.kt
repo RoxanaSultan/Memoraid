@@ -70,9 +70,6 @@ class RegisterPatientsFragment : Fragment() {
             val passwordValue = sharedViewModel.password.value
 
             registerUser(emailValue!!, passwordValue!!)
-
-            sharedViewModel.clearData() // Clear all data stored in the ViewModel
-            findNavController().navigate(R.id.register_finish_button)
         }
 
         // Handle click event for Terms and Conditions link
@@ -139,6 +136,8 @@ class RegisterPatientsFragment : Fragment() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     saveUserDetails()
+                    sharedViewModel.clearData() // Clear all data stored in the ViewModel
+                    findNavController().navigate(R.id.register_finish_button)
                 } else {
                     Toast.makeText(requireContext(), "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                 }
