@@ -3,13 +3,18 @@ package com.example.memoraid
 import AccountViewModel
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.core.text.set
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -18,8 +23,16 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.bumptech.glide.Glide
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import com.example.memoraid.models.User
 import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class AccountFragment : Fragment() {
 
@@ -29,6 +42,9 @@ class AccountFragment : Fragment() {
     private lateinit var db: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
     private val accountViewModel: AccountViewModel by activityViewModels()
+    private var selectedImageUri: Uri? = null
+    private var photoUri: Uri? = null
+    private val storage = FirebaseStorage.getInstance()
 //    private var user: User? = null
 
     override fun onCreateView(
@@ -59,13 +75,6 @@ class AccountFragment : Fragment() {
             binding.lastName.setText(accountViewModel.lastName.value ?: "")
             binding.phoneNumber.setText(accountViewModel.phoneNumber.value ?: "")
             binding.birthdate.setText(accountViewModel.birthdate.value ?: "")
-
-//            binding.username.text = accountViewModel.username.value
-//            binding.email.text = accountViewModel.email.value
-//            binding.firstName.text = accountViewModel.firstName.value
-//            binding.lastName.text = accountViewModel.lastName.value
-//            binding.phoneNumber.text = accountViewModel.phoneNumber.value
-//            binding.birthdate.text = accountViewModel.birthdate.value
 
             // Load profile picture using Glide (if stored in ViewModel)
             val profilePictureUrl = accountViewModel.profilePictureUrl.value
@@ -104,57 +113,8 @@ class AccountFragment : Fragment() {
             startActivity(intent)
         }
 
-//        binding.editProfileButton.setOnClickListener {
-//            // Navigate to the EditProfileFragment
-//            // findNavController().navigate(R.id.action_accountFragment_to_editProfileFragment)
-//        }
-
         binding.saveChangesButton.setOnClickListener {
-            // Get updated user data from the EditText fields
-            val username = binding.username.text.toString().trim()
-            val email = binding.email.text.toString().trim()
-            val firstName = binding.firstName.text.toString().trim()
-            val lastName = binding.lastName.text.toString().trim()
-            val phoneNumber = binding.phoneNumber.text.toString().trim()
-            val birthdate = binding.birthdate.text.toString().trim()
-
-            // Update ViewModel with the new values
-            accountViewModel.setUsername(username)
-            accountViewModel.setEmail(email)
-            accountViewModel.setFirstName(firstName)
-            accountViewModel.setLastName(lastName)
-            accountViewModel.setPhoneNumber(phoneNumber)
-            accountViewModel.setBirthdate(birthdate)
-
-            // Get the current user ID
-            val userId = auth.currentUser?.uid ?: ""
-
-            if (userId.isNotEmpty()) {
-                // Update Firestore with the new data
-                val userUpdates = hashMapOf(
-                    "username" to username,
-                    "email" to email,
-                    "firstName" to firstName,
-                    "lastName" to lastName,
-                    "phoneNumber" to phoneNumber,
-                    "birthdate" to birthdate
-                )
-
-                db.collection("users").document(userId)
-                    .update(userUpdates as MutableMap<String, Any>)
-                    .addOnSuccessListener {
-                        // Provide feedback to the user
-                        Toast.makeText(requireContext(), "Changes saved successfully", Toast.LENGTH_SHORT).show()
-                    }
-                    .addOnFailureListener { exception ->
-                        // Handle errors
-                        Toast.makeText(requireContext(), "Error saving changes: ${exception.message}", Toast.LENGTH_LONG).show()
-                    }
-
-//                if (email != accountViewModel.email.value) {
-//                    updateEmailWithReauth(email)
-//                }
-            }
+            saveUpdates()
         }
 
         binding.changePasswordButton.setOnClickListener {
@@ -162,9 +122,8 @@ class AccountFragment : Fragment() {
         }
 
         binding.changePictureButton.setOnClickListener {
-
+            showImageSourceDialog()
         }
-
 
         return view
     }
@@ -174,6 +133,183 @@ class AccountFragment : Fragment() {
 
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
+    }
+
+    private fun saveUpdates(){
+        // Get updated user data from the EditText fields
+        val username = binding.username.text.toString().trim()
+        val email = binding.email.text.toString().trim()
+        val firstName = binding.firstName.text.toString().trim()
+        val lastName = binding.lastName.text.toString().trim()
+        val phoneNumber = binding.phoneNumber.text.toString().trim()
+        val birthdate = binding.birthdate.text.toString().trim()
+        var didAnythingChange = false
+
+        // Update ViewModel with the new values
+        if (username != accountViewModel.username.value) {
+            lifecycleScope.launch {
+                if (validateUsername(username)) {
+                    accountViewModel.setUsername(username)
+                    didAnythingChange = true
+                }
+            }
+        }
+        if (firstName != accountViewModel.firstName.value) {
+            accountViewModel.setFirstName(firstName)
+            didAnythingChange = true
+        }
+        if (lastName != accountViewModel.lastName.value) {
+            accountViewModel.setLastName(lastName)
+            didAnythingChange = true
+        }
+        if (phoneNumber != accountViewModel.phoneNumber.value) {
+            accountViewModel.setPhoneNumber(phoneNumber)
+            didAnythingChange = true
+        }
+        if (birthdate != accountViewModel.birthdate.value) {
+            accountViewModel.setBirthdate(birthdate)
+            didAnythingChange = true
+        }
+        if (selectedImageUri != null) {
+            uploadImageToFirebase { imageUrl ->
+                accountViewModel.setProfilePicture(imageUrl)
+            }
+            didAnythingChange = true
+        }
+
+        if (!didAnythingChange) {
+            Toast.makeText(requireContext(), "No changes detected", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val userId = auth.currentUser?.uid ?: ""
+
+        if (userId.isNotEmpty()) {
+            // Update Firestore with the new data
+            val userUpdates = hashMapOf(
+                "username" to username,
+                "email" to email,
+                "firstName" to firstName,
+                "lastName" to lastName,
+                "phoneNumber" to phoneNumber,
+                "birthdate" to birthdate,
+                "profilePictureUrl" to accountViewModel.profilePictureUrl.value
+            )
+
+            db.collection("users").document(userId)
+                .update(userUpdates as MutableMap<String, Any>)
+                .addOnSuccessListener {
+                    // Provide feedback to the user
+                    Toast.makeText(requireContext(), "Changes saved successfully", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { exception ->
+                    // Handle errors
+                    Toast.makeText(requireContext(), "Error saving changes: ${exception.message}", Toast.LENGTH_LONG).show()
+                }
+
+//                if (email != accountViewModel.email.value) {
+//                    updateEmailWithReauth(email)
+//                }
+        }
+    }
+
+    private suspend fun validateUsername(
+        username: String
+    ): Boolean {
+        if (username.isEmpty()) {
+            Toast.makeText(requireContext(), "All fields are required.", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        if (username.trim().contains(" ")) {
+            Toast.makeText(requireContext(), "Username cannot contain spaces.", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        if (!isUsernameUnique(username)) {
+            Toast.makeText(requireContext(), "Username is already taken.", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        return true
+    }
+
+    private suspend fun isUsernameUnique(username: String): Boolean {
+        val querySnapshot = db.collection("users")
+            .whereEqualTo("username", username)
+            .get()
+            .await()
+        return querySnapshot.isEmpty  // true if no documents found, meaning email is unique
+    }
+
+    private val imagePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it
+            binding.profilePicture.setImageURI(it)
+        }
+    }
+
+    private val cameraLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success && photoUri != null) {
+            selectedImageUri = photoUri
+            binding.profilePicture.setImageURI(photoUri)
+        }
+    }
+
+    private fun showImageSourceDialog() {
+        val options = arrayOf("Take a Picture", "Choose from Gallery")
+        AlertDialog.Builder(requireContext())
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> checkAndRequestPermissions()
+                    1 -> chooseImageFromGallery()
+                }
+            }
+            .show()
+    }
+
+    private fun checkAndRequestPermissions() {
+        val cameraPermission = android.Manifest.permission.CAMERA
+        if (requireContext().checkSelfPermission(cameraPermission) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(cameraPermission), 1001)
+        } else {
+            takePicture()
+        }
+    }
+
+    private fun takePicture() {
+        val photoFile = createImageFile()
+        photoUri = FileProvider.getUriForFile(requireContext(), "com.example.memoraid.fileprovider", photoFile)
+        cameraLauncher.launch(photoUri)
+    }
+
+    private fun chooseImageFromGallery() {
+        imagePickerLauncher.launch("image/*")
+    }
+
+    private fun createImageFile(): File {
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile("JPEG_${timestamp}_", ".jpg", storageDir)
+    }
+
+    private fun uploadImageToFirebase(onSuccess: (String) -> Unit) {
+        val storageRef = storage.reference.child("profile_pictures/${System.currentTimeMillis()}.jpg")
+        selectedImageUri?.let { uri ->
+            storageRef.putFile(uri)
+                .addOnSuccessListener {
+                    storageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
+                        onSuccess(downloadUrl.toString())
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(requireContext(), "Failed to upload image: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        }
     }
 
     private fun updateEmailWithReauth(newEmail: String) {
