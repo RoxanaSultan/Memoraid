@@ -35,7 +35,9 @@ class JournalDetailsFragment : Fragment() {
     private var journalId: String? = null
     private var journal: Journal? = null
     private val imageUris = mutableListOf<String>()
-    private val imageAdapter by lazy { ImageAdapter(imageUris) }
+    private val storageReference = storage.reference.child("journal_images")
+    private val firestoreCollection = db.collection("journals")
+    private val imageAdapter by lazy { ImageAdapter(imageUris, isSaved, storageReference, firestoreCollection) }
     private var isSaved = false
 
     private val REQUEST_IMAGE_PICK = 1001
