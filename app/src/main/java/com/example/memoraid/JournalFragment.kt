@@ -57,7 +57,8 @@ class JournalFragment : Fragment() {
                 "userId" to userId,
                 "entryDate" to formattedDate,
                 "title" to "Untitled",
-                "text" to ""
+                "text" to "",
+                "imageUris" to listOf<String>()
             )
 
             journalRef.set(journalInfo).addOnSuccessListener {
