@@ -16,25 +16,42 @@
     </fragment>
 
     <fragment
-        android:id="@+id/navigation_games"
-        android:name="com.example.memoraid.GamesFragment"
-        android:label="Maps"
-        tools:layout="@layout/fragment_games" >
+        android:id="@+id/navigation_journal"
+        android:name="com.example.memoraid.JournalFragment"
+        android:label="Journal"
+        tools:layout="@layout/fragment_journal">
+        <action
+            android:id="@+id/action_journalFragment_to_journalDetailsFragment"
+            app:destination="@id/fragment_journal_details" />
     </fragment>
 
     <fragment
-        android:id="@+id/navigation_memories"
-        android:name="com.example.memoraid.MemoriesFragment"
-        android:label="Search"
-        tools:layout="@layout/fragment_memories">
+        android:id="@+id/fragment_journal_details"
+        android:name="com.example.memoraid.JournalDetailsFragment"
+        android:label="JournalDetailsFragment"
+        tools:layout="@layout/fragment_journal_details">
     </fragment>
 
-    <fragment
-        android:id="@+id/navigation_health"
-        android:name="com.example.memoraid.HealthFragment"
-        android:label="MyPlaces"
-        tools:layout="@layout/fragment_health">
-    </fragment>
+<!--    <fragment-->
+<!--        android:id="@+id/navigation_games"-->
+<!--        android:name="com.example.memoraid.GamesFragment"-->
+<!--        android:label="Maps"-->
+<!--        tools:layout="@layout/fragment_games" >-->
+<!--    </fragment>-->
+
+<!--    <fragment-->
+<!--        android:id="@+id/navigation_memories"-->
+<!--        android:name="com.example.memoraid.MemoriesFragment"-->
+<!--        android:label="Search"-->
+<!--        tools:layout="@layout/fragment_memories">-->
+<!--    </fragment>-->
+
+<!--    <fragment-->
+<!--        android:id="@+id/navigation_health"-->
+<!--        android:name="com.example.memoraid.HealthFragment"-->
+<!--        android:label="MyPlaces"-->
+<!--        tools:layout="@layout/fragment_health">-->
+<!--    </fragment>-->
 
 <!--    <fragment-->
 <!--        android:id="@+id/fragment_account"-->
