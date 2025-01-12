@@ -5,12 +5,11 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.memoraid.databinding.ItemImageBinding
-import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.storage.StorageReference
 
 class ImageAdapter(
     private val imageUris: MutableList<String>,
-    private val onImageRemoved: (String) -> Unit // Callback for image removal
+    private val onImageRemoved: (String) -> Unit,
+    private val onImageClicked: (String) -> Unit// Callback for image removal
 ) : RecyclerView.Adapter<ImageAdapter.ImageViewHolder>() {
 
     inner class ImageViewHolder(private val binding: ItemImageBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -27,6 +26,10 @@ class ImageAdapter(
                     imageUris.removeAt(currentPosition)
                     notifyItemRemoved(currentPosition)
                 }
+            }
+
+            binding.imageView.setOnClickListener {
+                onImageClicked(imageUri)
             }
         }
     }

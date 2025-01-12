@@ -30,6 +30,16 @@
         android:name="com.example.memoraid.JournalDetailsFragment"
         android:label="JournalDetailsFragment"
         tools:layout="@layout/fragment_journal_details">
+        <action
+            android:id="@+id/action_journalDetailsFragment_to_fullScreenImageFragment"
+            app:destination="@id/navigation_full_screen_image" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_full_screen_image"
+        android:name="com.example.memoraid.FullScreenImageFragment"
+        android:label="FullScreenImageFragment"
+        tools:layout="@layout/fragment_full_screen_image">
     </fragment>
 
 <!--    <fragment-->

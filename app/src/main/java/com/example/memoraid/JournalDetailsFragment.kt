@@ -41,11 +41,20 @@ class JournalDetailsFragment : Fragment() {
 
     // Adapter with callback for deleting images
     private val imageAdapter by lazy {
-        ImageAdapter(imageUris) { imageUri ->
-            removeImageFromFirestore(imageUri)
-            removeImageFromStorage(imageUri)
-        }
+        ImageAdapter(imageUris,
+            onImageRemoved = { imageUri ->
+                removeImageFromFirestore(imageUri)
+                removeImageFromStorage(imageUri)
+            },
+            onImageClicked = { imageUri -> // Handle image click
+                val bundle = Bundle().apply {
+                    putString("imageUri", imageUri)
+                }
+                findNavController().navigate(R.id.action_journalDetailsFragment_to_fullScreenImageFragment, bundle)
+            }
+        )
     }
+
 
     private val REQUEST_IMAGE_PICK = 1001
     private val REQUEST_IMAGE_CAPTURE = 1002
@@ -101,6 +110,11 @@ class JournalDetailsFragment : Fragment() {
     private fun removeImageFromStorage(imageUri: String) {
         val fileReference = storage.getReferenceFromUrl(imageUri)
 
+        if (fileReference == null) {
+//            Toast.makeText(requireContext(), "Invalid image URL", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         fileReference.delete()
             .addOnSuccessListener {
 //                Toast.makeText(requireContext(), "Image deleted from storage", Toast.LENGTH_SHORT).show()
@@ -131,6 +145,8 @@ class JournalDetailsFragment : Fragment() {
     private fun saveJournalDetails() {
         // Show the progress bar
         binding.progressBar.visibility = View.VISIBLE
+
+        deleteAllImagesFromStorage()
 
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         val formattedDate = sdf.format(Date())
@@ -187,6 +203,31 @@ class JournalDetailsFragment : Fragment() {
                 // Hide the progress bar
                 binding.progressBar.visibility = View.GONE
                 Toast.makeText(requireContext(), "Failed to save journal: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun deleteAllImagesFromStorage() {
+        val storageReference = FirebaseStorage.getInstance().reference.child("journal_images")
+
+        // List all files in the folder
+        storageReference.listAll()
+            .addOnSuccessListener { listResult ->
+                // Loop through the list of files and delete them
+                for (item in listResult.items) {
+                    item.delete()
+                        .addOnSuccessListener {
+                            // File deleted successfully
+//                            Log.d("DeleteAll", "File deleted: ${item.name}")
+                        }
+                        .addOnFailureListener { exception ->
+                            // Handle any errors that occur
+//                            Log.e("DeleteAll", "Failed to delete file: ${exception.message}")
+                        }
+                }
+            }
+            .addOnFailureListener { exception ->
+                // Handle any errors that occur when listing files
+//                Log.e("DeleteAll", "Failed to list files: ${exception.message}")
             }
     }
 
