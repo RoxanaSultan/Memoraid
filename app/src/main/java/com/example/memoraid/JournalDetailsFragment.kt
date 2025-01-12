@@ -21,6 +21,9 @@ import com.example.memoraid.models.Journal
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 class JournalDetailsFragment : Fragment() {
@@ -126,21 +129,76 @@ class JournalDetailsFragment : Fragment() {
     }
 
     private fun saveJournalDetails() {
-        journal?.let {
-            it.title = binding.title.text.toString()
-            it.text = binding.content.text.toString()
-            it.imageUris = imageUris
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val formattedDate = sdf.format(Date())
+        journal?.let { journal ->
+            journal.title = binding.title.text.toString()
+            journal.entryDate = formattedDate
+            journal.text = binding.content.text.toString()
 
-            db.collection("journals").document(journalId!!)
-                .set(it)
-                .addOnSuccessListener {
-                    Toast.makeText(requireContext(), "Journal saved", Toast.LENGTH_SHORT).show()
+            // List to hold uploaded image URLs
+            val uploadedImageUris = mutableListOf<String>()
+
+            // Upload images one by one
+            if (imageUris.isNotEmpty()) {
+                var imagesUploaded = 0
+
+                // Function to upload an image and add to uploadedImageUris
+                val uploadNextImage = { imageUri: Uri ->
+                    uploadImageToStorage(imageUri, { uploadedUri ->
+                        uploadedImageUris.add(uploadedUri)
+                        imagesUploaded++
+
+                        // If all images are uploaded, save the journal
+                        if (imagesUploaded == imageUris.size) {
+                            journal.imageUris = uploadedImageUris
+                            saveJournalToFirestore(journal)
+                        }
+                    }, { exception ->
+                        Toast.makeText(requireContext(), "Failed to upload image: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    })
                 }
-                .addOnFailureListener { e ->
-                    Toast.makeText(requireContext(), "Failed to save journal: ${e.message}", Toast.LENGTH_SHORT).show()
+
+                // Iterate through all image URIs and upload them
+                for (uriString in imageUris) {
+                    val uri = Uri.parse(uriString)
+                    uploadNextImage(uri)
                 }
+            } else {
+                // No images selected, save the journal with empty imageUris
+                journal.imageUris = mutableListOf()
+                saveJournalToFirestore(journal)
+            }
         }
     }
+
+    private fun saveJournalToFirestore(journal: Journal) {
+        db.collection("journals").document(journalId!!)
+            .set(journal)
+            .addOnSuccessListener {
+                Toast.makeText(requireContext(), "Journal saved", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Failed to save journal: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+
+    private fun uploadImageToStorage(uri: Uri, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
+        val fileName = UUID.randomUUID().toString() + ".jpg"
+        val fileReference = storageReference.child(fileName)
+
+        fileReference.putFile(uri)
+            .addOnSuccessListener {
+                fileReference.downloadUrl.addOnSuccessListener { downloadUri ->
+                    onSuccess(downloadUri.toString())
+                }
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
+
 
     private fun showImageOptions() {
         val options = arrayOf("Take Photo", "Choose from Gallery")
@@ -187,18 +245,9 @@ class JournalDetailsFragment : Fragment() {
     }
 
     private fun handleImage(uri: Uri) {
-        val imageName = UUID.randomUUID().toString()
-        val imageRef = storage.reference.child("journal_images/$imageName")
-        imageRef.putFile(uri)
-            .addOnSuccessListener {
-                imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
-                    imageUris.add(downloadUri.toString())
-                    imageAdapter.notifyDataSetChanged()
-                }
-            }
-            .addOnFailureListener {
-                Toast.makeText(requireContext(), "Failed to upload image", Toast.LENGTH_SHORT).show()
-            }
+        // Add image URI to the list but don't upload yet
+        imageUris.add(uri.toString())
+        imageAdapter.notifyDataSetChanged()
     }
 
     override fun onDestroyView() {

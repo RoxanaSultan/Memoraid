@@ -7,7 +7,7 @@ import java.util.*
 data class Journal(
     @DocumentId val id: String = "",
     val userId: String = "",
-    val entryDate: String = "",
+    var entryDate: String = "",
     var title: String? = "",
     var text: String? = "",
     var imageUris: MutableList<String>? = null
