@@ -38,13 +38,13 @@ class JournalDetailsFragment : Fragment() {
     private val imageUris = mutableListOf<String>()
     private val storageReference = storage.reference.child("journal_images")
     private val firestoreCollection = db.collection("journals")
+    private var imagesToRemove = mutableListOf<String>()
 
     // Adapter with callback for deleting images
     private val imageAdapter by lazy {
         ImageAdapter(imageUris,
             onImageRemoved = { imageUri ->
-                removeImageFromFirestore(imageUri)
-                removeImageFromStorage(imageUri)
+                imagesToRemove.add(imageUri)
             },
             onImageClicked = { imageUri -> // Handle image click
                 val bundle = Bundle().apply {
@@ -145,7 +145,13 @@ class JournalDetailsFragment : Fragment() {
         // Show the progress bar
         binding.progressBar.visibility = View.VISIBLE
 
-        deleteAllImagesFromStorage()
+//        deleteAllImagesFromStorage()
+
+        if (imagesToRemove.isNotEmpty()) {
+            for (imageUri in imagesToRemove) {
+                removeImageFromFirestore(imageUri)
+            }
+        }
 
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         val formattedDate = sdf.format(Date())

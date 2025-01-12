@@ -131,10 +131,10 @@ class AccountFragment : Fragment() {
             binding.profilePicture.setImageResource(R.drawable.default_profile_picture)
 
             // If there's an existing profile picture URL, delete it from Firebase Storage
-            val currentProfilePictureUrl = accountViewModel.profilePictureUrl.value
-            if (currentProfilePictureUrl != null && currentProfilePictureUrl.isNotEmpty()) {
-                deleteProfilePictureFromStorage(currentProfilePictureUrl)
-            }
+//            val currentProfilePictureUrl = accountViewModel.profilePictureUrl.value
+//            if (currentProfilePictureUrl != null && currentProfilePictureUrl.isNotEmpty()) {
+//                deleteProfilePictureFromStorage(currentProfilePictureUrl)
+//            }
 
             // Update Firestore to remove the profile picture URL
             val userId = auth.currentUser?.uid ?: ""
