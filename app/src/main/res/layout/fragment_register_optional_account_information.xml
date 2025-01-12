@@ -23,16 +23,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/addpicture"
-        android:textColor="@color/black"
         app:layout_constraintTop_toBottomOf="@id/profile_picture"
         app:layout_constraintBottom_toTopOf="@id/register_firstname"
         app:layout_constraintStart_toStartOf="parent"
+        android:padding="13dp"
+        android:background="@drawable/button_selector"
+        android:textColor="@drawable/foreground_color"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <EditText
         android:id="@+id/register_firstname"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:textColorHint="@color/blue"
+        android:textColor="@color/blue"
         android:hint="@string/firstname"
         app:layout_constraintBottom_toTopOf="@id/register_lastname"
         app:layout_constraintTop_toBottomOf="@id/add_picture_button"
@@ -44,6 +48,8 @@
 
     <EditText
         android:id="@+id/register_lastname"
+        android:textColorHint="@color/blue"
+        android:textColor="@color/blue"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
@@ -59,6 +65,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
+        android:textColorHint="@color/blue"
+        android:textColor="@color/blue"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/register_lastname"
         app:layout_constraintBottom_toTopOf="@id/register_birthdate"
@@ -66,16 +74,6 @@
         android:inputType="phone"
         android:hint="@string/phonenumber"
         android:background="@drawable/edit_text_box"/>
-
-<!--    <CalendarView-->
-<!--        android:id="@+id/register_birthdate"-->
-<!--        android:layout_width="316dp"-->
-<!--        android:layout_height="304dp"-->
-<!--        android:layout_marginTop="10dp"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/register_phone_number"-->
-<!--        app:layout_constraintWidth_percent="0.8" />-->
 
     <TextView
         android:id="@+id/register_birthdate_text"
@@ -87,6 +85,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="20dp"
+        android:textColor="@color/blue"
         android:textSize="16sp" />
 
 
@@ -99,6 +98,8 @@
     app:layout_constraintTop_toBottomOf="@id/register_birthdate_text"
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintEnd_toEndOf="parent"
+    android:background="@drawable/layout_background"
+    android:padding="10dp"
     android:gravity="center">
 
     <NumberPicker
@@ -124,12 +125,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/Continue"
-        android:textColor="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/register_birthdate"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginBottom="50dp"
+        android:padding="13dp"
+        android:background="@drawable/button_selector"
+        android:textColor="@drawable/foreground_color"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
