@@ -14,12 +14,10 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memoraid.adapters.ImageAdapter
 import com.example.memoraid.databinding.FragmentJournalDetailsBinding
 import com.example.memoraid.models.Journal
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import java.io.File
@@ -37,8 +35,14 @@ class JournalDetailsFragment : Fragment() {
     private val imageUris = mutableListOf<String>()
     private val storageReference = storage.reference.child("journal_images")
     private val firestoreCollection = db.collection("journals")
-    private val imageAdapter by lazy { ImageAdapter(imageUris, isSaved, storageReference, firestoreCollection) }
-    private var isSaved = false
+
+    // Adapter with callback for deleting images
+    private val imageAdapter by lazy {
+        ImageAdapter(imageUris) { imageUri ->
+            removeImageFromFirestore(imageUri)
+            removeImageFromStorage(imageUri)
+        }
+    }
 
     private val REQUEST_IMAGE_PICK = 1001
     private val REQUEST_IMAGE_CAPTURE = 1002
@@ -57,9 +61,9 @@ class JournalDetailsFragment : Fragment() {
         if (journalId != null) {
             loadJournalDetails(journalId!!)
         }
+
         val recyclerView = view.findViewById<RecyclerView>(R.id.picture_recycler_view)
-        val layoutManager = GridLayoutManager(context, 3)
-        recyclerView.layoutManager = layoutManager
+        recyclerView.layoutManager = GridLayoutManager(context, 3)
         recyclerView.adapter = imageAdapter
 
         binding.saveButton.setOnClickListener {
@@ -77,6 +81,33 @@ class JournalDetailsFragment : Fragment() {
         })
     }
 
+    private fun removeImageFromFirestore(imageUri: String) {
+        firestoreCollection.whereArrayContains("imageUris", imageUri)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    val updatedUris = (document["imageUris"] as List<String>).filter { it != imageUri }
+                    firestoreCollection.document(document.id).update("imageUris", updatedUris)
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Failed to remove image from Firestore", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun removeImageFromStorage(imageUri: String) {
+        val fileReference = storage.getReferenceFromUrl(imageUri)
+
+        fileReference.delete()
+            .addOnSuccessListener {
+//                Toast.makeText(requireContext(), "Image deleted from storage", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { exception ->
+//                Log.e("JournalDetailsFragment", "Failed to delete image: ${exception.message}")
+                Toast.makeText(requireContext(), "Failed to delete image from storage", Toast.LENGTH_SHORT).show()
+            }
+    }
+
     private fun loadJournalDetails(journalId: String) {
         db.collection("journals").document(journalId).get()
             .addOnSuccessListener { document ->
@@ -89,19 +120,17 @@ class JournalDetailsFragment : Fragment() {
                     imageAdapter.notifyDataSetChanged()
                 }
             }
-            .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Failed to load journal: ${e.message}", Toast.LENGTH_SHORT).show()
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Failed to load journal", Toast.LENGTH_SHORT).show()
             }
     }
 
     private fun saveJournalDetails() {
         journal?.let {
-            // Update journal data from UI
             it.title = binding.title.text.toString()
             it.text = binding.content.text.toString()
             it.imageUris = imageUris
 
-            // Save the updated journal to Firestore
             db.collection("journals").document(journalId!!)
                 .set(it)
                 .addOnSuccessListener {
@@ -124,6 +153,7 @@ class JournalDetailsFragment : Fragment() {
             }
             .show()
     }
+
     private lateinit var photoUri: Uri
 
     private fun openCamera() {
@@ -150,33 +180,24 @@ class JournalDetailsFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK) {
             when (requestCode) {
-                REQUEST_IMAGE_CAPTURE -> {
-                    handleImage(photoUri)
-                }
-                REQUEST_IMAGE_PICK -> {
-                    data?.data?.let { uri ->
-                        handleImage(uri)
-                    }
-                }
+                REQUEST_IMAGE_CAPTURE -> handleImage(photoUri)
+                REQUEST_IMAGE_PICK -> data?.data?.let { handleImage(it) }
             }
         }
     }
 
     private fun handleImage(uri: Uri) {
         val imageName = UUID.randomUUID().toString()
-
-        // Upload the image to Firebase Storage
         val imageRef = storage.reference.child("journal_images/$imageName")
         imageRef.putFile(uri)
             .addOnSuccessListener {
                 imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
-                    // Add the image URI to the list and update RecyclerView
                     imageUris.add(downloadUri.toString())
                     imageAdapter.notifyDataSetChanged()
                 }
             }
-            .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Failed to upload image: ${e.message}", Toast.LENGTH_SHORT).show()
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Failed to upload image", Toast.LENGTH_SHORT).show()
             }
     }
 
