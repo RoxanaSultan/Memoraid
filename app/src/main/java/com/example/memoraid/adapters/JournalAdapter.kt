@@ -3,6 +3,7 @@ package com.example.memoraid.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memoraid.R
 import com.example.memoraid.databinding.ItemJournalBinding
@@ -16,6 +17,7 @@ class JournalAdapter(
 ) : RecyclerView.Adapter<JournalAdapter.JournalViewHolder>() {
 
     private val db = FirebaseFirestore.getInstance()
+    private val storage = FirebaseStorage.getInstance()
 
     inner class JournalViewHolder(private val binding: ItemJournalBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(journal: Journal) {
@@ -66,17 +68,16 @@ class JournalAdapter(
 
     // Function to delete images from Firebase Storage
     private fun removeImagesFromStorage(imageUris: List<String>) {
-        val storageReference = FirebaseStorage.getInstance().reference.child("journal_images")
         for (imageUri in imageUris) {
-            val fileReference = storageReference.child(imageUri)
+            val fileReference = storage.getReferenceFromUrl(imageUri)
+
             fileReference.delete()
                 .addOnSuccessListener {
-                    // Successfully deleted image from storage
-                    println("Image deleted from storage: $imageUri")
+//                Toast.makeText(requireContext(), "Image deleted from storage", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { exception ->
-                    // Log error or show message
-                    exception.printStackTrace()
+//                Log.e("JournalDetailsFragment", "Failed to delete image: ${exception.message}")
+//                    Toast.makeText(requireContext(), "Failed to delete image from storage", Toast.LENGTH_SHORT).show()
                 }
         }
     }
