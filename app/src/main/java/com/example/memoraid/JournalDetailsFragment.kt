@@ -129,6 +129,9 @@ class JournalDetailsFragment : Fragment() {
     }
 
     private fun saveJournalDetails() {
+        // Show the progress bar
+        binding.progressBar.visibility = View.VISIBLE
+
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         val formattedDate = sdf.format(Date())
         journal?.let { journal ->
@@ -176,9 +179,13 @@ class JournalDetailsFragment : Fragment() {
         db.collection("journals").document(journalId!!)
             .set(journal)
             .addOnSuccessListener {
+                // Hide the progress bar
+                binding.progressBar.visibility = View.GONE
                 Toast.makeText(requireContext(), "Journal saved", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
+                // Hide the progress bar
+                binding.progressBar.visibility = View.GONE
                 Toast.makeText(requireContext(), "Failed to save journal: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
