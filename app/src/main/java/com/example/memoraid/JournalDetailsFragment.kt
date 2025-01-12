@@ -55,7 +55,6 @@ class JournalDetailsFragment : Fragment() {
         )
     }
 
-
     private val REQUEST_IMAGE_PICK = 1001
     private val REQUEST_IMAGE_CAPTURE = 1002
 

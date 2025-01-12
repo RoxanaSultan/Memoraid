@@ -127,10 +127,22 @@ class AccountFragment : Fragment() {
         }
 
         binding.deletePictureButton.setOnClickListener {
+            // Set the default profile picture on the UI
             binding.profilePicture.setImageResource(R.drawable.default_profile_picture)
-            selectedImageUri = "https://firebasestorage.googleapis.com/v0/b/memoraid-application.firebasestorage.app/o/profile_pictures%2Fdefault_profile_picture.png?alt=media&token=fa0aea7d-b11e-49f9-95f7-4b9f820e3942".toUri()
-        }
 
+            // If there's an existing profile picture URL, delete it from Firebase Storage
+            val currentProfilePictureUrl = accountViewModel.profilePictureUrl.value
+            if (currentProfilePictureUrl != null && currentProfilePictureUrl.isNotEmpty()) {
+                deleteProfilePictureFromStorage(currentProfilePictureUrl)
+            }
+
+            // Update Firestore to remove the profile picture URL
+            val userId = auth.currentUser?.uid ?: ""
+            if (userId.isNotEmpty()) {
+                db.collection("users").document(userId)
+                    .update("profilePictureUrl", "https://firebasestorage.googleapis.com/v0/b/memoraid-application.firebasestorage.app/o/profile_pictures%2Fdefault_profile_picture.png?alt=media&token=fa0aea7d-b11e-49f9-95f7-4b9f820e3942")
+            }
+        }
         return view
     }
 
@@ -141,7 +153,13 @@ class AccountFragment : Fragment() {
         auth = FirebaseAuth.getInstance()
     }
 
-    private fun saveUpdates(){
+    private fun deleteProfilePictureFromStorage(imageUrl: String) {
+        val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
+        storageRef.delete()
+    }
+
+
+    private fun saveUpdates() {
         // Get updated user data from the EditText fields
         val username = binding.username.text.toString().trim()
         val email = binding.email.text.toString().trim()
@@ -176,46 +194,54 @@ class AccountFragment : Fragment() {
             accountViewModel.setBirthdate(birthdate)
             didAnythingChange = true
         }
+
+        // Upload image and then update the database
         if (selectedImageUri != null) {
             uploadImageToFirebase { imageUrl ->
                 accountViewModel.setProfilePicture(imageUrl)
-                didAnythingChange = true
+                val userId = auth.currentUser?.uid ?: ""
+                db.collection("users").document(userId)
+                    .update("profilePictureUrl", imageUrl)
             }
+            didAnythingChange = true
         }
 
+        // If no changes were made, show a toast
         if (!didAnythingChange) {
             Toast.makeText(requireContext(), "No changes detected", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val userId = auth.currentUser?.uid ?: ""
+        saveToFirestore(username, email, firstName, lastName, phoneNumber, birthdate)
+    }
 
+    private fun saveToFirestore(
+        username: String,
+        email: String,
+        firstName: String,
+        lastName: String,
+        phoneNumber: String,
+        birthdate: String,
+    ) {
+        val userId = auth.currentUser?.uid ?: ""
         if (userId.isNotEmpty()) {
-            // Update Firestore with the new data
             val userUpdates = hashMapOf(
                 "username" to username,
                 "email" to email,
                 "firstName" to firstName,
                 "lastName" to lastName,
                 "phoneNumber" to phoneNumber,
-                "birthdate" to birthdate,
-                "profilePictureUrl" to accountViewModel.profilePictureUrl.value
+                "birthdate" to birthdate
             )
 
             db.collection("users").document(userId)
                 .update(userUpdates as MutableMap<String, Any>)
                 .addOnSuccessListener {
-                    // Provide feedback to the user
                     Toast.makeText(requireContext(), "Changes saved successfully", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { exception ->
-                    // Handle errors
                     Toast.makeText(requireContext(), "Error saving changes: ${exception.message}", Toast.LENGTH_LONG).show()
                 }
-
-//                if (email != accountViewModel.email.value) {
-//                    updateEmailWithReauth(email)
-//                }
         }
     }
 
