@@ -1,10 +1,15 @@
 package com.example.memoraid
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.app.NotificationCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
@@ -40,6 +45,8 @@ class JournalFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        createNotificationChannel()  // Create notification channel
+
         setupRecyclerView()
         loadJournals()
 
@@ -63,6 +70,8 @@ class JournalFragment : Fragment() {
 
             journalRef.set(journalInfo).addOnSuccessListener {
                 Toast.makeText(requireContext(), "Journal created successfully", Toast.LENGTH_SHORT).show()
+                sendNotification()  // Send notification
+
                 val bundle = Bundle().apply {
                     putString("journalId", journalRef.id)
                 }
@@ -73,6 +82,33 @@ class JournalFragment : Fragment() {
             }
         }
 
+    }
+
+    private fun sendNotification() {
+        val notificationManager = requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationId = 1
+
+        val notificationBuilder = NotificationCompat.Builder(requireContext(), "journal_creation_channel")
+            .setSmallIcon(R.drawable.notification) // Replace with your own icon
+            .setContentTitle("New Journal Created")
+            .setContentText("Your new journal entry was created successfully!")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+        notificationManager.notify(notificationId, notificationBuilder.build())
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channelId = "journal_creation_channel"
+            val channelName = "Journal Notifications"
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel(channelId, channelName, importance).apply {
+                description = "Channel for journal creation notifications"
+            }
+            val notificationManager: NotificationManager =
+                requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
     private fun setupRecyclerView() {
@@ -89,7 +125,6 @@ class JournalFragment : Fragment() {
         }
     }
 
-
     private fun loadJournals() {
         journalList.clear()
         // Fetch journals for the current user
@@ -105,7 +140,6 @@ class JournalFragment : Fragment() {
             }
             .addOnFailureListener { e ->
                 // Handle error
-                // Toast.makeText(requireContext(), "Failed to load journals: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -115,3 +149,4 @@ class JournalFragment : Fragment() {
         journalList.clear()
     }
 }
+
