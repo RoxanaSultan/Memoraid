@@ -12,11 +12,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.memoraid.adapters.PatientAdapter
 import com.example.memoraid.databinding.FragmentRegisterPatientsBinding
-import com.example.memoraid.models.Patient
-import com.example.memoraid.models.PatientModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -26,10 +22,6 @@ class RegisterPatientsFragment : Fragment() {
     private val sharedViewModel: RegisterViewModel by activityViewModels()
     private lateinit var auth: FirebaseAuth
     private lateinit var firestore: FirebaseFirestore
-    private lateinit var patientAdapter: PatientAdapter
-
-    // List to hold selected patients
-    private val selectedPatients = mutableListOf<String>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,23 +38,10 @@ class RegisterPatientsFragment : Fragment() {
         auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
 
-        // Set up RecyclerView
-        setupRecyclerView()
-
-        // Toggle RecyclerView visibility based on caretaker checkbox
-        binding.checkboxCaretaker.setOnCheckedChangeListener { _, isChecked ->
-            binding.recyclerViewPatientsList.visibility = if (isChecked) View.VISIBLE else View.GONE
-        }
-
         // Handle finish button click
         binding.registerFinishButton.setOnClickListener {
             if (!binding.checkboxTerms.isChecked) {
                 Toast.makeText(requireContext(), "You must agree to the terms and conditions.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            if (selectedPatients.isEmpty() && binding.checkboxCaretaker.isChecked) {
-                Toast.makeText(requireContext(), "You must select at least one patient.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -84,51 +63,6 @@ class RegisterPatientsFragment : Fragment() {
                 findNavController().navigateUp() // Navigates to the previous fragment
             }
         })
-    }
-
-    private fun setupRecyclerView() {
-        val patientsList = getPatients() // Replace with actual data source (Firebase, etc.)
-
-        patientAdapter = PatientAdapter(requireContext(), patientsList) { patient, isChecked ->
-            // Add or remove patient ID from selectedPatients list
-            if (isChecked) {
-                selectedPatients.add(patient.id)  // Add only the patient ID
-            } else {
-                selectedPatients.remove(patient.id)  // Remove patient ID
-            }
-        }
-
-        binding.recyclerViewPatientsList.layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerViewPatientsList.adapter = patientAdapter
-    }
-
-
-    private fun getPatients(): List<PatientModel> {
-        val patientsList = mutableListOf<PatientModel>()
-
-        val db = FirebaseFirestore.getInstance()
-        val usersCollection = db.collection("users")
-
-        // Query to get users with the role "patient"
-        usersCollection.whereEqualTo("role", "patient")
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                // Iterate through the query results
-                for (document in querySnapshot) {
-                    val patientId = document.id
-                    val username = document.getString("username")!!
-                    val name = document.getString("firstName") + " " + document.getString("lastName")
-                    val profilePictureUrl = document.getString("profilePictureUrl")
-                    patientsList.add(PatientModel(patientId, username, name, profilePictureUrl))
-                }
-
-                patientAdapter.notifyDataSetChanged()
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Error fetching patients: $e", Toast.LENGTH_SHORT).show()
-            }
-
-        return patientsList
     }
 
     private fun registerUser(email: String, password: String) {
@@ -153,21 +87,15 @@ class RegisterPatientsFragment : Fragment() {
         val email = sharedViewModel.email.value
         val firstName = sharedViewModel.firstName.value
         val lastName = sharedViewModel.lastName.value
-        val caretakerStatus = binding.checkboxCaretaker.isChecked
-        val patientsList = selectedPatients // Use the selected patients list
-        val role = if (caretakerStatus) "caretaker" else "patient"
         val phoneNumber = sharedViewModel.phoneNumber.value
         val birthdate = sharedViewModel.birthdate.value
         val profilePictureUrl = sharedViewModel.profilePictureUrl.value
-        sharedViewModel.setRole(role)
 
         val userInfo = hashMapOf(
             "username" to username,
             "email" to email,
             "firstName" to firstName,
             "lastName" to lastName,
-            "patients" to patientsList,
-            "role" to role,
             "phoneNumber" to phoneNumber,
             "birthdate" to birthdate,
             "profilePictureUrl" to profilePictureUrl

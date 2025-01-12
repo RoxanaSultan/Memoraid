@@ -9,16 +9,4 @@
         android:id="@+id/navigation_journal"
         android:icon="@drawable/diary"
         android:title="Journals" />
-<!--    <item-->
-<!--        android:id="@+id/navigation_games"-->
-<!--        android:icon="@drawable/games"-->
-<!--        android:title="Games" />-->
-<!--    <item-->
-<!--        android:id="@+id/navigation_memories"-->
-<!--        android:icon="@drawable/memories"-->
-<!--        android:title="Memories" />-->
-<!--    <item-->
-<!--        android:id="@+id/navigation_health"-->
-<!--        android:icon="@drawable/health"-->
-<!--        android:title="Health" />-->
 </menu>

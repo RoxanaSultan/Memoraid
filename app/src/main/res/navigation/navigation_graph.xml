@@ -42,37 +42,6 @@
         tools:layout="@layout/fragment_full_screen_image">
     </fragment>
 
-<!--    <fragment-->
-<!--        android:id="@+id/navigation_games"-->
-<!--        android:name="com.example.memoraid.GamesFragment"-->
-<!--        android:label="Maps"-->
-<!--        tools:layout="@layout/fragment_games" >-->
-<!--    </fragment>-->
-
-<!--    <fragment-->
-<!--        android:id="@+id/navigation_memories"-->
-<!--        android:name="com.example.memoraid.MemoriesFragment"-->
-<!--        android:label="Search"-->
-<!--        tools:layout="@layout/fragment_memories">-->
-<!--    </fragment>-->
-
-<!--    <fragment-->
-<!--        android:id="@+id/navigation_health"-->
-<!--        android:name="com.example.memoraid.HealthFragment"-->
-<!--        android:label="MyPlaces"-->
-<!--        tools:layout="@layout/fragment_health">-->
-<!--    </fragment>-->
-
-<!--    <fragment-->
-<!--        android:id="@+id/fragment_account"-->
-<!--        android:name="com.example.memoraid.AccountFragment"-->
-<!--        android:label="Account"-->
-<!--        tools:layout="@layout/fragment_account">-->
-<!--        <action-->
-<!--            android:id="@+id/action_accountFragment_to_changePasswordFragment"-->
-<!--            app:destination="@id/fragment_change_password" />-->
-<!--    </fragment>-->
-
     <fragment
         android:id="@+id/fragment_change_password"
         android:name="com.example.memoraid.ChangePasswordFragment"

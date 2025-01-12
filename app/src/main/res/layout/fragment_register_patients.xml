@@ -5,75 +5,39 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <!-- ScrollView to make content scrollable -->
-    <android.widget.ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
+    <TextView
+        android:id="@+id/link_terms_conditions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:text="@string/view_terms_conditions"
+        android:autoLink="web"
+        android:textColor="@color/green"
+        android:layout_marginTop="16dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toTopOf="parent"/>
 
-        <!-- Inner ConstraintLayout to hold the actual UI components -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+    <!-- Checkbox for Terms and Conditions -->
+    <CheckBox
+        android:id="@+id/checkbox_terms"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/termsandconditions"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/link_terms_conditions"
+        app:layout_constraintStart_toStartOf="parent"/>
 
-            <!-- Checkbox for Caretaker -->
-            <CheckBox
-                android:id="@+id/checkbox_caretaker"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/iamacaretaker"
-                android:layout_marginTop="20dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
-
-            <!-- RecyclerView for Caretaker List -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_view_patients_list"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="16dp"
-                android:visibility="gone"
-                app:layout_constraintTop_toBottomOf="@id/checkbox_caretaker"/>
-
-            <!-- Link to Terms and Conditions -->
-            <TextView
-                android:id="@+id/link_terms_conditions"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:text="@string/view_terms_conditions"
-                android:autoLink="web"
-                android:textColor="@color/link_color"
-                android:layout_marginTop="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:layout_constraintTop_toBottomOf="@id/recycler_view_patients_list"/>
-
-            <!-- Checkbox for Terms and Conditions -->
-            <CheckBox
-                android:id="@+id/checkbox_terms"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/termsandconditions"
-                android:layout_marginTop="16dp"
-                app:layout_constraintTop_toBottomOf="@id/link_terms_conditions"
-                app:layout_constraintStart_toStartOf="parent"/>
-
-            <!-- Register Finish Button -->
-            <Button
-                android:id="@+id/register_finish_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/finish"
-                app:layout_constraintTop_toBottomOf="@id/checkbox_terms"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:layout_marginTop="32dp"/>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </android.widget.ScrollView>
+    <!-- Register Finish Button -->
+    <Button
+        android:id="@+id/register_finish_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/finish"
+        app:layout_constraintTop_toBottomOf="@id/checkbox_terms"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
