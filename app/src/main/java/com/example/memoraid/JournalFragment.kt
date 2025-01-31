@@ -89,7 +89,7 @@ class JournalFragment : Fragment() {
         val notificationId = 1
 
         val notificationBuilder = NotificationCompat.Builder(requireContext(), "journal_creation_channel")
-            .setSmallIcon(R.drawable.notification) // Replace with your own icon
+            .setSmallIcon(R.drawable.notification)
             .setContentTitle("New Journal Created")
             .setContentText("Your new journal entry was created successfully!")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

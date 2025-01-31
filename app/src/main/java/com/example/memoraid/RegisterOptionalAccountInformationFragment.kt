@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import android.telephony.PhoneNumberUtils
 
 class RegisterOptionalAccountInformationFragment : Fragment() {
 
@@ -74,7 +75,7 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         monthPicker.maxValue = 12
 
         yearPicker.minValue = 1900
-        yearPicker.maxValue = 2100
+        yearPicker.maxValue = 2025
 
         var selectedYear = yearPicker.value
         var selectedMonth = monthPicker.value
