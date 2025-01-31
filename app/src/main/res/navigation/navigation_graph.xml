@@ -26,6 +26,30 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_games"
+        android:name="com.example.memoraid.GamesFragment"
+        android:label="Maps"
+        tools:layout="@layout/fragment_games" >
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_memories"
+        android:name="com.example.memoraid.MemoriesFragment"
+        android:label="Search"
+        tools:layout="@layout/fragment_memories">
+        <action
+            android:id="@+id/action_memoriesFragment_to_journalFragment"
+            app:destination="@id/navigation_journal" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_health"
+        android:name="com.example.memoraid.HealthFragment"
+        android:label="MyPlaces"
+        tools:layout="@layout/fragment_health">
+    </fragment>
+
+    <fragment
         android:id="@+id/fragment_journal_details"
         android:name="com.example.memoraid.JournalDetailsFragment"
         android:label="JournalDetailsFragment"
