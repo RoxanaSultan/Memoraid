@@ -266,4 +266,22 @@
             android:textColor="@drawable/foreground_color"/>
 
     </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/progress_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:layout_centerInParent="true"
+        android:background="@android:color/black"
+        android:alpha="0.5">
+
+        <ProgressBar
+            android:id="@+id/account_progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:indeterminate="true" />
+    </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
