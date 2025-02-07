@@ -41,6 +41,7 @@ class AccountFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     private val accountViewModel: AccountViewModel by activityViewModels()
     private var selectedImageUri: Uri? = null
+    private var isImageDeleted = false
     private var photoUri: Uri? = null
     private val storage = FirebaseStorage.getInstance()
 //    private var user: User? = null
@@ -124,45 +125,10 @@ class AccountFragment : Fragment() {
         }
 
         binding.deletePictureButton.setOnClickListener {
-            val userId = auth.currentUser?.uid ?: return@setOnClickListener
-
-            db.collection("users").document(userId).get()
-                .addOnSuccessListener { document ->
-                    val profilePictureUrl = document.getString("profilePictureUrl")
-
-                    if (!profilePictureUrl.isNullOrEmpty() && !profilePictureUrl.contains("default_profile_picture.png")) {
-                        val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(profilePictureUrl)
-
-                        storageRef.delete()
-                            .addOnSuccessListener {
-                                update(userId)
-                            }
-                            .addOnFailureListener {
-                                Toast.makeText(requireContext(), "Failed to delete profile picture", Toast.LENGTH_SHORT).show()
-                            }
-                    } else {
-                        update(userId)
-                    }
-                }
+            isImageDeleted = true
+            binding.profilePicture.setImageResource(R.drawable.default_profile_picture)
         }
 
-//        binding.deletePictureButton.setOnClickListener {
-//            // Set the default profile picture on the UI
-//            binding.profilePicture.setImageResource(R.drawable.default_profile_picture)
-//
-//            // If there's an existing profile picture URL, delete it from Firebase Storage
-////            val currentProfilePictureUrl = accountViewModel.profilePictureUrl.value
-////            if (currentProfilePictureUrl != null && currentProfilePictureUrl.isNotEmpty()) {
-////                deleteProfilePictureFromStorage(currentProfilePictureUrl)
-////            }
-//
-//            // Update Firestore to remove the profile picture URL
-//            val userId = auth.currentUser?.uid ?: ""
-//            if (userId.isNotEmpty()) {
-//                db.collection("users").document(userId)
-//                    .update("profilePictureUrl", "https://firebasestorage.googleapis.com/v0/b/memoraid-application.firebasestorage.app/o/profile_pictures%2Fdefault_profile_picture.png?alt=media&token=fa0aea7d-b11e-49f9-95f7-4b9f820e3942")
-//            }
-//        }
         return view
     }
 
@@ -227,6 +193,10 @@ class AccountFragment : Fragment() {
         }
 
         if (selectedImageUri != null) {
+            didAnythingChange = true
+        }
+
+        if (isImageDeleted) {
             didAnythingChange = true
         }
 
@@ -301,7 +271,6 @@ class AccountFragment : Fragment() {
         val userId = auth.currentUser?.uid ?: ""
 
         if (userId.isNotEmpty()) {
-            // Pregătește actualizarea datelor de utilizator
             val userUpdates = hashMapOf(
                 "username" to username,
                 "email" to email,
@@ -311,32 +280,72 @@ class AccountFragment : Fragment() {
                 "birthdate" to birthdate
             )
 
-
             binding.progressContainer.visibility = View.VISIBLE
             binding.accountProgressBar.visibility = View.VISIBLE
-            // Dacă există o imagine selectată, încarcă-o pe Firebase
+
             if (selectedImageUri != null) {
                 val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(accountViewModel.profilePictureUrl.value!!)
 
-                storageRef.delete()
-                    .addOnSuccessListener {
-                        // După ștergerea imaginii vechi, încarcă imaginea nouă
-                        uploadImageToFirebase { imageUrl ->
-                            // Actualizează URL-ul imaginii în Firestore
-                            accountViewModel.setProfilePicture(imageUrl)
-                            db.collection("users").document(userId)
-                                .update("profilePictureUrl", imageUrl)
-                                .addOnSuccessListener {
-                                    // După ce imaginea a fost actualizată, actualizează celelalte câmpuri ale utilizatorului
-                                    updateUserFields(userId, userUpdates)
-                                }
-                                .addOnFailureListener { exception ->
-                                    Toast.makeText(requireContext(), "Error updating image: ${exception.message}", Toast.LENGTH_LONG).show()
-                                }
+                if (accountViewModel.profilePictureUrl.value != "https://firebasestorage.googleapis.com/v0/b/memoraid-application.firebasestorage.app/o/profile_pictures%2Fdefault_profile_picture.png?alt=media&token=fa0aea7d-b11e-49f9-95f7-4b9f820e3942") {
+                    storageRef.delete()
+                        .addOnSuccessListener {
+                            uploadImageToFirebase { imageUrl ->
+                                accountViewModel.setProfilePicture(imageUrl)
+                                db.collection("users").document(userId)
+                                    .update("profilePictureUrl", imageUrl)
+                                    .addOnSuccessListener {
+                                        updateUserFields(userId, userUpdates)
+                                    }
+                                    .addOnFailureListener { exception ->
+                                        Toast.makeText(
+                                            requireContext(),
+                                            "Error updating image: ${exception.message}",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+                            }
                         }
+                        .addOnFailureListener {
+                            Toast.makeText(
+                                requireContext(),
+                                "Failed to delete profile picture",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                } else {
+                    uploadImageToFirebase { imageUrl ->
+                        accountViewModel.setProfilePicture(imageUrl)
+                        db.collection("users").document(userId)
+                            .update("profilePictureUrl", imageUrl)
+                            .addOnSuccessListener {
+                                updateUserFields(userId, userUpdates)
+                            }
+                            .addOnFailureListener { exception ->
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Error updating image: ${exception.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
                     }
-                    .addOnFailureListener {
-                        Toast.makeText(requireContext(), "Failed to delete profile picture", Toast.LENGTH_SHORT).show()
+                }
+            } else if (isImageDeleted) {
+                binding.profilePicture.setImageResource(R.drawable.default_profile_picture)
+
+                val currentProfilePictureUrl = accountViewModel.profilePictureUrl.value
+                if (!currentProfilePictureUrl.isNullOrEmpty()) {
+                    deleteProfilePictureFromStorage(currentProfilePictureUrl)
+                }
+
+                db.collection("users").document(userId)
+                    .update("profilePictureUrl", "https://firebasestorage.googleapis.com/v0/b/memoraid-application.firebasestorage.app/o/profile_pictures%2Fdefault_profile_picture.png?alt=media&token=fa0aea7d-b11e-49f9-95f7-4b9f820e3942")
+                    .addOnSuccessListener {
+                        updateUserFields(userId, userUpdates)
+                    }
+                    .addOnFailureListener { exception ->
+                        Toast.makeText(requireContext(), "Error updating profile picture URL: ${exception.message}", Toast.LENGTH_LONG).show()
+                        binding.progressContainer.visibility = View.GONE
+                        binding.accountProgressBar.visibility = View.GONE
                     }
             } else {
                 updateUserFields(userId, userUpdates)
