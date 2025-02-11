@@ -2,9 +2,8 @@ package com.example.memoraid.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.recyclerview.widget.RecyclerView
+import com.example.memoraid.JournalType
 import com.example.memoraid.R
 import com.example.memoraid.databinding.ItemJournalBinding
 import com.example.memoraid.models.Journal
@@ -21,15 +20,17 @@ class JournalAdapter(
 
     inner class JournalViewHolder(private val binding: ItemJournalBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(journal: Journal) {
-            binding.journalImageButton.setImageResource(R.drawable.journal)
+            when (journal.type) {
+                JournalType.JOURNAL_PINK.type -> binding.journalImageButton.setImageResource(R.drawable.journal_option_1)
+                JournalType.JOURNAL_BLUE.type -> binding.journalImageButton.setImageResource(R.drawable.journal_option_2)
+            }
+
             binding.journalTitle.text = journal.title
 
-            // Open journal on click
             binding.journalImageButton.setOnClickListener {
                 onJournalClick(journal)
             }
 
-            // Remove journal on click
             binding.journalRemoveButton.setOnClickListener {
                 deleteJournal(journal, adapterPosition)
             }
@@ -47,12 +48,9 @@ class JournalAdapter(
 
     override fun getItemCount(): Int = journals.size
 
-    // 🔥 Function to delete the journal
     private fun deleteJournal(journal: Journal, position: Int) {
-        // First, remove images from Firebase Storage
         journal.imageUris?.let { removeImagesFromStorage(it) }
 
-        // Then, delete the journal from Firestore
         db.collection("journals").document(journal.id)
             .delete()
             .addOnSuccessListener {

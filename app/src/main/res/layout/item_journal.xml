@@ -13,7 +13,7 @@
         android:layout_height="100dp"
         android:scaleType="centerCrop"
         android:background="@null"
-        android:src="@drawable/journal"/>
+        android:src="@drawable/journal_option_1"/>
 
     <TextView
         android:id="@+id/journalTitle"

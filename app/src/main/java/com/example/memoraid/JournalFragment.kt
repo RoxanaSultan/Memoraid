@@ -8,12 +8,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.memoraid.adapters.JournalAdapter
+import com.example.memoraid.adapters.ModalAdapter
 import com.example.memoraid.databinding.FragmentJournalBinding
 import com.example.memoraid.models.Journal
 import com.google.firebase.auth.FirebaseAuth
@@ -30,6 +32,8 @@ class JournalFragment : Fragment() {
 
     private lateinit var journalAdapter: JournalAdapter
     private val journalList = mutableListOf<Journal>()
+
+    private lateinit var modalAdapter: ModalAdapter
 
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
     private val db = FirebaseFirestore.getInstance()
@@ -56,30 +60,16 @@ class JournalFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-            val formattedDate = sdf.format(Date())
+            binding.modalContainer.visibility = View.VISIBLE
+            setupModal()
+        }
 
-            val journalRef = db.collection("journals").document()
-            val journalInfo = hashMapOf(
-                "userId" to userId,
-                "entryDate" to formattedDate,
-                "title" to "Untitled",
-                "text" to "",
-                "imageUris" to listOf<String>()
-            )
+        binding.modalContainer.setOnClickListener {
+            binding.modalContainer.visibility = View.GONE
+        }
 
-            journalRef.set(journalInfo).addOnSuccessListener {
-                Toast.makeText(requireContext(), "Journal created successfully", Toast.LENGTH_SHORT).show()
-                sendNotification()  // Send notification
-
-                val bundle = Bundle().apply {
-                    putString("journalId", journalRef.id)
-                }
-                findNavController().navigate(R.id.action_journalFragment_to_journalDetailsFragment, bundle)
-            }.addOnFailureListener { e ->
-                e.printStackTrace()
-                Toast.makeText(requireContext(), "Failed to create new journal: ${e.message}", Toast.LENGTH_LONG).show()
-            }
+        binding.cancelButton.setOnClickListener{
+            findNavController().navigate(R.id.action_journalModal_to_journalFragment)
         }
 
     }
@@ -125,9 +115,64 @@ class JournalFragment : Fragment() {
         }
     }
 
+    private fun setupModal() {
+        modalAdapter = ModalAdapter { position ->
+            createJournal(position)
+        }
+        binding.modalRecyclerView.apply {
+            layoutManager = GridLayoutManager(requireContext(), 3)
+            adapter = modalAdapter
+        }
+    }
+
+    private fun createJournal(selectedImageIndex: Int) {
+        if (userId == null) {
+            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val formattedDate = sdf.format(Date())
+
+        val journalType = when (selectedImageIndex) {
+            0 -> JournalType.JOURNAL_PINK.type
+            1 -> JournalType.JOURNAL_BLUE.type
+            else -> {
+                Toast.makeText(requireContext(), "Invalid selection", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
+
+        val journalRef = db.collection("journals").document()
+        val journalInfo = hashMapOf(
+            "userId" to userId,
+            "entryDate" to formattedDate,
+            "title" to "Untitled",
+            "text" to "",
+            "imageUris" to listOf<String>(),
+            "type" to journalType
+        )
+
+        journalRef.set(journalInfo).addOnSuccessListener {
+            Toast.makeText(requireContext(), "Journal created successfully", Toast.LENGTH_SHORT).show()
+            sendNotification()
+
+            val bundle = Bundle().apply {
+                putString("journalId", journalRef.id)
+            }
+            findNavController().navigate(R.id.action_journalFragment_to_journalDetailsFragment, bundle)
+
+            binding.modalContainer.visibility = View.GONE
+        }.addOnFailureListener { e ->
+            e.printStackTrace()
+            Toast.makeText(requireContext(), "Failed to create new journal: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+
+
     private fun loadJournals() {
         journalList.clear()
-        // Fetch journals for the current user
         db.collection("journals")
             .whereEqualTo("userId", userId)
             .get()
