@@ -87,6 +87,8 @@ class JournalFragment : Fragment() {
         notificationManager.notify(notificationId, notificationBuilder.build())
     }
 
+    // TODO: add change journal type after creation
+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channelId = "journal_creation_channel"
@@ -102,17 +104,39 @@ class JournalFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        journalAdapter = JournalAdapter(journalList) { journal ->
-            val bundle = Bundle().apply {
-                putString("journalId", journal.id)
+        journalAdapter = JournalAdapter(requireContext(), journalList,
+            onJournalClick = { journal ->
+                val bundle = Bundle().apply {
+                    putString("journalId", journal.id)
+                }
+                findNavController().navigate(R.id.action_journalFragment_to_journalDetailsFragment, bundle)
+            },
+            onJournalDelete = { deletedJournal ->
+                binding.progressContainer.visibility = View.VISIBLE
+                checkIfJournalDeleted(deletedJournal.id)
             }
-            findNavController().navigate(R.id.action_journalFragment_to_journalDetailsFragment, bundle)
-        }
+        )
 
         binding.journalRecyclerView.apply {
             layoutManager = GridLayoutManager(requireContext(), 3)
             adapter = journalAdapter
         }
+    }
+
+    private fun checkIfJournalDeleted(journalId: String) {
+        db.collection("journals").document(journalId).get()
+            .addOnSuccessListener { document ->
+                if (!document.exists()) {
+//                    Toast.makeText(requireContext(), "Journal deleted successfully", Toast.LENGTH_SHORT).show()
+                    binding.progressContainer.visibility = View.GONE
+                } else {
+                    binding.progressContainer.visibility = View.VISIBLE
+//                    Toast.makeText(requireContext(), "Failed to delete journal", Toast.LENGTH_SHORT).show()
+                }
+            }
+//            .addOnFailureListener {
+//                Toast.makeText(requireContext(), "Error checking journal deletion", Toast.LENGTH_SHORT).show()
+//            }
     }
 
     private fun setupModal() {

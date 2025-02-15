@@ -1,20 +1,23 @@
 package com.example.memoraid.adapters
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memoraid.JournalType
 import com.example.memoraid.R
+import com.example.memoraid.databinding.FragmentJournalBinding
 import com.example.memoraid.databinding.ItemJournalBinding
 import com.example.memoraid.models.Journal
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 
 class JournalAdapter(
+    private val context: Context,
     private val journals: MutableList<Journal>,
-    private val onJournalClick: (Journal) -> Unit
+    private val onJournalClick: (Journal) -> Unit,
+    private val onJournalDelete: (Journal) -> Unit
 ) : RecyclerView.Adapter<JournalAdapter.JournalViewHolder>() {
-
     private val db = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
 
@@ -49,29 +52,33 @@ class JournalAdapter(
     override fun getItemCount(): Int = journals.size
 
     private fun deleteJournal(journal: Journal, position: Int) {
-        journal.imageUris?.let { removeImagesFromStorage(it) }
+        val alertDialog = android.app.AlertDialog.Builder(context)
+            .setTitle("Delete Journal")
+            .setMessage("Are you sure you want to delete this journal?")
+            .setPositiveButton("Yes") { _, _ ->
+                journal.imageUris?.let { removeImagesFromStorage(it) }
 
-        db.collection("journals").document(journal.id)
-            .delete()
-            .addOnSuccessListener {
-                // Remove from list and refresh UI
-                journals.removeAt(position)
-                notifyItemRemoved(position)
-//                Toast.makeText(binding.root.context, "Journal deleted", Toast.LENGTH_SHORT).show()
+                db.collection("journals").document(journal.id)
+                    .delete()
+                    .addOnSuccessListener {
+                        journals.removeAt(position)
+                        notifyItemRemoved(position)
+                        onJournalDelete(journal)
+                    }
             }
-            .addOnFailureListener { e ->
-//                Toast.makeText(binding.root.context, "Failed to delete journal: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+            .setNegativeButton("No", null)
+            .create()
+
+        alertDialog.show()
     }
 
-    // Function to delete images from Firebase Storage
     private fun removeImagesFromStorage(imageUris: List<String>) {
         for (imageUri in imageUris) {
             val fileReference = storage.getReferenceFromUrl(imageUri)
 
             fileReference.delete()
                 .addOnSuccessListener {
-//                Toast.makeText(requireContext(), "Image deleted from storage", Toast.LENGTH_SHORT).show()
+
                 }
                 .addOnFailureListener { exception ->
 //                Log.e("JournalDetailsFragment", "Failed to delete image: ${exception.message}")

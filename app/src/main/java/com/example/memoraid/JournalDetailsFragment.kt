@@ -109,17 +109,11 @@ class JournalDetailsFragment : Fragment() {
     private fun removeImageFromStorage(imageUri: String) {
         val fileReference = storage.getReferenceFromUrl(imageUri)
 
-        if (fileReference == null) {
-//            Toast.makeText(requireContext(), "Invalid image URL", Toast.LENGTH_SHORT).show()
-            return
-        }
-
         fileReference.delete()
             .addOnSuccessListener {
-//                Toast.makeText(requireContext(), "Image deleted from storage", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Image deleted from storage", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { exception ->
-//                Log.e("JournalDetailsFragment", "Failed to delete image: ${exception.message}")
                 Toast.makeText(requireContext(), "Failed to delete image from storage", Toast.LENGTH_SHORT).show()
             }
     }
@@ -142,14 +136,12 @@ class JournalDetailsFragment : Fragment() {
     }
 
     private fun saveJournalDetails() {
-        // Show the progress bar
-        binding.progressBar.visibility = View.VISIBLE
-
-//        deleteAllImagesFromStorage()
+        binding.progressContainer.visibility = View.VISIBLE
 
         if (imagesToRemove.isNotEmpty()) {
             for (imageUri in imagesToRemove) {
                 removeImageFromFirestore(imageUri)
+                removeImageFromStorage(imageUri)
             }
         }
 
@@ -160,20 +152,16 @@ class JournalDetailsFragment : Fragment() {
             journal.entryDate = formattedDate
             journal.text = binding.content.text.toString()
 
-            // List to hold uploaded image URLs
             val uploadedImageUris = mutableListOf<String>()
 
-            // Upload images one by one
             if (imageUris.isNotEmpty()) {
                 var imagesUploaded = 0
 
-                // Function to upload an image and add to uploadedImageUris
                 val uploadNextImage = { imageUri: Uri ->
                     uploadImageToStorage(imageUri, { uploadedUri ->
                         uploadedImageUris.add(uploadedUri)
                         imagesUploaded++
 
-                        // If all images are uploaded, save the journal
                         if (imagesUploaded == imageUris.size) {
                             journal.imageUris = uploadedImageUris
                             saveJournalToFirestore(journal)
@@ -183,13 +171,11 @@ class JournalDetailsFragment : Fragment() {
                     })
                 }
 
-                // Iterate through all image URIs and upload them
                 for (uriString in imageUris) {
                     val uri = Uri.parse(uriString)
                     uploadNextImage(uri)
                 }
             } else {
-                // No images selected, save the journal with empty imageUris
                 journal.imageUris = mutableListOf()
                 saveJournalToFirestore(journal)
             }
@@ -200,41 +186,31 @@ class JournalDetailsFragment : Fragment() {
         db.collection("journals").document(journalId!!)
             .set(journal)
             .addOnSuccessListener {
-                // Hide the progress bar
-                binding.progressBar.visibility = View.GONE
+                binding.progressContainer.visibility = View.GONE
                 Toast.makeText(requireContext(), "Journal saved", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
-                // Hide the progress bar
-                binding.progressBar.visibility = View.GONE
+                binding.progressContainer.visibility = View.GONE
                 Toast.makeText(requireContext(), "Failed to save journal: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
-    private fun deleteAllImagesFromStorage() {
-        val storageReference = FirebaseStorage.getInstance().reference.child("journal_images")
-
-        // List all files in the folder
-        storageReference.listAll()
-            .addOnSuccessListener { listResult ->
-                // Loop through the list of files and delete them
-                for (item in listResult.items) {
-                    item.delete()
-                        .addOnSuccessListener {
-                            // File deleted successfully
-//                            Log.d("DeleteAll", "File deleted: ${item.name}")
-                        }
-                        .addOnFailureListener { exception ->
-                            // Handle any errors that occur
-//                            Log.e("DeleteAll", "Failed to delete file: ${exception.message}")
-                        }
-                }
-            }
-            .addOnFailureListener { exception ->
-                // Handle any errors that occur when listing files
-//                Log.e("DeleteAll", "Failed to list files: ${exception.message}")
-            }
-    }
+//    private fun deleteAllImagesFromStorage() {
+//        val storageReference = FirebaseStorage.getInstance().reference.child("journal_images")
+//
+//        storageReference.listAll()
+//            .addOnSuccessListener { listResult ->
+//                for (item in listResult.items) {
+//                    item.delete()
+//                        .addOnSuccessListener {
+//                        }
+//                        .addOnFailureListener { exception ->
+//                        }
+//                }
+//            }
+//            .addOnFailureListener { exception ->
+//            }
+//    }
 
 
     private fun uploadImageToStorage(uri: Uri, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
@@ -298,7 +274,6 @@ class JournalDetailsFragment : Fragment() {
     }
 
     private fun handleImage(uri: Uri) {
-        // Add image URI to the list but don't upload yet
         imageUris.add(uri.toString())
         imageAdapter.notifyDataSetChanged()
     }

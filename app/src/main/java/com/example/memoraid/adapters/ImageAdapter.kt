@@ -1,5 +1,6 @@
 package com.example.memoraid.adapters
 
+import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -9,7 +10,7 @@ import com.example.memoraid.databinding.ItemImageBinding
 class ImageAdapter(
     private val imageUris: MutableList<String>,
     private val onImageRemoved: (String) -> Unit,
-    private val onImageClicked: (String) -> Unit// Callback for image removal
+    private val onImageClicked: (String) -> Unit
 ) : RecyclerView.Adapter<ImageAdapter.ImageViewHolder>() {
 
     inner class ImageViewHolder(private val binding: ItemImageBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -21,16 +22,26 @@ class ImageAdapter(
             binding.pictureRemoveButton.setOnClickListener {
                 val currentPosition = adapterPosition
                 if (currentPosition != RecyclerView.NO_POSITION) {
-                    val uriToRemove = imageUris[currentPosition]
-                    onImageRemoved(uriToRemove)
-                    imageUris.removeAt(currentPosition)
-                    notifyItemRemoved(currentPosition)
+                    showDeleteConfirmationDialog(imageUri, currentPosition)
                 }
             }
 
             binding.imageView.setOnClickListener {
                 onImageClicked(imageUri)
             }
+        }
+
+        private fun showDeleteConfirmationDialog(imageUri: String, position: Int) {
+            AlertDialog.Builder(binding.root.context)
+                .setTitle("Delete Image")
+                .setMessage("Are you sure you want to delete this image?")
+                .setPositiveButton("Yes") { _, _ ->
+                    onImageRemoved(imageUri)
+                    imageUris.removeAt(position)
+                    notifyItemRemoved(position)
+                }
+                .setNegativeButton("No", null)
+                .show()
         }
     }
 
