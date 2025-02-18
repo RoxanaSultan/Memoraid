@@ -27,7 +27,6 @@ class AuthenticationActivity : AppCompatActivity() {
 
         val data: Uri? = intent.data
         if (data != null && data.path == "/reset-password") {
-            // Deep link detected, navigate to ResetPasswordFragment
             val fragment = ResetPasswordFragment()
 
             val transaction = supportFragmentManager.beginTransaction()
@@ -39,16 +38,11 @@ class AuthenticationActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-
-        // Get the current user
         val currentUser = FirebaseAuth.getInstance().currentUser
-
-        // If the user is signed in, navigate to the main screen
         if (currentUser != null) {
-            // Navigate to the main screen (MainActivity)
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
-            finish() // Finish AuthenticationActivity to prevent going back to it
+            finish()
         }
     }
 }

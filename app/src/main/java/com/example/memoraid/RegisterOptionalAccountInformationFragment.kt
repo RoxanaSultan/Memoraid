@@ -67,7 +67,6 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         val monthPicker: NumberPicker = binding.monthPicker
         val yearPicker: NumberPicker = binding.yearPicker
 
-        // Set min and max values for the NumberPickers
         dayPicker.minValue = 1
         dayPicker.maxValue = 31
 
@@ -155,28 +154,13 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         val birthdate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(calendar.time)
 
         if (selectedImageUri != null) {
-            uploadImageToFirebase { imageUrl ->
-                sharedViewModel.setProfilePicture(imageUrl)
+//            uploadImageToFirebase { imageUrl ->
+                sharedViewModel.setProfilePicture(selectedImageUri.toString())
                 proceedToNextStep(firstName, lastName, phoneNumber, birthdate)
-            }
+//            }
         } else {
             sharedViewModel.setProfilePicture("https://firebasestorage.googleapis.com/v0/b/memoraid-application.firebasestorage.app/o/profile_pictures%2Fdefault_profile_picture.png?alt=media&token=fa0aea7d-b11e-49f9-95f7-4b9f820e3942")
             proceedToNextStep(firstName, lastName, phoneNumber, birthdate)
-        }
-    }
-
-    private fun uploadImageToFirebase(onSuccess: (String) -> Unit) {
-        val storageRef = storage.reference.child("profile_pictures/${System.currentTimeMillis()}.jpg")
-        selectedImageUri?.let { uri ->
-            storageRef.putFile(uri)
-                .addOnSuccessListener {
-                    storageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                        onSuccess(downloadUrl.toString())
-                    }
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(requireContext(), "Failed to upload image: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
         }
     }
 

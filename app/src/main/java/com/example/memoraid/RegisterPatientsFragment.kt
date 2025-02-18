@@ -14,7 +14,9 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.memoraid.databinding.FragmentRegisterPatientsBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 
 class RegisterPatientsFragment : Fragment() {
 
@@ -22,6 +24,7 @@ class RegisterPatientsFragment : Fragment() {
     private val sharedViewModel: RegisterViewModel by activityViewModels()
     private lateinit var auth: FirebaseAuth
     private lateinit var firestore: FirebaseFirestore
+    private val storage = FirebaseStorage.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,11 +37,9 @@ class RegisterPatientsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize Firebase instances
         auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
 
-        // Handle finish button click
         binding.registerFinishButton.setOnClickListener {
             if (!binding.checkboxTerms.isChecked) {
                 Toast.makeText(requireContext(), "You must agree to the terms and conditions.", Toast.LENGTH_SHORT).show()
@@ -51,7 +52,6 @@ class RegisterPatientsFragment : Fragment() {
             registerUser(emailValue!!, passwordValue!!)
         }
 
-        // Handle click event for Terms and Conditions link
         binding.linkTermsConditions.setOnClickListener {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.terms_conditions_url)))
             startActivity(intent)
@@ -59,8 +59,8 @@ class RegisterPatientsFragment : Fragment() {
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                sharedViewModel.clearData() // Clear all data stored in the ViewModel
-                findNavController().navigateUp() // Navigates to the previous fragment
+                sharedViewModel.clearData()
+                findNavController().navigateUp()
             }
         })
     }
@@ -70,7 +70,7 @@ class RegisterPatientsFragment : Fragment() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     saveUserDetails()
-                    sharedViewModel.clearData() // Clear all data stored in the ViewModel
+                    sharedViewModel.clearData()
                     findNavController().navigate(R.id.register_finish_button)
                 } else {
                     Toast.makeText(requireContext(), "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
@@ -79,9 +79,9 @@ class RegisterPatientsFragment : Fragment() {
     }
 
     private fun saveUserDetails() {
-        val user = FirebaseAuth.getInstance().currentUser
+        val user = FirebaseAuth.getInstance().currentUser ?: return
         val db = FirebaseFirestore.getInstance()
-        val userRef = db.collection("users").document(user?.uid ?: "")
+        val userRef = db.collection("users").document(user.uid)
 
         val username = sharedViewModel.username.value
         val email = sharedViewModel.email.value
@@ -97,16 +97,45 @@ class RegisterPatientsFragment : Fragment() {
             "firstName" to firstName,
             "lastName" to lastName,
             "phoneNumber" to phoneNumber,
-            "birthdate" to birthdate,
-            "profilePictureUrl" to profilePictureUrl
+            "birthdate" to birthdate
         )
 
+        binding.progressContainer.visibility = View.VISIBLE
+        if (profilePictureUrl != null) {
+            uploadImageToFirebase(profilePictureUrl) { url ->
+                userInfo["profilePictureUrl"] = url
+                saveToFirestore(userRef, userInfo)
+            }
+        } else {
+            saveToFirestore(userRef, userInfo)
+        }
+    }
+
+    private fun saveToFirestore(userRef: DocumentReference, userInfo: HashMap<String, String?>) {
         userRef.set(userInfo)
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Registration complete", Toast.LENGTH_SHORT).show()
+                binding.progressContainer.visibility = View.GONE
             }
             .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Error updating user info: $e", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Error updating user info: ${e.message}", Toast.LENGTH_SHORT).show()
+                binding.progressContainer.visibility = View.GONE
             }
+    }
+
+    private fun uploadImageToFirebase(imageUri: String, onSuccess: (String) -> Unit) {
+        val storageRef = FirebaseStorage.getInstance().reference.child("profile_pictures/${FirebaseAuth.getInstance().currentUser?.uid}.jpg")
+        val uploadTask = storageRef.putFile(Uri.parse(imageUri))
+
+        uploadTask.continueWithTask { task ->
+            if (!task.isSuccessful) {
+                task.exception?.let { throw it }
+            }
+            storageRef.downloadUrl
+        }.addOnSuccessListener { uri ->
+            onSuccess(uri.toString())
+        }.addOnFailureListener { e ->
+            Toast.makeText(requireContext(), "Failed to upload image: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 }

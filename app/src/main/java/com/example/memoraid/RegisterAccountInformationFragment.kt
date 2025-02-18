@@ -29,7 +29,6 @@ class RegisterAccountInformationFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Initialize ViewBinding
         binding = FragmentRegisterAccountInformationBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -37,27 +36,22 @@ class RegisterAccountInformationFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
-
-        // Initialize Firestore
         firestore = FirebaseFirestore.getInstance()
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                sharedViewModel.clearData() // Clear all data stored in the ViewModel
-                findNavController().navigateUp() // Navigates to the previous fragment
+                sharedViewModel.clearData()
+                findNavController().navigateUp()
             }
         })
 
-        // Set up click listener for the continue button
         binding.firstRegisterContinueButton.setOnClickListener {
             val username = binding.registerUsername.text.toString().trim()
             val email = binding.registerEmailPhoneNumber.text.toString().trim()
             val password = binding.registerPassword.text.toString().trim()
             val confirmPassword = binding.registerConfirmPassword.text.toString().trim()
 
-            // Launch a coroutine to call the suspend function
             lifecycleScope.launch {
                 if (validateInput(email, username, password, confirmPassword)) {
                     findNavController().navigate(R.id.fragment_register_optional_account_info)
@@ -118,7 +112,7 @@ class RegisterAccountInformationFragment : Fragment() {
             .whereEqualTo("username", username)
             .get()
             .await()
-        return querySnapshot.isEmpty  // true if no documents found, meaning email is unique
+        return querySnapshot.isEmpty
     }
 
     private suspend fun isEmailUnique(email: String): Boolean {
@@ -126,6 +120,6 @@ class RegisterAccountInformationFragment : Fragment() {
             .whereEqualTo("email", email)
             .get()
             .await()
-        return querySnapshot.isEmpty  // true if no documents found, meaning email is unique
+        return querySnapshot.isEmpty
     }
 }
