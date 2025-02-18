@@ -1,15 +1,20 @@
 package com.example.memoraid
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -40,13 +45,12 @@ class JournalDetailsFragment : Fragment() {
     private val firestoreCollection = db.collection("journals")
     private var imagesToRemove = mutableListOf<String>()
 
-    // Adapter with callback for deleting images
     private val imageAdapter by lazy {
         ImageAdapter(imageUris,
             onImageRemoved = { imageUri ->
                 imagesToRemove.add(imageUri)
             },
-            onImageClicked = { imageUri -> // Handle image click
+            onImageClicked = { imageUri ->
                 val bundle = Bundle().apply {
                     putString("imageUri", imageUri)
                 }
@@ -57,6 +61,7 @@ class JournalDetailsFragment : Fragment() {
 
     private val REQUEST_IMAGE_PICK = 1001
     private val REQUEST_IMAGE_CAPTURE = 1002
+    private val REQUEST_CAMERA_PERMISSION = 1003
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -140,8 +145,18 @@ class JournalDetailsFragment : Fragment() {
 
         if (imagesToRemove.isNotEmpty()) {
             for (imageUri in imagesToRemove) {
-                removeImageFromFirestore(imageUri)
-                removeImageFromStorage(imageUri)
+                if (isFirebaseStorageUri(imageUri)) {
+                    checkIfImageExistsInStorage(imageUri) { exists ->
+                        if (exists) {
+                            removeImageFromFirestore(imageUri)
+                            removeImageFromStorage(imageUri)
+                        } else {
+                            Toast.makeText(requireContext(), "Image does not exist in storage", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "Skipping local image: $imageUri", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
@@ -173,7 +188,12 @@ class JournalDetailsFragment : Fragment() {
 
                 for (uriString in imageUris) {
                     val uri = Uri.parse(uriString)
-                    uploadNextImage(uri)
+                    if (isFirebaseStorageUri(uriString)) {
+                        uploadedImageUris.add(uriString)
+                        imagesUploaded++
+                    } else {
+                        uploadNextImage(uri)
+                    }
                 }
             } else {
                 journal.imageUris = mutableListOf()
@@ -195,23 +215,17 @@ class JournalDetailsFragment : Fragment() {
             }
     }
 
-//    private fun deleteAllImagesFromStorage() {
-//        val storageReference = FirebaseStorage.getInstance().reference.child("journal_images")
-//
-//        storageReference.listAll()
-//            .addOnSuccessListener { listResult ->
-//                for (item in listResult.items) {
-//                    item.delete()
-//                        .addOnSuccessListener {
-//                        }
-//                        .addOnFailureListener { exception ->
-//                        }
-//                }
-//            }
-//            .addOnFailureListener { exception ->
-//            }
-//    }
+    private fun checkIfImageExistsInStorage(imageUri: String, onResult: (Boolean) -> Unit) {
+        val fileReference = storage.getReferenceFromUrl(imageUri)
 
+        fileReference.downloadUrl
+            .addOnSuccessListener { uri ->
+                onResult(true)
+            }
+            .addOnFailureListener { exception ->
+                onResult(false)
+            }
+    }
 
     private fun uploadImageToStorage(uri: Uri, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
         val fileName = UUID.randomUUID().toString() + ".jpg"
@@ -228,7 +242,6 @@ class JournalDetailsFragment : Fragment() {
             }
     }
 
-
     private fun showImageOptions() {
         val options = arrayOf("Take Photo", "Choose from Gallery")
         android.app.AlertDialog.Builder(requireContext())
@@ -244,11 +257,20 @@ class JournalDetailsFragment : Fragment() {
     private lateinit var photoUri: Uri
 
     private fun openCamera() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            startCamera()
+        } else {
+            ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.CAMERA), REQUEST_CAMERA_PERMISSION)
+        }
+    }
+
+    private fun startCamera() {
         val photoFile = File(requireContext().getExternalFilesDir(null), "journal_photo_${UUID.randomUUID()}.jpg")
         photoUri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.fileprovider", photoFile)
 
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
             putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+            addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         if (intent.resolveActivity(requireActivity().packageManager) != null) {
             startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
@@ -276,6 +298,23 @@ class JournalDetailsFragment : Fragment() {
     private fun handleImage(uri: Uri) {
         imageUris.add(uri.toString())
         imageAdapter.notifyDataSetChanged()
+    }
+
+    private fun isFirebaseStorageUri(uri: String): Boolean {
+        return uri.startsWith("http://") || uri.startsWith("https://")
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            REQUEST_CAMERA_PERMISSION -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startCamera()
+                } else {
+                    Toast.makeText(requireContext(), "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {

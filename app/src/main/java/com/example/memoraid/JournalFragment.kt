@@ -20,6 +20,7 @@ import com.example.memoraid.databinding.FragmentJournalBinding
 import com.example.memoraid.models.Journal
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.HashMap
@@ -37,6 +38,7 @@ class JournalFragment : Fragment() {
 
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
     private val db = FirebaseFirestore.getInstance()
+    private val storage = FirebaseStorage.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -126,18 +128,59 @@ class JournalFragment : Fragment() {
     private fun checkIfJournalDeleted(journalId: String) {
         db.collection("journals").document(journalId).get()
             .addOnSuccessListener { document ->
-                if (!document.exists()) {
-//                    Toast.makeText(requireContext(), "Journal deleted successfully", Toast.LENGTH_SHORT).show()
-                    binding.progressContainer.visibility = View.GONE
+                if (document.exists()) {
+                    val imageUris = document.get("imageUris") as? List<String> ?: emptyList()
+
+                    if (imageUris.isNotEmpty()) {
+                        deleteImagesFromStorage(imageUris) {
+                            deleteJournalFromFirestore(journalId)
+                        }
+                    } else {
+                        deleteJournalFromFirestore(journalId)
+                    }
                 } else {
-                    binding.progressContainer.visibility = View.VISIBLE
-//                    Toast.makeText(requireContext(), "Failed to delete journal", Toast.LENGTH_SHORT).show()
+                    binding.progressContainer.visibility = View.GONE
                 }
             }
-//            .addOnFailureListener {
-//                Toast.makeText(requireContext(), "Error checking journal deletion", Toast.LENGTH_SHORT).show()
-//            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Error checking journal deletion", Toast.LENGTH_SHORT).show()
+            }
     }
+
+    private fun deleteImagesFromStorage(imageUris: List<String>, onComplete: () -> Unit) {
+        var deletedCount = 0
+        for (imageUri in imageUris) {
+            val storageRef = storage.getReferenceFromUrl(imageUri)
+            storageRef.delete()
+                .addOnSuccessListener {
+                    deletedCount++
+                    if (deletedCount == imageUris.size) {
+                        onComplete()
+                    }
+                }
+                .addOnFailureListener {
+                    Toast.makeText(requireContext(), "Failed to delete an image", Toast.LENGTH_SHORT).show()
+                }
+        }
+
+        if (imageUris.isEmpty()) {
+            onComplete()
+        }
+    }
+
+    private fun deleteJournalFromFirestore(journalId: String) {
+        db.collection("journals").document(journalId).delete()
+            .addOnSuccessListener {
+                Toast.makeText(requireContext(), "Journal deleted successfully", Toast.LENGTH_SHORT).show()
+                binding.progressContainer.visibility = View.GONE
+                loadJournals()
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Failed to delete journal", Toast.LENGTH_SHORT).show()
+                binding.progressContainer.visibility = View.GONE
+            }
+    }
+
 
     private fun setupModal() {
         modalAdapter = ModalAdapter { position ->
