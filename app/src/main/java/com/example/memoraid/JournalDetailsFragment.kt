@@ -44,11 +44,13 @@ class JournalDetailsFragment : Fragment() {
     private val storageReference = storage.reference.child("journal_images")
     private val firestoreCollection = db.collection("journals")
     private var imagesToRemove = mutableListOf<String>()
+    private val localToFirebaseUriMap = mutableMapOf<String, String>()
 
     private val imageAdapter by lazy {
         ImageAdapter(imageUris,
             onImageRemoved = { imageUri ->
-                imagesToRemove.add(imageUri)
+                val uriToRemove = localToFirebaseUriMap[imageUri] ?: imageUri
+                imagesToRemove.add(uriToRemove)
             },
             onImageClicked = { imageUri ->
                 val bundle = Bundle().apply {
@@ -145,54 +147,70 @@ class JournalDetailsFragment : Fragment() {
 
         if (imagesToRemove.isNotEmpty()) {
             for (imageUri in imagesToRemove) {
-                if (isFirebaseStorageUri(imageUri)) {
-                    checkIfImageExistsInStorage(imageUri) { exists ->
+                val firebaseUri = localToFirebaseUriMap[imageUri] ?: imageUri
+
+                if (isFirebaseStorageUri(firebaseUri)) {
+                    checkIfImageExistsInStorage(firebaseUri) { exists ->
                         if (exists) {
-                            removeImageFromFirestore(imageUri)
-                            removeImageFromStorage(imageUri)
-                        } else {
-                            Toast.makeText(requireContext(), "Image does not exist in storage", Toast.LENGTH_SHORT).show()
+                            removeImageFromFirestore(firebaseUri)
+                            removeImageFromStorage(firebaseUri)
                         }
                     }
-                } else {
-                    Toast.makeText(requireContext(), "Skipping local image: $imageUri", Toast.LENGTH_SHORT).show()
                 }
             }
+            imagesToRemove.clear()
         }
 
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         val formattedDate = sdf.format(Date())
+
         journal?.let { journal ->
             journal.title = binding.title.text.toString()
             journal.entryDate = formattedDate
             journal.text = binding.content.text.toString()
 
             val uploadedImageUris = mutableListOf<String>()
+            var imagesUploaded = 0
+            val totalImages = imageUris.size
 
             if (imageUris.isNotEmpty()) {
-                var imagesUploaded = 0
-
-                val uploadNextImage = { imageUri: Uri ->
-                    uploadImageToStorage(imageUri, { uploadedUri ->
-                        uploadedImageUris.add(uploadedUri)
-                        imagesUploaded++
-
-                        if (imagesUploaded == imageUris.size) {
-                            journal.imageUris = uploadedImageUris
-                            saveJournalToFirestore(journal)
-                        }
-                    }, { exception ->
-                        Toast.makeText(requireContext(), "Failed to upload image: ${exception.message}", Toast.LENGTH_SHORT).show()
-                    })
-                }
-
                 for (uriString in imageUris) {
-                    val uri = Uri.parse(uriString)
                     if (isFirebaseStorageUri(uriString)) {
                         uploadedImageUris.add(uriString)
                         imagesUploaded++
+
+                        if (imagesUploaded == totalImages) {
+                            journal.imageUris = uploadedImageUris
+                            saveJournalToFirestore(journal)
+                        }
                     } else {
-                        uploadNextImage(uri)
+                        val uri = Uri.parse(uriString)
+                        uploadImageToStorage(
+                            uri,
+                            onSuccess = { uploadedUri ->
+                                uploadedImageUris.add(uploadedUri)
+                                localToFirebaseUriMap[uriString] = uploadedUri
+                                val index = imageUris.indexOf(uriString)
+                                if (index != -1) {
+                                    imageUris[index] = uploadedUri
+                                    imageAdapter.notifyItemChanged(index)
+                                }
+
+                                imagesUploaded++
+                                if (imagesUploaded == totalImages) {
+                                    journal.imageUris = uploadedImageUris
+                                    saveJournalToFirestore(journal)
+                                }
+                            },
+                            onFailure = { exception ->
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Failed to upload image: ${exception.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                binding.progressContainer.visibility = View.GONE
+                            }
+                        )
                     }
                 }
             } else {
@@ -200,6 +218,13 @@ class JournalDetailsFragment : Fragment() {
                 saveJournalToFirestore(journal)
             }
         }
+    }
+
+    private fun handleImage(uri: Uri) {
+        val uriString = uri.toString()
+        imageUris.add(uriString)
+        localToFirebaseUriMap.remove(uriString)
+        imageAdapter.notifyDataSetChanged()
     }
 
     private fun saveJournalToFirestore(journal: Journal) {
@@ -295,10 +320,10 @@ class JournalDetailsFragment : Fragment() {
         }
     }
 
-    private fun handleImage(uri: Uri) {
-        imageUris.add(uri.toString())
-        imageAdapter.notifyDataSetChanged()
-    }
+//    private fun handleImage(uri: Uri) {
+//        imageUris.add(uri.toString())
+//        imageAdapter.notifyDataSetChanged()
+//    }
 
     private fun isFirebaseStorageUri(uri: String): Boolean {
         return uri.startsWith("http://") || uri.startsWith("https://")
