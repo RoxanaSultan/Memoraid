@@ -1,6 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".GameSelectionActivity">
 
+    <android.widget.GridLayout
+        android:id="@+id/gridLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:columnCount="2"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:rowCount="2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Row 1 -->
+        <android.widget.Button
+            android:id="@+id/btnPuzzle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="fill"
+            android:layout_margin="8dp"
+            android:background="@drawable/button_selector"
+            android:enabled="true"
+            android:minWidth="120dp"
+            android:text="Puzzles"
+            android:textColor="@drawable/foreground_color"
+            android:textSize="18sp" />
+
+        <android.widget.Button
+            android:id="@+id/btnMemory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="fill"
+            android:layout_margin="8dp"
+            android:enabled="false"
+            android:minWidth="120dp"
+            android:text="Card Match"
+            android:textColor="@drawable/foreground_color"
+            android:textSize="18sp" />
+
+        <!-- Row 2 -->
+        <android.widget.Button
+            android:id="@+id/btnWordSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="fill"
+            android:layout_margin="8dp"
+            android:enabled="false"
+            android:minWidth="120dp"
+            android:text="Word Search"
+            android:textColor="@drawable/foreground_color"
+            android:textSize="18sp" />
+
+        <android.widget.Button
+            android:id="@+id/btnSudoku"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="fill"
+            android:layout_margin="8dp"
+            android:enabled="false"
+            android:minWidth="120dp"
+            android:text="Sudoku"
+            android:textColor="@drawable/foreground_color"
+            android:textSize="18sp" />
+    </android.widget.GridLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
