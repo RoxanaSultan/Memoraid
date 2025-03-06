@@ -18,7 +18,6 @@ import android.animation.Animator
 import android.animation.AnimatorSet
 
 class CardGameFragment : Fragment() {
-
     private lateinit var cardsGrid: GridLayout
     private lateinit var restartButton: Button
     private val cardImages = listOf(
@@ -52,7 +51,6 @@ class CardGameFragment : Fragment() {
         cardsGrid.removeAllViews()
         cardsList.clear()
 
-        // Duplicate images to create pairs
         val pairedImages = (cardImages + cardImages).shuffled()
 
         pairedImages.forEachIndexed { index, image ->
@@ -67,10 +65,10 @@ class CardGameFragment : Fragment() {
             layoutParams = GridLayout.LayoutParams().apply {
                 width = 250
                 height = 250
-                marginEnd = 16
-                bottomMargin = 16
+                marginEnd = 60
+                bottomMargin = 60
             }
-            setBackgroundResource(R.drawable.card) // Default card back
+            setBackgroundResource(R.drawable.card)
             setOnClickListener {
                 flipCard(card, this)
             }
@@ -79,67 +77,84 @@ class CardGameFragment : Fragment() {
         cardsGrid.addView(cardButton)
     }
 
+    private fun flipToFront(card: Card, button: Button) {
+        if (card.isFlipped) return
+
+        val flipOut = ObjectAnimator.ofFloat(button, "scaleX", 1f, 0f).apply { duration = 200 }
+        val flipIn = ObjectAnimator.ofFloat(button, "scaleX", 0f, 1f).apply { duration = 200 }
+
+        flipOut.addListener(object : Animator.AnimatorListener {
+            override fun onAnimationStart(animation: Animator) {}
+            override fun onAnimationEnd(animation: Animator) {
+                card.isFlipped = true
+                button.setBackgroundResource(card.imageResId)
+                flipIn.start()
+            }
+            override fun onAnimationCancel(animation: Animator) {}
+            override fun onAnimationRepeat(animation: Animator) {}
+        })
+
+        AnimatorSet().apply {
+            playSequentially(flipOut, flipIn)
+            start()
+        }
+    }
+
+    private fun flipToBack(card: Card, button: Button) {
+        if (!card.isFlipped) return  // If already hidden, don't flip again
+
+        val flipOut = ObjectAnimator.ofFloat(button, "scaleX", 1f, 0f).apply { duration = 200 }
+        val flipIn = ObjectAnimator.ofFloat(button, "scaleX", 0f, 1f).apply { duration = 200 }
+
+        flipOut.addListener(object : Animator.AnimatorListener {
+            override fun onAnimationStart(animation: Animator) {}
+            override fun onAnimationEnd(animation: Animator) {
+                card.isFlipped = false
+                button.setBackgroundResource(R.drawable.card) // Back of the card
+                flipIn.start()
+            }
+            override fun onAnimationCancel(animation: Animator) {}
+            override fun onAnimationRepeat(animation: Animator) {}
+        })
+
+        AnimatorSet().apply {
+            playSequentially(flipOut, flipIn)
+            start()
+        }
+    }
+
     private fun flipCard(card: Card, button: Button) {
         if (card.isMatched) return
         if (firstCard != null && secondCard != null && firstCard != card && secondCard != card) return
 
+        flipToFront(card, button)
 
-        val flipOut = ObjectAnimator.ofFloat(button, "scaleX", 1f, 0f).apply { duration = 150 }
-        val flipIn = ObjectAnimator.ofFloat(button, "scaleX", 0f, 1f).apply { duration = 150 }
-
-        flipOut.addListener(object : Animator.AnimatorListener {
-            override fun onAnimationStart(animation: Animator) {}
-
-            override fun onAnimationEnd(animation: Animator) {
-                card.isFlipped = !card.isFlipped
-                button.setBackgroundResource(if (card.isFlipped) card.imageResId else R.drawable.card)
-                flipIn.start()
-            }
-
-            override fun onAnimationCancel(animation: Animator) {}
-            override fun onAnimationRepeat(animation: Animator) {}
-        })
-
-        flipIn.addListener(object : Animator.AnimatorListener {
-            override fun onAnimationStart(animation: Animator) {}
-
-            override fun onAnimationEnd(animation: Animator) {
-                if (firstCard == null) {
-                    firstCard = card
-                    firstButton = button
-                } else if (secondCard == null && firstCard != card) {
-                    secondCard = card
-                    secondButton = button
-                    checkForMatch()
-                }
-            }
-
-            override fun onAnimationCancel(animation: Animator) {}
-            override fun onAnimationRepeat(animation: Animator) {}
-        })
-
-        val flip = AnimatorSet()
-        flip.playSequentially(flipOut, flipIn)
-        flip.start()
+        if (firstCard == null) {
+            firstCard = card
+            firstButton = button
+        } else if (secondCard == null && firstCard != card) {
+            secondCard = card
+            secondButton = button
+            checkForMatch()
+        }
     }
 
     private fun resetFlippedCards() {
-        Handler(Looper.getMainLooper()).postDelayed({
-            if (firstButton != null && secondButton != null) {
-                firstButton?.let { button ->
-                    val card = firstCard!!
-                    flipCard(card, button)
-                }
-                secondButton?.let { button ->
-                    val card = secondCard!!
-                    flipCard(card, button)
+            firstButton?.let { button ->
+                firstCard?.let { card ->
+                    flipToBack(card, button)
                 }
             }
+            secondButton?.let { button ->
+                secondCard?.let { card ->
+                    flipToBack(card, button)
+                }
+            }
+
             firstButton = null
             secondButton = null
             firstCard = null
             secondCard = null
-        }, 100)
     }
 
     private fun checkForMatch() {
@@ -151,13 +166,15 @@ class CardGameFragment : Fragment() {
 
                 if (matchedPairs == cardImages.size) {
                     Toast.makeText(requireContext(), "You win!", Toast.LENGTH_SHORT).show()
-                    firstCard = null
-                    secondCard = null
                 }
+                firstButton = null
+                secondButton = null
+                firstCard = null
+                secondCard = null
             } else {
                 Handler(Looper.getMainLooper()).postDelayed({
                     resetFlippedCards()
-                }, 100)
+                }, 800)
             }
         }
     }
