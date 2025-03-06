@@ -5,6 +5,7 @@
     android:id="@+id/main_nav_graph"
     app:startDestination="@id/navigation_account">
 
+    <!-- Account Fragment -->
     <fragment
         android:id="@+id/navigation_account"
         android:name="com.example.memoraid.AccountFragment"
@@ -15,6 +16,7 @@
             app:destination="@id/fragment_change_password" />
     </fragment>
 
+    <!-- Journal Fragment -->
     <fragment
         android:id="@+id/navigation_journal"
         android:name="com.example.memoraid.JournalFragment"
@@ -28,13 +30,65 @@
             app:destination="@id/navigation_journal" />
     </fragment>
 
+    <!-- Games Fragment -->
     <fragment
         android:id="@+id/navigation_games"
         android:name="com.example.memoraid.GamesFragment"
         android:label="Games"
         tools:layout="@layout/fragment_games" >
+        <action
+            android:id="@+id/action_gamesFragment_to_puzzlesFragment"
+            app:destination="@id/navigation_puzzles" />
+        <action
+            android:id="@+id/action_gamesFragment_to_cardGamesFragment"
+            app:destination="@id/navigation_cards" />
     </fragment>
 
+    <!-- Puzzles Fragment -->
+    <fragment
+        android:id="@+id/navigation_puzzles"
+        android:name="com.example.memoraid.PuzzlesFragment"
+        android:label="Puzzles"
+        tools:layout="@layout/fragment_puzzles">
+        <action
+            android:id="@+id/action_puzzlesFragment_to_puzzleFragment"
+            app:destination="@id/navigation_puzzle" />
+    </fragment>
+
+    <!-- Puzzle Fragment (with argument) -->
+    <fragment
+        android:id="@+id/navigation_puzzle"
+        android:name="com.example.memoraid.PuzzleFragment"
+        android:label="Puzzle">
+        <argument
+            android:name="imageResId"
+            app:argType="integer"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_cards"
+        android:name="com.example.memoraid.CardGamesFragment"
+        android:label="Cards"
+        tools:layout="@layout/fragment_card_games">
+        <action
+            android:id="@+id/action_cardGamesFragment_to_cardGameFragment"
+            app:destination="@id/navigation_card_game"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_card_game"
+        android:name="com.example.memoraid.CardGameFragment"
+        android:label="CardGame"
+        tools:layout="@layout/fragment_card_game">
+        <action
+            android:id="@+id/action_cardGamesFragment_to_cardGameFragment"
+            app:destination="@id/navigation_card_game" />
+        <argument
+            android:name="difficulty_level"
+            app:argType="string"/>
+    </fragment>
+
+    <!-- Memories Fragment -->
     <fragment
         android:id="@+id/navigation_memories"
         android:name="com.example.memoraid.MemoriesFragment"
@@ -45,6 +99,7 @@
             app:destination="@id/navigation_journal" />
     </fragment>
 
+    <!-- Health Fragment -->
     <fragment
         android:id="@+id/navigation_health"
         android:name="com.example.memoraid.HealthFragment"
@@ -52,6 +107,7 @@
         tools:layout="@layout/fragment_health">
     </fragment>
 
+    <!-- Journal Details Fragment -->
     <fragment
         android:id="@+id/fragment_journal_details"
         android:name="com.example.memoraid.JournalDetailsFragment"
@@ -62,6 +118,7 @@
             app:destination="@id/navigation_full_screen_image" />
     </fragment>
 
+    <!-- Full Screen Image Fragment -->
     <fragment
         android:id="@+id/navigation_full_screen_image"
         android:name="com.example.memoraid.FullScreenImageFragment"
@@ -69,6 +126,7 @@
         tools:layout="@layout/fragment_full_screen_image">
     </fragment>
 
+    <!-- Change Password Fragment -->
     <fragment
         android:id="@+id/fragment_change_password"
         android:name="com.example.memoraid.ChangePasswordFragment"
@@ -78,4 +136,5 @@
             android:id="@+id/action_changePasswordFragment_to_accountFragment"
             app:destination="@id/navigation_account" />
     </fragment>
+
 </navigation>

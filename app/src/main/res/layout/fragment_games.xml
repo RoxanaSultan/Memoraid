@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".GameSelectionActivity">
+    tools:context=".MainActivity">
 
     <android.widget.GridLayout
         android:id="@+id/gridLayout"
@@ -27,23 +27,23 @@
             android:layout_height="wrap_content"
             android:layout_gravity="fill"
             android:layout_margin="8dp"
-            android:background="@drawable/button_selector"
-            android:enabled="true"
+            android:enabled="false"
             android:minWidth="120dp"
             android:text="Puzzles"
             android:textColor="@drawable/foreground_color"
             android:textSize="18sp" />
 
         <android.widget.Button
-            android:id="@+id/btnMemory"
+            android:id="@+id/btnCards"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="fill"
             android:layout_margin="8dp"
-            android:enabled="false"
+            android:enabled="true"
+            android:background="@drawable/button_selector"
+            android:textColor="@drawable/foreground_color"
             android:minWidth="120dp"
             android:text="Card Match"
-            android:textColor="@drawable/foreground_color"
             android:textSize="18sp" />
 
         <!-- Row 2 -->
