@@ -16,8 +16,18 @@ import com.example.memoraid.models.Card
 import android.animation.ObjectAnimator
 import android.animation.Animator
 import android.animation.AnimatorSet
+import com.example.memoraid.databinding.FragmentAccountBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class CardGameFragment : Fragment() {
+    private var _binding: FragmentCardGameBinding? = null
+    private val binding get() = _binding!!
+
+    private lateinit var database: FirebaseFirestore
+    private lateinit var authenticator: FirebaseAuth
+    private lateinit var currentUser: String
+
     private lateinit var cardsGrid: GridLayout
     private lateinit var restartButton: Button
     private val cardImages = listOf(
@@ -31,20 +41,48 @@ class CardGameFragment : Fragment() {
     private var firstButton: Button? = null
     private var secondButton: Button? = null
     private var matchedPairs = 0
+    private lateinit var currentLevel: String
+    private var gameScore: Long = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(R.layout.fragment_card_game, container, false)
+        _binding = FragmentCardGameBinding.inflate(inflater, container, false)
+        val view = binding.root
 
-        cardsGrid = view.findViewById(R.id.cards_grid)
-        restartButton = view.findViewById(R.id.restart_button)
+        database = FirebaseFirestore.getInstance()
+        authenticator = FirebaseAuth.getInstance()
+
+        cardsGrid = binding.cardsGrid
+        restartButton = binding.restartButton
 
         restartButton.setOnClickListener { restartGame() }
 
+        currentUser = authenticator.currentUser?.uid ?: ""
+        loadScoreFromFirebase(currentUser)
+        currentLevel = requireArguments().getString("difficulty_level").toString()
+
         setupGame()
         return view
+    }
+
+    private fun loadScoreFromFirebase(userId: String) {
+        val scoreRef = database.collection("card_matching_game")
+            .whereEqualTo("userId", userId)
+
+        scoreRef.get().addOnSuccessListener { querySnapshot ->
+            if (!querySnapshot.isEmpty) {
+                val document = querySnapshot.documents[0]
+                val score = document.getLong("score")
+                gameScore = score!!
+                binding.scoreDisplay.text = "Score: $score"
+            } else {
+                Toast.makeText(requireContext(), "Score not found", Toast.LENGTH_SHORT).show()
+            }
+        }.addOnFailureListener { exception ->
+            Toast.makeText(requireContext(), "Error loading score: ${exception.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun setupGame() {
@@ -140,21 +178,21 @@ class CardGameFragment : Fragment() {
     }
 
     private fun resetFlippedCards() {
-            firstButton?.let { button ->
-                firstCard?.let { card ->
-                    flipToBack(card, button)
-                }
+        firstButton?.let { button ->
+            firstCard?.let { card ->
+                flipToBack(card, button)
             }
-            secondButton?.let { button ->
-                secondCard?.let { card ->
-                    flipToBack(card, button)
-                }
+        }
+        secondButton?.let { button ->
+            secondCard?.let { card ->
+                flipToBack(card, button)
             }
+        }
 
-            firstButton = null
-            secondButton = null
-            firstCard = null
-            secondCard = null
+        firstButton = null
+        secondButton = null
+        firstCard = null
+        secondCard = null
     }
 
     private fun checkForMatch() {
@@ -166,6 +204,7 @@ class CardGameFragment : Fragment() {
 
                 if (matchedPairs == cardImages.size) {
                     Toast.makeText(requireContext(), "You win!", Toast.LENGTH_SHORT).show()
+                    updateScore()
                 }
                 firstButton = null
                 secondButton = null
@@ -175,6 +214,56 @@ class CardGameFragment : Fragment() {
                 Handler(Looper.getMainLooper()).postDelayed({
                     resetFlippedCards()
                 }, 800)
+            }
+        }
+    }
+
+    private fun updateScore() {
+        val score = when (currentLevel) {
+            "Easy" -> 1
+            "Medium" -> 3
+            "Hard" -> 6
+            "Expert" -> 10
+            else -> 0
+        }
+
+        gameScore += score
+        binding.scoreDisplay.text = "Score: $gameScore"
+        saveScoreToFirebase(currentUser, gameScore.toInt())
+    }
+
+    private fun saveScoreToFirebase(currentUser: String, newScore: Int) {
+        val scoreRef = database.collection("card_matching_game").whereEqualTo("userId", currentUser)
+
+        scoreRef.get().addOnSuccessListener { querySnapshot ->
+            if (querySnapshot.isEmpty) {
+                val userScore = hashMapOf(
+                    "userId" to currentUser,
+                    "score" to newScore
+                )
+
+                database.collection("card_matching_game")
+                    .add(userScore)
+                    .addOnSuccessListener {
+                        Toast.makeText(requireContext(), "Score saved!", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener { exception ->
+                        Toast.makeText(requireContext(), "Error saving score: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    }
+            } else {
+                val document = querySnapshot.documents[0]
+                val documentId = document.id
+                val updatedScore = hashMapOf("score" to newScore)
+
+                database.collection("card_matching_game")
+                    .document(documentId)
+                    .update(updatedScore as Map<String, Any>)
+                    .addOnSuccessListener {
+                        Toast.makeText(requireContext(), "Score updated!", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener { exception ->
+                        Toast.makeText(requireContext(), "Error updating score: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    }
             }
         }
     }
