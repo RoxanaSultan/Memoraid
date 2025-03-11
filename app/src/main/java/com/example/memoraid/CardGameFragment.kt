@@ -148,7 +148,7 @@ class CardGameFragment : Fragment() {
         val (levelCardImages, numColumns, cardSize) = when (currentLevel) {
             "Easy" -> Triple(easyCardImages, 2, 250)
             "Medium" -> Triple(mediumCardImages, 3, 250)
-            "Hard" -> Triple(hardCardImages, 3, 200)
+            "Hard" -> Triple(hardCardImages, 4, 200)
             "Expert" -> Triple(expertCardImages, 4, 200)
             else -> Triple(easyCardImages, 2, 200)
         }
