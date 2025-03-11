@@ -30,10 +30,8 @@ class CardGameFragment : Fragment() {
 
     private lateinit var cardsGrid: GridLayout
     private lateinit var restartButton: Button
-    private val cardImages = listOf(
-        R.drawable.card_apple, R.drawable.card_flower,
-        R.drawable.card_car, R.drawable.card_kite
-    )
+
+    private var cardImages: List<Int> = listOf()
 
     private var cardsList = mutableListOf<Card>()
     private var firstCard: Card? = null
@@ -43,6 +41,46 @@ class CardGameFragment : Fragment() {
     private var matchedPairs = 0
     private lateinit var currentLevel: String
     private var gameScore: Long = 0
+
+    private val easyCardImages = listOf(
+        R.drawable.card_apple,
+        R.drawable.card_flower,
+        R.drawable.card_car,
+        R.drawable.card_kite
+    )
+
+    private val mediumCardImages = listOf(
+        R.drawable.card_dog,
+        R.drawable.card_cat,
+        R.drawable.card_parrot,
+        R.drawable.card_horse,
+        R.drawable.card_dolphin,
+        R.drawable.card_turtle
+    )
+
+    private val hardCardImages = listOf(
+        R.drawable.card_chocolate_bar,
+        R.drawable.card_ice_cream,
+        R.drawable.card_fried_egg,
+        R.drawable.card_soup,
+        R.drawable.card_burger,
+        R.drawable.card_salad,
+        R.drawable.card_pizza,
+        R.drawable.card_french_fries
+    )
+
+    private val expertCardImages = listOf(
+        R.drawable.card_painting,
+        R.drawable.card_running,
+        R.drawable.card_camping,
+        R.drawable.card_hiking,
+        R.drawable.card_singing,
+        R.drawable.card_boxing,
+        R.drawable.card_dancing,
+        R.drawable.card_cooking,
+        R.drawable.card_board_gaming,
+        R.drawable.card_canoeing,
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -89,22 +127,34 @@ class CardGameFragment : Fragment() {
         cardsGrid.removeAllViews()
         cardsList.clear()
 
+        val (levelCardImages, numColumns, cardSize) = when (currentLevel) {
+            "Easy" -> Triple(easyCardImages, 2, 250)
+            "Medium" -> Triple(mediumCardImages, 3, 250)
+            "Hard" -> Triple(hardCardImages, 4, 200)
+            "Expert" -> Triple(expertCardImages, 4, 200)
+            else -> Triple(easyCardImages, 2, 200)
+        }
+
+        cardImages = levelCardImages
+
         val pairedImages = (cardImages + cardImages).shuffled()
+
+        cardsGrid.columnCount = numColumns
 
         pairedImages.forEachIndexed { index, image ->
             val card = Card(id = index, imageResId = image)
             cardsList.add(card)
-            addCardToGrid(card)
+            addCardToGrid(card, cardSize)
         }
     }
 
-    private fun addCardToGrid(card: Card) {
+    private fun addCardToGrid(card: Card, cardSize: Int) {
         val cardButton = Button(requireContext()).apply {
             layoutParams = GridLayout.LayoutParams().apply {
-                width = 250
-                height = 250
-                marginEnd = 60
-                bottomMargin = 60
+                width = cardSize
+                height = cardSize
+                marginEnd = 40
+                bottomMargin = 40
             }
             setBackgroundResource(R.drawable.card)
             setOnClickListener {
