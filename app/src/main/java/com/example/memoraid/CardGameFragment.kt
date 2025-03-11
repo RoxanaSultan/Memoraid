@@ -41,6 +41,10 @@ class CardGameFragment : Fragment() {
     private var matchedPairs = 0
     private lateinit var currentLevel: String
     private var gameScore: Long = 0
+    private var levelScore: Long = 0
+    private var startTime: Long = 0
+    private var handler: Handler = Handler(Looper.getMainLooper())
+    private var runnable: Runnable = Runnable {}
 
     private val easyCardImages = listOf(
         R.drawable.card_apple,
@@ -98,23 +102,34 @@ class CardGameFragment : Fragment() {
         restartButton.setOnClickListener { restartGame() }
 
         currentUser = authenticator.currentUser?.uid ?: ""
-        loadScoreFromFirebase(currentUser)
+        loadScoreFromFirebase()
         currentLevel = requireArguments().getString("difficulty_level").toString()
 
         setupGame()
         return view
     }
 
-    private fun loadScoreFromFirebase(userId: String) {
+    private fun loadScoreFromFirebase() {
         val scoreRef = database.collection("card_matching_game")
-            .whereEqualTo("userId", userId)
+            .whereEqualTo("userId", currentUser)
 
         scoreRef.get().addOnSuccessListener { querySnapshot ->
             if (!querySnapshot.isEmpty) {
                 val document = querySnapshot.documents[0]
-                val score = document.getLong("score")
-                gameScore = score!!
-                binding.scoreDisplay.text = "Score: $score"
+                val totalScore = document.getLong("totalScore")
+                gameScore = totalScore!!
+
+                val levelsData = document.get("levels") as? List<Map<String, Any>> ?: listOf()
+
+                for (levelData in levelsData) {
+                    if (levelData["level"] == currentLevel) {
+                        levelScore = (levelData["score"] as? Long) ?: 0L
+                        break
+                    }
+                }
+
+                binding.scoreDisplay.text = "Score: $levelScore"
+
             } else {
                 Toast.makeText(requireContext(), "Score not found", Toast.LENGTH_SHORT).show()
             }
@@ -124,13 +139,16 @@ class CardGameFragment : Fragment() {
     }
 
     private fun setupGame() {
+        startTime = System.currentTimeMillis()
+        startTimer()
+
         cardsGrid.removeAllViews()
         cardsList.clear()
 
         val (levelCardImages, numColumns, cardSize) = when (currentLevel) {
             "Easy" -> Triple(easyCardImages, 2, 250)
             "Medium" -> Triple(mediumCardImages, 3, 250)
-            "Hard" -> Triple(hardCardImages, 4, 200)
+            "Hard" -> Triple(hardCardImages, 3, 200)
             "Expert" -> Triple(expertCardImages, 4, 200)
             else -> Triple(easyCardImages, 2, 200)
         }
@@ -146,6 +164,23 @@ class CardGameFragment : Fragment() {
             cardsList.add(card)
             addCardToGrid(card, cardSize)
         }
+    }
+
+    private fun startTimer() {
+        runnable = object : Runnable {
+            override fun run() {
+                val elapsedTime = System.currentTimeMillis() - startTime
+                val seconds = (elapsedTime / 1000) % 60
+                val minutes = (elapsedTime / 1000) / 60
+                binding.timerDisplay.text = String.format("%02d:%02d", minutes, seconds)
+                handler.postDelayed(this, 1000)
+            }
+        }
+        handler.post(runnable)
+    }
+
+    private fun stopTimer() {
+        handler.removeCallbacks(runnable)
     }
 
     private fun addCardToGrid(card: Card, cardSize: Int) {
@@ -198,7 +233,7 @@ class CardGameFragment : Fragment() {
             override fun onAnimationStart(animation: Animator) {}
             override fun onAnimationEnd(animation: Animator) {
                 card.isFlipped = false
-                button.setBackgroundResource(R.drawable.card) // Back of the card
+                button.setBackgroundResource(R.drawable.card)
                 flipIn.start()
             }
             override fun onAnimationCancel(animation: Animator) {}
@@ -253,8 +288,9 @@ class CardGameFragment : Fragment() {
                 matchedPairs++
 
                 if (matchedPairs == cardImages.size) {
+                    stopTimer()
                     Toast.makeText(requireContext(), "You win!", Toast.LENGTH_SHORT).show()
-                    updateScore()
+                    updateGameData()
                 }
                 firstButton = null
                 secondButton = null
@@ -268,8 +304,74 @@ class CardGameFragment : Fragment() {
         }
     }
 
-    private fun updateScore() {
-        val score = when (currentLevel) {
+    private fun updateGameData() {
+        val elapsedTime = System.currentTimeMillis() - startTime
+        val calculatedLevelScore = calculateScore(elapsedTime)
+
+        val gameRef = database.collection("card_matching_game")
+            .whereEqualTo("userId", currentUser)
+
+        gameRef.get().addOnSuccessListener { querySnapshot ->
+            if (querySnapshot.size() > 0) {
+                val document = querySnapshot.documents[0]
+                val userData = document.data
+                val levelsList = userData?.get("levels") as? List<Map<String, Any>> ?: emptyList()
+
+                val levelData = levelsList.find { it["level"] == currentLevel }
+
+                val bestTime = (levelData?.get("bestTime") as? Long) ?: Long.MAX_VALUE
+                val lastPlayedGames = (levelData?.get("lastPlayedGames") as? MutableList<Long>) ?: mutableListOf()
+                val totalScore = (userData?.get("totalScore") as? Long) ?: 0
+                val levelScoreSum = (levelData?.get("score") as? Long) ?: 0
+
+                val newBestTime = if (elapsedTime < bestTime) elapsedTime else bestTime
+
+                if (lastPlayedGames.size >= 10) lastPlayedGames.removeAt(0)
+                lastPlayedGames.add(elapsedTime)
+
+                val newTotalScore = totalScore + calculatedLevelScore
+                val newLevelScore = levelScoreSum + calculatedLevelScore
+
+                val updatedLevels = levelsList.toMutableList()
+                val index = updatedLevels.indexOfFirst { it["level"] == currentLevel }
+                if (index != -1) {
+                    val updatedLevel = updatedLevels[index].toMutableMap()
+                    updatedLevel["bestTime"] = newBestTime
+                    updatedLevel["lastPlayedGames"] = lastPlayedGames
+                    updatedLevel["score"] = newLevelScore
+                    updatedLevels[index] = updatedLevel
+                } else {
+                    updatedLevels.add(
+                        mapOf(
+                            "level" to currentLevel,
+                            "bestTime" to newBestTime,
+                            "lastPlayedGames" to lastPlayedGames,
+                            "score" to newLevelScore
+                        )
+                    )
+                }
+
+                val updateData = mapOf(
+                    "totalScore" to newTotalScore,
+                    "levels" to updatedLevels
+                )
+
+                document.reference.update(updateData).addOnSuccessListener {
+                    Toast.makeText(requireContext(), "Score updated!", Toast.LENGTH_SHORT).show()
+                }.addOnFailureListener {
+                    Toast.makeText(requireContext(), "Failed to update score.", Toast.LENGTH_SHORT).show()
+                }
+
+            } else {
+                Toast.makeText(requireContext(), "Score not found", Toast.LENGTH_SHORT).show()
+            }
+        }.addOnFailureListener { exception ->
+            Toast.makeText(requireContext(), "Error loading score: ${exception.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun calculateScore(elapsedTime: Long): Int {
+        val baseScore = when (currentLevel) {
             "Easy" -> 1
             "Medium" -> 3
             "Hard" -> 6
@@ -277,45 +379,14 @@ class CardGameFragment : Fragment() {
             else -> 0
         }
 
-        gameScore += score
-        binding.scoreDisplay.text = "Score: $gameScore"
-        saveScoreToFirebase(currentUser, gameScore.toInt())
-    }
-
-    private fun saveScoreToFirebase(currentUser: String, newScore: Int) {
-        val scoreRef = database.collection("card_matching_game").whereEqualTo("userId", currentUser)
-
-        scoreRef.get().addOnSuccessListener { querySnapshot ->
-            if (querySnapshot.isEmpty) {
-                val userScore = hashMapOf(
-                    "userId" to currentUser,
-                    "score" to newScore
-                )
-
-                database.collection("card_matching_game")
-                    .add(userScore)
-                    .addOnSuccessListener {
-                        Toast.makeText(requireContext(), "Score saved!", Toast.LENGTH_SHORT).show()
-                    }
-                    .addOnFailureListener { exception ->
-                        Toast.makeText(requireContext(), "Error saving score: ${exception.message}", Toast.LENGTH_SHORT).show()
-                    }
-            } else {
-                val document = querySnapshot.documents[0]
-                val documentId = document.id
-                val updatedScore = hashMapOf("score" to newScore)
-
-                database.collection("card_matching_game")
-                    .document(documentId)
-                    .update(updatedScore as Map<String, Any>)
-                    .addOnSuccessListener {
-                        Toast.makeText(requireContext(), "Score updated!", Toast.LENGTH_SHORT).show()
-                    }
-                    .addOnFailureListener { exception ->
-                        Toast.makeText(requireContext(), "Error updating score: ${exception.message}", Toast.LENGTH_SHORT).show()
-                    }
-            }
+        val multiplier = when {
+            elapsedTime < 60_000 -> 10
+            elapsedTime < 120_000 -> 7
+            elapsedTime < 300_000 -> 5
+            else -> 1
         }
+
+        return baseScore * multiplier
     }
 
     private fun restartGame() {
