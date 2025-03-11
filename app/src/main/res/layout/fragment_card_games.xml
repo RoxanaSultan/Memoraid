@@ -6,7 +6,51 @@
     android:layout_height="match_parent"
     tools:context=".CardGamesFragment">
 
-    <!-- Title TextView -->
+    <!-- Welcome Title -->
+    <TextView
+        android:id="@+id/welcomeTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome to Card Match!"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@drawable/foreground_color"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="30dp"/>
+
+    <!-- Game Rules -->
+    <TextView
+        android:id="@+id/gameRules"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Match pairs of cards by flipping them. Try to complete the game in the shortest time and with the fewest moves."
+        android:textSize="16sp"
+        android:textColor="@drawable/foreground_color"
+        app:layout_constraintTop_toBottomOf="@id/welcomeTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="20dp"
+        android:padding="10dp"
+        android:textAlignment="center"/>
+
+    <!-- Scoring Explanation -->
+    <TextView
+        android:id="@+id/scoringRules"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Scoring is based on time and moves: faster times and fewer moves earn higher scores."
+        android:textSize="16sp"
+        android:textColor="@drawable/foreground_color"
+        app:layout_constraintTop_toBottomOf="@id/gameRules"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="10dp"
+        android:padding="10dp"
+        android:textAlignment="center"/>
+
+    <!-- Title for Difficulty Selection -->
     <TextView
         android:id="@+id/titleText"
         android:layout_width="wrap_content"
@@ -14,9 +58,9 @@
         android:text="Select Difficulty for Card Match"
         android:textSize="20sp"
         android:layout_marginTop="40dp"
+        app:layout_constraintTop_toBottomOf="@id/scoringRules"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         android:textColor="@drawable/foreground_color"
         android:textStyle="bold"/>
 
