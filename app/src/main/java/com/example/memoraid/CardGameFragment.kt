@@ -22,6 +22,8 @@ import androidx.activity.addCallback
 import com.example.memoraid.databinding.FragmentAccountBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import java.sql.Timestamp
+import java.time.LocalDateTime
 
 class CardGameFragment : Fragment() {
     private var _binding: FragmentCardGameBinding? = null
@@ -32,20 +34,26 @@ class CardGameFragment : Fragment() {
     private lateinit var currentUser: String
 
     private lateinit var cardsGrid: GridLayout
-    private lateinit var restartButton: Button
-
     private var cardImages: List<Int> = listOf()
-
     private var cardsList = mutableListOf<Card>()
+
     private var firstCard: Card? = null
     private var secondCard: Card? = null
     private var firstButton: Button? = null
     private var secondButton: Button? = null
+    private lateinit var restartButton: Button
+
     private var matchedPairs = 0
+
     private lateinit var currentLevel: String
     private var gameScore: Long = 0
     private var levelScore: Long = 0
+    private var moveCount = 0
+    private var currentTime = 0
+    private var currentScore = 0
+    private var date: Timestamp = Timestamp(System.currentTimeMillis())
     private var startTime: Long = 0
+
     private var handler: Handler = Handler(Looper.getMainLooper())
     private var runnable: Runnable = Runnable {}
 
@@ -146,7 +154,7 @@ class CardGameFragment : Fragment() {
 
                 for (levelData in levelsData) {
                     if (levelData["level"] == currentLevel) {
-                        levelScore = (levelData["score"] as? Long) ?: 0L
+                        levelScore = (levelData["totalLevelScore"] as? Long) ?: 0L
                         break
                     }
                 }
@@ -164,6 +172,10 @@ class CardGameFragment : Fragment() {
     private fun setupGame() {
         startTime = System.currentTimeMillis()
         startTimer()
+        moveCount = 0
+        date = Timestamp(System.currentTimeMillis())
+
+        binding.moveDisplay.text = "Moves: $moveCount"
 
         cardsGrid.removeAllViews()
         cardsList.clear()
@@ -195,7 +207,7 @@ class CardGameFragment : Fragment() {
                 val elapsedTime = System.currentTimeMillis() - startTime
                 val seconds = (elapsedTime / 1000) % 60
                 val minutes = (elapsedTime / 1000) / 60
-                binding.timerDisplay.text = String.format("%02d:%02d", minutes, seconds)
+                binding.timerDisplay.text = String.format("Time: %02d:%02d", minutes, seconds)
                 handler.postDelayed(this, 1000)
             }
         }
@@ -274,6 +286,8 @@ class CardGameFragment : Fragment() {
         if (firstCard != null && secondCard != null && firstCard != card && secondCard != card) return
 
         flipToFront(card, button)
+        moveCount++
+        binding.moveDisplay.text = "Moves: $moveCount"
 
         if (firstCard == null) {
             firstCard = card
@@ -329,7 +343,9 @@ class CardGameFragment : Fragment() {
 
     private fun updateGameData() {
         val elapsedTime = System.currentTimeMillis() - startTime
-        val calculatedLevelScore = calculateScore(elapsedTime)
+        currentTime = (elapsedTime / 1000).toInt()
+        currentScore = calculateScore(elapsedTime)
+        val moves = moveCount
 
         val gameRef = database.collection("card_matching_game")
             .whereEqualTo("userId", currentUser)
@@ -343,53 +359,92 @@ class CardGameFragment : Fragment() {
                 val levelData = levelsList.find { it["level"] == currentLevel }
 
                 val bestTime = (levelData?.get("bestTime") as? Long) ?: Long.MAX_VALUE
-                val lastPlayedGames = (levelData?.get("lastPlayedGames") as? MutableList<Long>) ?: mutableListOf()
+                val leastMoves = (levelData?.get("leastMoves") as? Int) ?: Int.MAX_VALUE
+                val lastPlayedGames = (levelData?.get("lastPlayedGames") as? MutableList<Map<String, Any>>) ?: mutableListOf()
                 val totalScore = (userData?.get("totalScore") as? Long) ?: 0
-                val levelScoreSum = (levelData?.get("score") as? Long) ?: 0
+                val levelScoreSum = (levelData?.get("totalLevelScore") as? Long) ?: 0
 
                 val newBestTime = if (elapsedTime < bestTime) elapsedTime else bestTime
+                val newLeastMoves = if (moves < leastMoves) moves else leastMoves
+
+                val newGameData = mapOf(
+                    "date" to date,
+                    "time" to currentTime,
+                    "moves" to moves,
+                    "totalLevelScore" to currentScore
+                )
 
                 if (lastPlayedGames.size >= 10) lastPlayedGames.removeAt(0)
-                lastPlayedGames.add(elapsedTime)
+                lastPlayedGames.add(newGameData)
 
-                val newTotalScore = totalScore + calculatedLevelScore
-                val newLevelScore = levelScoreSum + calculatedLevelScore
+                val newTotalScore = totalScore + currentScore
+                val newLevelScore = levelScoreSum + currentScore
 
                 val updatedLevels = levelsList.toMutableList()
                 val index = updatedLevels.indexOfFirst { it["level"] == currentLevel }
                 if (index != -1) {
                     val updatedLevel = updatedLevels[index].toMutableMap()
                     updatedLevel["bestTime"] = newBestTime
+                    updatedLevel["leastMoves"] = newLeastMoves
                     updatedLevel["lastPlayedGames"] = lastPlayedGames
-                    updatedLevel["score"] = newLevelScore
+                    updatedLevel["totalLevelScore"] = newLevelScore
                     updatedLevels[index] = updatedLevel
                 } else {
                     updatedLevels.add(
                         mapOf(
                             "level" to currentLevel,
                             "bestTime" to newBestTime,
-                            "lastPlayedGames" to lastPlayedGames,
-                            "score" to newLevelScore
+                            "leastMoves" to newLeastMoves,
+                            "lastPlayedGames" to listOf(newGameData),
+                            "totalLevelScore" to newLevelScore
                         )
                     )
                 }
 
-                val updateData = mapOf(
-                    "totalScore" to newTotalScore,
-                    "levels" to updatedLevels
-                )
-
-                document.reference.update(updateData).addOnSuccessListener {
-                    Toast.makeText(requireContext(), "Score updated!", Toast.LENGTH_SHORT).show()
-                }.addOnFailureListener {
-                    Toast.makeText(requireContext(), "Failed to update score.", Toast.LENGTH_SHORT).show()
+                document.reference.update(
+                    mapOf(
+                        "totalScore" to newTotalScore,
+                        "levels" to updatedLevels
+                    )
+                ).addOnSuccessListener {
+                    Toast.makeText(requireContext(), "Game data updated!", Toast.LENGTH_SHORT).show()
+                }.addOnFailureListener { exception ->
+                    Toast.makeText(requireContext(), "Error updating data: ${exception.message}", Toast.LENGTH_SHORT).show()
                 }
 
             } else {
-                Toast.makeText(requireContext(), "Score not found", Toast.LENGTH_SHORT).show()
+                val newGameData = mapOf(
+                    "userId" to currentUser,
+                    "totalScore" to currentScore,
+                    "levels" to listOf(
+                        mapOf(
+                            "level" to currentLevel,
+                            "bestTime" to elapsedTime,
+                            "leastMoves" to moves,
+                            "lastPlayedGames" to listOf(
+                                mapOf(
+                                    "date" to date,
+                                    "time" to currentTime,
+                                    "moves" to moves,
+                                    "score" to currentScore
+                                )
+                            ),
+                            "totalLevelScore" to currentScore
+                        )
+                    )
+                )
+
+                database.collection("card_matching_game")
+                    .add(newGameData)
+                    .addOnSuccessListener {
+                        Toast.makeText(requireContext(), "Game data saved!", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener { exception ->
+                        Toast.makeText(requireContext(), "Error saving data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    }
             }
         }.addOnFailureListener { exception ->
-            Toast.makeText(requireContext(), "Error loading score: ${exception.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Error fetching data: ${exception.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -409,8 +464,15 @@ class CardGameFragment : Fragment() {
             else -> 1
         }
 
-        return baseScore * multiplier
+        val movesBonus = when {
+            moveCount <= 15 -> 5
+            moveCount <= 20 -> 3
+            else -> 0
+        }
+
+        return (baseScore * multiplier) + movesBonus
     }
+
 
     private fun restartGame() {
         matchedPairs = 0
