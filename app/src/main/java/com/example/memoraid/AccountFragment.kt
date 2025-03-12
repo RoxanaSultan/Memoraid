@@ -527,72 +527,39 @@ class AccountFragment : Fragment() {
 
 
     private fun fetchUserData(userId: String) {
-        val firestore = FirebaseFirestore.getInstance()
+        lifecycleScope.launch {
+            try {
+                val userDoc = db.collection("users").document(userId).get().await()
+                val userData = userDoc.data
 
-        // Query Firestore to get user data by UID (use the auth UID directly)
-        firestore.collection("users")
-            .document(userId)  // Using the UID directly to fetch the document
-            .get()
-            .addOnSuccessListener { documentSnapshot ->
-                if (!documentSnapshot.exists()) {
-                    Toast.makeText(requireContext(), "User data not found", Toast.LENGTH_SHORT).show()
-                    return@addOnSuccessListener
+                if (userData != null) {
+                    val username = userData["username"] as? String ?: ""
+                    val email = userData["email"] as? String ?: ""
+                    val firstName = userData["firstName"] as? String ?: ""
+                    val lastName = userData["lastName"] as? String ?: ""
+                    val phoneNumber = userData["phoneNumber"] as? String ?: ""
+                    val birthdate = userData["birthdate"] as? String ?: ""
+                    val profilePictureUrl = userData["profilePictureUrl"] as? String ?: ""
+
+                    // Verificăm dacă fragmentul este încă atașat
+                    if (!isAdded || _binding == null) return@launch
+
+                    binding.username.setText(username)
+                    binding.email.setText(email)
+                    binding.firstName.setText(firstName)
+                    binding.lastName.setText(lastName)
+                    binding.phoneNumber.setText(phoneNumber)
+                    binding.birthdate.setText(birthdate)
+
+                    Glide.with(this@AccountFragment)
+                        .load(profilePictureUrl)
+                        .placeholder(R.drawable.default_profile_picture)
+                        .into(binding.profilePicture)
                 }
-
-                // Extract data from Firestore
-                val username = documentSnapshot.getString("username") ?: ""
-                val firstName = documentSnapshot.getString("firstName") ?: ""
-                val lastName = documentSnapshot.getString("lastName") ?: ""
-                val email = documentSnapshot.getString("email") ?: ""
-                val phoneNumber = documentSnapshot.getString("phoneNumber") ?: ""
-                val birthdate = documentSnapshot.getString("birthdate") ?: ""
-                val profilePictureUrl = documentSnapshot.getString("profilePictureUrl") ?: ""
-                val patientsList = documentSnapshot.get("patientsList") as? List<String> ?: emptyList()
-                val role = documentSnapshot.getString("role") ?: ""
-
-//                user = User(
-//                    username,
-//                    email,
-//                    phoneNumber,
-//                    firstName,
-//                    lastName,
-//                    profilePictureUrl,
-//                    role,
-//                    birthdate
-//                )
-
-                // Set data in ViewModel
-                accountViewModel.setFirstName(firstName)
-                accountViewModel.setLastName(lastName)
-                accountViewModel.setUsername(username)  // Storing the UID (userId)
-                accountViewModel.setEmail(email)
-                accountViewModel.setPhoneNumber(phoneNumber)
-                accountViewModel.setBirthdate(birthdate)
-                accountViewModel.setProfilePicture(profilePictureUrl)
-                accountViewModel.setPatientsList(patientsList)
-                accountViewModel.setRole(role)
-
-                binding.username.setText(accountViewModel.username.value ?: "")
-                binding.email.setText(accountViewModel.email.value ?: "")
-                binding.firstName.setText(accountViewModel.firstName.value ?: "")
-                binding.lastName.setText(accountViewModel.lastName.value ?: "")
-                binding.phoneNumber.setText(accountViewModel.phoneNumber.value ?: "")
-                binding.birthdate.setText(accountViewModel.birthdate.value ?: "")
-                // Update UI with data from Firestore
-//                binding.username.text = username  // Display the UID or other relevant info
-//                binding.email.text = email
-//                binding.firstName.text = firstName
-//                binding.lastName.text = lastName
-//                binding.phoneNumber.text = phoneNumber
-//                binding.birthdate.text = birthdate
-
-                Glide.with(this).load(profilePictureUrl)
-                    .placeholder(R.drawable.default_profile_picture)
-                    .into(binding.profilePicture)
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Eroare la încărcarea datelor: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-            .addOnFailureListener { exception ->
-                Toast.makeText(requireContext(), "Error fetching user data: ${exception.message}", Toast.LENGTH_LONG).show()
-            }
+        }
     }
 
     override fun onDestroyView() {
