@@ -16,6 +16,9 @@ import com.example.memoraid.models.Card
 import android.animation.ObjectAnimator
 import android.animation.Animator
 import android.animation.AnimatorSet
+import android.app.AlertDialog
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.addCallback
 import com.example.memoraid.databinding.FragmentAccountBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -108,6 +111,26 @@ class CardGameFragment : Fragment() {
         setupGame()
         return view
     }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            showExitConfirmationDialog()
+        }
+    }
+
+    private fun showExitConfirmationDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Exit Game")
+            .setMessage("Are you sure you want to exit?")
+            .setPositiveButton("Yes") { _, _ ->
+                findNavController().navigateUp()
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
+
 
     private fun loadScoreFromFirebase() {
         val scoreRef = database.collection("card_matching_game")
