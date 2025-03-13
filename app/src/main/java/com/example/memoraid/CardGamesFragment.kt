@@ -26,6 +26,8 @@ class CardGamesFragment : Fragment() {
     private lateinit var authenticator: FirebaseAuth
     private lateinit var currentUser: String
 
+    private var totalGameScore: Long = 0
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -64,14 +66,16 @@ class CardGamesFragment : Fragment() {
         levelsRef.get().addOnSuccessListener { querySnapshot ->
             if (!querySnapshot.isEmpty) {
                 val document = querySnapshot.documents[0]
+                totalGameScore = document.get("totalScore") as? Long ?: 0
+                binding.totalScoreTextView.text = "Total Game Score: $totalGameScore"
                 val levels = document.get("levels") as? List<Map<String, Any>>
 
                 levels?.forEach { levelData ->
                     val levelName = levelData["level"] as? String ?: "Unknown"
-                    val totalScore = levelData["score"] as? Long ?: 0
+                    val totalScore = levelData["totalLevelScore"] as? Long ?: 0
                     val bestTime = levelData["bestTime"] as? Long ?: Long.MAX_VALUE
+                    val leastMoves = levelData["leastMoves"] as? Long ?: Long.MAX_VALUE
 
-                    // Creare rând pentru tabel
                     val levelRow = TableRow(requireContext()).apply {
                         layoutParams = TableRow.LayoutParams(
                             TableRow.LayoutParams.MATCH_PARENT,
@@ -79,10 +83,8 @@ class CardGamesFragment : Fragment() {
                         )
                     }
 
-                    // Setăm LayoutParams pentru ca fiecare coloană să fie egală
                     val params = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
 
-                    // Creăm TextView pentru nivel
                     val levelText = TextView(requireContext()).apply {
                         text = levelName
                         textSize = 16f
@@ -91,7 +93,6 @@ class CardGamesFragment : Fragment() {
                         layoutParams = params
                     }
 
-                    // Creăm TextView pentru scor
                     val scoreText = TextView(requireContext()).apply {
                         text = totalScore.toString()
                         textSize = 16f
@@ -100,21 +101,27 @@ class CardGamesFragment : Fragment() {
                         layoutParams = params
                     }
 
-                    // Creăm TextView pentru cel mai bun timp
                     val timeText = TextView(requireContext()).apply {
-                        text = if (bestTime == Long.MAX_VALUE) "N/A" else formatTime(bestTime)
+                        text = formatTime(bestTime)
                         textSize = 16f
                         setTextColor(resources.getColor(R.color.blue))
                         gravity = Gravity.CENTER
                         layoutParams = params
                     }
 
-                    // Adăugăm coloanele în rând
+                    val movesText = TextView(requireContext()).apply {
+                        text = leastMoves.toString()
+                        textSize = 16f
+                        setTextColor(resources.getColor(R.color.blue))
+                        gravity = Gravity.CENTER
+                        layoutParams = params
+                    }
+
                     levelRow.addView(levelText)
                     levelRow.addView(scoreText)
                     levelRow.addView(timeText)
+                    levelRow.addView(movesText)
 
-                    // Adăugăm rândul în tabel
                     binding.levelsTableLayout.addView(levelRow)
                 }
             } else {

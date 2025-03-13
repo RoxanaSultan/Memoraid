@@ -11,7 +11,7 @@
         android:id="@+id/welcomeTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Welcome to Card Match!"
+        android:text="@string/card_match_title"
         android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@drawable/foreground_color"
@@ -25,7 +25,7 @@
         android:id="@+id/gameRules"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Match pairs of cards by flipping them. Try to complete the game in the shortest time and with the fewest moves."
+        android:text="@string/card_match_description"
         android:textSize="16sp"
         android:textColor="@drawable/foreground_color"
         app:layout_constraintTop_toBottomOf="@id/welcomeTitle"
@@ -40,7 +40,7 @@
         android:id="@+id/scoringRules"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Scoring is based on time and moves: faster times and fewer moves earn higher scores."
+        android:text="@string/card_match_scoring"
         android:textSize="16sp"
         android:textColor="@drawable/foreground_color"
         app:layout_constraintTop_toBottomOf="@id/gameRules"
@@ -106,7 +106,7 @@
         android:id="@+id/levelsTableLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="30dp"
         app:layout_constraintTop_toBottomOf="@id/levelsTitle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -121,8 +121,18 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
                 android:text="Level"
-                android:textSize="18sp"
+                android:textColor="@drawable/foreground_color"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Total\nScore"
+                android:textSize="17sp"
                 android:layout_weight="1"
                 android:textColor="@drawable/foreground_color"
                 android:textStyle="bold"
@@ -131,8 +141,8 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Score"
-                android:textSize="18sp"
+                android:text="Best\nTime"
+                android:textSize="17sp"
                 android:layout_weight="1"
                 android:textColor="@drawable/foreground_color"
                 android:textStyle="bold"
@@ -141,8 +151,8 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Best Time"
-                android:textSize="18sp"
+                android:text="Least\nMoves"
+                android:textSize="17sp"
                 android:layout_weight="1"
                 android:textColor="@drawable/foreground_color"
                 android:textStyle="bold"
@@ -152,5 +162,21 @@
         <!-- Table Rows will be added dynamically here -->
 
     </TableLayout>
+
+    <!-- Total Score -->
+    <TextView
+        android:id="@+id/totalScoreTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Total Game Score: 0"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@drawable/foreground_color"
+        app:layout_constraintTop_toBottomOf="@id/levelsTableLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="20dp"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -49,7 +49,7 @@ class CardGameFragment : Fragment() {
     private var gameScore: Long = 0
     private var levelScore: Long = 0
     private var moveCount = 0
-    private var currentTime = 0
+    private var currentTime: Long = 0
     private var currentScore = 0
     private var date: Timestamp = Timestamp(System.currentTimeMillis())
     private var startTime: Long = 0
@@ -343,7 +343,7 @@ class CardGameFragment : Fragment() {
 
     private fun updateGameData() {
         val elapsedTime = System.currentTimeMillis() - startTime
-        currentTime = (elapsedTime / 1000).toInt()
+        currentTime = elapsedTime
         currentScore = calculateScore(elapsedTime)
         val moves = moveCount
 
