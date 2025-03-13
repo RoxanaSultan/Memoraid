@@ -35,6 +35,7 @@
         app:layout_constraintEnd_toEndOf="parent"/>
 
     <LinearLayout
+        android:id="@+id/timer_move_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -70,7 +71,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_gravity="center"
-        app:layout_constraintTop_toBottomOf="@id/timer_display"
+        app:layout_constraintTop_toBottomOf="@id/timer_move_layout"
         app:layout_constraintBottom_toTopOf="@id/restart_button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

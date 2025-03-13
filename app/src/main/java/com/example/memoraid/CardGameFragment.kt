@@ -17,11 +17,14 @@ import android.animation.ObjectAnimator
 import android.animation.Animator
 import android.animation.AnimatorSet
 import android.app.AlertDialog
+import android.util.Log
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
+import android.graphics.Color
 import com.example.memoraid.databinding.FragmentAccountBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.delay
 import java.sql.Timestamp
 import java.time.LocalDateTime
 
@@ -320,6 +323,10 @@ class CardGameFragment : Fragment() {
     private fun checkForMatch() {
         if (firstCard != null && secondCard != null) {
             if (firstCard!!.imageResId == secondCard!!.imageResId) {
+                // Cards match, animate them
+                animateMatchedCards(firstButton!!, secondButton!!)
+
+                // Mark cards as matched
                 firstCard!!.isMatched = true
                 secondCard!!.isMatched = true
                 matchedPairs++
@@ -329,15 +336,112 @@ class CardGameFragment : Fragment() {
                     Toast.makeText(requireContext(), "You win!", Toast.LENGTH_SHORT).show()
                     updateGameData()
                 }
-                firstButton = null
-                secondButton = null
-                firstCard = null
-                secondCard = null
+
+                // Reset the selected cards after animation
+                Handler(Looper.getMainLooper()).postDelayed({
+                    firstButton = null
+                    secondButton = null
+                    firstCard = null
+                    secondCard = null
+                }, 1000) // Delay to let the animation finish before resetting
             } else {
+                // Cards don't match, reset them after a delay
                 Handler(Looper.getMainLooper()).postDelayed({
                     resetFlippedCards()
                 }, 800)
             }
+        }
+    }
+
+    private fun animateMatchedCards(firstButton: Button, secondButton: Button) {
+        // Get the center of the screen (parent layout)
+        val centerX = binding.root.width / 2f
+        val centerY = binding.root.height / 2f
+
+        // Get the actual screen position of the first button
+        val firstCardLocation = IntArray(2)
+        firstButton.getLocationOnScreen(firstCardLocation)
+        val firstCardStartX = firstCardLocation[0].toFloat()
+        val firstCardStartY = firstCardLocation[1].toFloat()
+
+        // Get the actual screen position of the second button
+        val secondCardLocation = IntArray(2)
+        secondButton.getLocationOnScreen(secondCardLocation)
+        val secondCardStartX = secondCardLocation[0].toFloat()
+        val secondCardStartY = secondCardLocation[1].toFloat()
+
+        // Calculate translation to center
+        val translationX1 = centerX - firstCardStartX - firstButton.width / 2f
+        val translationY1 = centerY - firstCardStartY - firstButton.height / 2f
+
+        val translationX2 = centerX - secondCardStartX - secondButton.width / 2f
+        val translationY2 = centerY - secondCardStartY - secondButton.height / 2f
+
+        binding.root.alpha = 0.5f
+        firstButton.alpha = 1f
+        secondButton.alpha = 1f
+
+        // Animate the first card towards the center
+        val firstCardAnimX = ObjectAnimator.ofFloat(firstButton, "translationX", translationX1).apply { duration = 1000 }
+        val firstCardAnimY = ObjectAnimator.ofFloat(firstButton, "translationY", translationY1).apply { duration = 1000 }
+        val firstCardScaleX = ObjectAnimator.ofFloat(firstButton, "scaleX", 1.5f).apply { duration = 1000 } // Scale up
+        val firstCardScaleY = ObjectAnimator.ofFloat(firstButton, "scaleY", 1.5f).apply { duration = 1000 } // Scale up
+
+        // Animate the second card towards the center
+        val secondCardAnimX = ObjectAnimator.ofFloat(secondButton, "translationX", translationX2).apply { duration = 1000 }
+        val secondCardAnimY = ObjectAnimator.ofFloat(secondButton, "translationY", translationY2).apply { duration = 1000 }
+        val secondCardScaleX = ObjectAnimator.ofFloat(secondButton, "scaleX", 1.5f).apply { duration = 1000 } // Scale up
+        val secondCardScaleY = ObjectAnimator.ofFloat(secondButton, "scaleY", 1.5f).apply { duration = 1000 } // Scale up
+
+        // Combine the animations for both cards
+        AnimatorSet().apply {
+            playTogether(firstCardAnimX, firstCardAnimY, secondCardAnimX, secondCardAnimY, firstCardScaleX, firstCardScaleY, secondCardScaleX, secondCardScaleY)
+            addListener(object : Animator.AnimatorListener {
+                override fun onAnimationStart(animation: Animator) {
+                    Log.d("AnimateMatchedCards", "Animation started")
+                }
+
+                override fun onAnimationEnd(animation: Animator) {
+                    Log.d("AnimateMatchedCards", "Animation ended")
+                    // Add delay before moving cards back
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        // Reset scale and move the cards back to their original position
+                        scaleAndMoveBack(firstButton, secondButton)
+                        binding.root.alpha = 1f
+                    }, 700)
+                }
+
+                override fun onAnimationCancel(animation: Animator) {
+                    Log.d("AnimateMatchedCards", "Animation canceled")
+                }
+
+                override fun onAnimationRepeat(animation: Animator) {}
+            })
+            start()
+        }
+    }
+
+    // Function to scale back the photos and move them to their original position
+    private fun scaleAndMoveBack(firstButton: Button, secondButton: Button) {
+        // Animate scaling back to the original size (1x)
+        val firstCardScaleX = ObjectAnimator.ofFloat(firstButton, "scaleX", 1f).apply { duration = 700 }
+        val firstCardScaleY = ObjectAnimator.ofFloat(firstButton, "scaleY", 1f).apply { duration = 700 }
+
+        val secondCardScaleX = ObjectAnimator.ofFloat(secondButton, "scaleX", 1f).apply { duration = 700 }
+        val secondCardScaleY = ObjectAnimator.ofFloat(secondButton, "scaleY", 1f).apply { duration = 700 }
+
+        // Animate both cards to their original positions
+        val firstCardBackX = ObjectAnimator.ofFloat(firstButton, "translationX", 0f).apply { duration = 700 }
+        val firstCardBackY = ObjectAnimator.ofFloat(firstButton, "translationY", 0f).apply { duration = 700 }
+
+        val secondCardBackX = ObjectAnimator.ofFloat(secondButton, "translationX", 0f).apply { duration = 700 }
+        val secondCardBackY = ObjectAnimator.ofFloat(secondButton, "translationY", 0f).apply { duration = 700 }
+
+        // Combine all the animations
+        AnimatorSet().apply {
+            playTogether(firstCardBackX, firstCardBackY, firstCardScaleX, firstCardScaleY,
+                secondCardBackX, secondCardBackY, secondCardScaleX, secondCardScaleY)
+            start()
         }
     }
 
