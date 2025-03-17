@@ -77,7 +77,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="20dp"/>
 
-
     <!-- Button to restart or finish the game -->
     <Button
         android:id="@+id/restart_button"
