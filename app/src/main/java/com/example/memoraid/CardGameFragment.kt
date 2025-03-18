@@ -245,45 +245,96 @@ class CardGameFragment : Fragment() {
     private fun flipToFront(card: Card, button: Button) {
         if (card.isFlipped) return
 
+        // Blochează interacțiunea cu toate cărțile în timpul animației
+        for (i in 0 until cardsGrid.childCount) {
+            val cardChild = cardsGrid.getChildAt(i)
+            cardChild.isEnabled = false
+        }
+
         val flipOut = ObjectAnimator.ofFloat(button, "scaleX", 1f, 0f).apply { duration = 250 }
         val flipIn = ObjectAnimator.ofFloat(button, "scaleX", 0f, 1f).apply { duration = 250 }
 
         flipOut.addListener(object : Animator.AnimatorListener {
             override fun onAnimationStart(animation: Animator) {}
+
             override fun onAnimationEnd(animation: Animator) {
                 card.isFlipped = true
                 button.setBackgroundResource(card.imageResId)
                 flipIn.start()
             }
+
             override fun onAnimationCancel(animation: Animator) {}
+
             override fun onAnimationRepeat(animation: Animator) {}
         })
 
+        // Animațiile vor fi executate în ordine secvențială
         AnimatorSet().apply {
             playSequentially(flipOut, flipIn)
+            addListener(object : Animator.AnimatorListener {
+                override fun onAnimationStart(animation: Animator) {}
+
+                override fun onAnimationEnd(animation: Animator) {
+                    // După ce animația s-a terminat, permite din nou interacțiunea cu cărțile
+                    for (i in 0 until cardsGrid.childCount) {
+                        val cardChild = cardsGrid.getChildAt(i)
+                        cardChild.isEnabled = true
+                    }
+                }
+
+                override fun onAnimationCancel(animation: Animator) {}
+
+                override fun onAnimationRepeat(animation: Animator) {}
+            })
             start()
         }
     }
 
+
     private fun flipToBack(card: Card, button: Button) {
         if (!card.isFlipped) return  // If already hidden, don't flip again
+
+        // Blochează interacțiunea cu toate cărțile în timpul animației
+        for (i in 0 until cardsGrid.childCount) {
+            val cardChild = cardsGrid.getChildAt(i)
+            cardChild.isEnabled = false
+        }
 
         val flipOut = ObjectAnimator.ofFloat(button, "scaleX", 1f, 0f).apply { duration = 250 }
         val flipIn = ObjectAnimator.ofFloat(button, "scaleX", 0f, 1f).apply { duration = 250 }
 
         flipOut.addListener(object : Animator.AnimatorListener {
             override fun onAnimationStart(animation: Animator) {}
+
             override fun onAnimationEnd(animation: Animator) {
                 card.isFlipped = false
                 button.setBackgroundResource(R.drawable.card)
                 flipIn.start()
             }
+
             override fun onAnimationCancel(animation: Animator) {}
+
             override fun onAnimationRepeat(animation: Animator) {}
         })
 
+        // Animațiile vor fi executate în ordine secvențială
         AnimatorSet().apply {
             playSequentially(flipOut, flipIn)
+            addListener(object : Animator.AnimatorListener {
+                override fun onAnimationStart(animation: Animator) {}
+
+                override fun onAnimationEnd(animation: Animator) {
+                    // După ce animația s-a terminat, permite din nou interacțiunea cu cărțile
+                    for (i in 0 until cardsGrid.childCount) {
+                        val cardChild = cardsGrid.getChildAt(i)
+                        cardChild.isEnabled = true
+                    }
+                }
+
+                override fun onAnimationCancel(animation: Animator) {}
+
+                override fun onAnimationRepeat(animation: Animator) {}
+            })
             start()
         }
     }
@@ -514,7 +565,6 @@ class CardGameFragment : Fragment() {
                 override fun onAnimationEnd(animation: Animator) {
                     modifyTransparency(1f)
                     enable()
-
                     if (isGameWon) {
                         Handler(Looper.getMainLooper()).postDelayed({
                             showWinPopup()
@@ -534,17 +584,17 @@ class CardGameFragment : Fragment() {
     private fun disable() {
         for (i in 0 until cardsGrid.childCount) {
             val cardChild = cardsGrid.getChildAt(i)
-            cardChild.isClickable = false
+            cardChild.isEnabled = false
         }
-        binding.restartButton.isClickable = false
+        binding.restartButton.isEnabled = false
     }
 
     private fun enable() {
         for (i in 0 until cardsGrid.childCount) {
             val cardChild = cardsGrid.getChildAt(i)
-            cardChild.isClickable = true
+            cardChild.isEnabled = true
         }
-        binding.restartButton.isClickable = true
+        binding.restartButton.isEnabled = true
     }
 
     private fun modifyTransparency(transparency: Float) {
