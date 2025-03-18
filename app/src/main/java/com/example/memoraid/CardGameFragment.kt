@@ -21,6 +21,7 @@ import android.util.Log
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
 import android.graphics.Color
+import androidx.core.view.children
 import com.example.memoraid.databinding.FragmentAccountBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -246,10 +247,7 @@ class CardGameFragment : Fragment() {
         if (card.isFlipped) return
 
         // Blochează interacțiunea cu toate cărțile în timpul animației
-        for (i in 0 until cardsGrid.childCount) {
-            val cardChild = cardsGrid.getChildAt(i)
-            cardChild.isEnabled = false
-        }
+        binding.cardsGrid.children.forEach { it.isEnabled = false }
 
         val flipOut = ObjectAnimator.ofFloat(button, "scaleX", 1f, 0f).apply { duration = 250 }
         val flipIn = ObjectAnimator.ofFloat(button, "scaleX", 0f, 1f).apply { duration = 250 }
@@ -276,10 +274,7 @@ class CardGameFragment : Fragment() {
 
                 override fun onAnimationEnd(animation: Animator) {
                     // După ce animația s-a terminat, permite din nou interacțiunea cu cărțile
-                    for (i in 0 until cardsGrid.childCount) {
-                        val cardChild = cardsGrid.getChildAt(i)
-                        cardChild.isEnabled = true
-                    }
+                    binding.cardsGrid.children.forEach { it.isEnabled = true }
                 }
 
                 override fun onAnimationCancel(animation: Animator) {}
@@ -295,10 +290,7 @@ class CardGameFragment : Fragment() {
         if (!card.isFlipped) return  // If already hidden, don't flip again
 
         // Blochează interacțiunea cu toate cărțile în timpul animației
-        for (i in 0 until cardsGrid.childCount) {
-            val cardChild = cardsGrid.getChildAt(i)
-            cardChild.isEnabled = false
-        }
+        binding.cardsGrid.children.forEach { it.isEnabled = false }
 
         val flipOut = ObjectAnimator.ofFloat(button, "scaleX", 1f, 0f).apply { duration = 250 }
         val flipIn = ObjectAnimator.ofFloat(button, "scaleX", 0f, 1f).apply { duration = 250 }
@@ -325,10 +317,7 @@ class CardGameFragment : Fragment() {
 
                 override fun onAnimationEnd(animation: Animator) {
                     // După ce animația s-a terminat, permite din nou interacțiunea cu cărțile
-                    for (i in 0 until cardsGrid.childCount) {
-                        val cardChild = cardsGrid.getChildAt(i)
-                        cardChild.isEnabled = true
-                    }
+                    binding.cardsGrid.children.forEach { it.isEnabled = true }
                 }
 
                 override fun onAnimationCancel(animation: Animator) {}
@@ -582,18 +571,12 @@ class CardGameFragment : Fragment() {
     }
 
     private fun disable() {
-        for (i in 0 until cardsGrid.childCount) {
-            val cardChild = cardsGrid.getChildAt(i)
-            cardChild.isEnabled = false
-        }
+        binding.cardsGrid.children.forEach { it.isEnabled = false }
         binding.restartButton.isEnabled = false
     }
 
     private fun enable() {
-        for (i in 0 until cardsGrid.childCount) {
-            val cardChild = cardsGrid.getChildAt(i)
-            cardChild.isEnabled = true
-        }
+        binding.cardsGrid.children.forEach { it.isEnabled = true }
         binding.restartButton.isEnabled = true
     }
 
@@ -609,19 +592,51 @@ class CardGameFragment : Fragment() {
             }
         }
     }
-
-
+    
     private fun updateGameData() {
         val elapsedTime = System.currentTimeMillis() - startTime
         currentTime = elapsedTime
         currentScore = calculateScore(elapsedTime)
         val moves = moveCount
 
+        // Verifică dacă există un document în colecția card_matching_game pentru userId-ul curent
         val gameRef = database.collection("card_matching_game")
             .whereEqualTo("userId", currentUser)
 
         gameRef.get().addOnSuccessListener { querySnapshot ->
-            if (querySnapshot.size() > 0) {
+            if (querySnapshot.isEmpty) {
+                // Dacă nu există un document pentru userId-ul curent, creează unul nou
+                val newGameData = mapOf(
+                    "userId" to currentUser,
+                    "totalScore" to currentScore,
+                    "levels" to listOf(
+                        mapOf(
+                            "level" to currentLevel,
+                            "bestTime" to elapsedTime,
+                            "leastMoves" to moves,
+                            "lastPlayedGames" to listOf(
+                                mapOf(
+                                    "date" to date,
+                                    "time" to currentTime,
+                                    "moves" to moves,
+                                    "score" to currentScore
+                                )
+                            ),
+                            "totalLevelScore" to currentScore
+                        )
+                    )
+                )
+
+                database.collection("card_matching_game")
+                    .add(newGameData)
+                    .addOnSuccessListener {
+                        Toast.makeText(requireContext(), "Game data saved!", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener { exception ->
+                        Toast.makeText(requireContext(), "Error saving data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    }
+            } else {
+                // Dacă există un document, actualizează-l
                 val document = querySnapshot.documents[0]
                 val userData = document.data
                 val levelsList = userData?.get("levels") as? List<Map<String, Any>> ?: emptyList()
@@ -681,37 +696,6 @@ class CardGameFragment : Fragment() {
                 }.addOnFailureListener { exception ->
                     Toast.makeText(requireContext(), "Error updating data: ${exception.message}", Toast.LENGTH_SHORT).show()
                 }
-
-            } else {
-                val newGameData = mapOf(
-                    "userId" to currentUser,
-                    "totalScore" to currentScore,
-                    "levels" to listOf(
-                        mapOf(
-                            "level" to currentLevel,
-                            "bestTime" to elapsedTime,
-                            "leastMoves" to moves,
-                            "lastPlayedGames" to listOf(
-                                mapOf(
-                                    "date" to date,
-                                    "time" to currentTime,
-                                    "moves" to moves,
-                                    "score" to currentScore
-                                )
-                            ),
-                            "totalLevelScore" to currentScore
-                        )
-                    )
-                )
-
-                database.collection("card_matching_game")
-                    .add(newGameData)
-                    .addOnSuccessListener {
-                        Toast.makeText(requireContext(), "Game data saved!", Toast.LENGTH_SHORT).show()
-                    }
-                    .addOnFailureListener { exception ->
-                        Toast.makeText(requireContext(), "Error saving data: ${exception.message}", Toast.LENGTH_SHORT).show()
-                    }
             }
         }.addOnFailureListener { exception ->
             Toast.makeText(requireContext(), "Error fetching data: ${exception.message}", Toast.LENGTH_SHORT).show()
