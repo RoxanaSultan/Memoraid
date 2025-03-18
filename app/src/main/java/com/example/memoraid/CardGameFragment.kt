@@ -177,6 +177,7 @@ class CardGameFragment : Fragment() {
         startTimer()
         moveCount = 0
         date = Timestamp(System.currentTimeMillis())
+        isGameWon = false
 
         binding.moveDisplay.text = "Moves: $moveCount"
 
@@ -323,34 +324,90 @@ class CardGameFragment : Fragment() {
     private fun checkForMatch() {
         if (firstCard != null && secondCard != null) {
             if (firstCard!!.imageResId == secondCard!!.imageResId) {
-                // Cards match, animate them
                 animateMatchedCards(firstButton!!, secondButton!!)
 
-                // Mark cards as matched
                 firstCard!!.isMatched = true
                 secondCard!!.isMatched = true
                 matchedPairs++
 
                 if (matchedPairs == cardImages.size) {
                     stopTimer()
-                    Toast.makeText(requireContext(), "You win!", Toast.LENGTH_SHORT).show()
+                    isGameWon = true
                     updateGameData()
                 }
 
-                // Reset the selected cards after animation
                 Handler(Looper.getMainLooper()).postDelayed({
                     firstButton = null
                     secondButton = null
                     firstCard = null
                     secondCard = null
-                }, 1000) // Delay to let the animation finish before resetting
+                }, 1000)
             } else {
-                // Cards don't match, reset them after a delay
                 Handler(Looper.getMainLooper()).postDelayed({
                     resetFlippedCards()
                 }, 800)
             }
         }
+    }
+
+    private var fireworksAnimating = true  // Variabilă de control pentru animațiile artificiilor
+    private var isGameWon = false
+
+    private fun showWinPopup() {
+        val popupView = binding.winPopup
+        val fireworks1 = binding.fireworks1
+        val fireworks2 = binding.fireworks2
+        val fireworks3 = binding.fireworks3
+        val fireworks4 = binding.fireworks4
+        val closeBtn = binding.closePopup
+
+        // Animație de fade-in pentru popup
+        popupView.visibility = View.VISIBLE
+        popupView.alpha = 0f
+        popupView.animate().alpha(1f).setDuration(500).start()
+
+        // Animație artificii (scalare și fade-in) continuă
+        animateFireworks(fireworks1, 0)  // Fără întârziere
+        animateFireworks(fireworks2, 300) // Întârziere de 300ms
+        animateFireworks(fireworks3, 600) // Întârziere de 600ms
+        animateFireworks(fireworks4, 900) // Întârziere de 900ms
+
+        // Închidere pop-up
+        closeBtn.setOnClickListener {
+            popupView.animate().alpha(0f).setDuration(300).withEndAction {
+                popupView.visibility = View.GONE
+                fireworks1.visibility = View.GONE
+                fireworks2.visibility = View.GONE
+                fireworks3.visibility = View.GONE
+                fireworks4.visibility = View.GONE
+
+                // Oprește animațiile artificiilor
+                fireworksAnimating = false
+            }.start()
+        }
+    }
+
+    private fun animateFireworks(fireworks: View, delay: Long) {
+        if (!fireworksAnimating) return  // Oprește animația dacă este închis pop-up-ul
+
+        fireworks.visibility = View.VISIBLE
+        fireworks.alpha = 0f
+        fireworks.scaleX = 0f
+        fireworks.scaleY = 0f
+
+        fireworks.animate()
+            .alpha(1f)
+            .scaleX(1f)
+            .scaleY(1f)
+            .setDuration(1000)
+            .setStartDelay(delay)  // Adăugăm întârziere
+            .withEndAction {
+                // Repetă animația pentru artificii, dar doar dacă pop-up-ul este deschis
+                if (fireworksAnimating) {
+                    animateFireworks(fireworks, 0)  // Poți ajusta întârzierea aici dacă vrei
+                }
+            }
+            .start()
     }
 
     private fun animateMatchedCards(firstButton: Button, secondButton: Button) {
@@ -403,6 +460,12 @@ class CardGameFragment : Fragment() {
                         if (cardChild != firstButton && cardChild != secondButton) {
                             cardChild.alpha = 0.5f
                         }
+                    }
+
+                    if (isGameWon) {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            showWinPopup()
+                        }, 500)
                     }
                 }
 

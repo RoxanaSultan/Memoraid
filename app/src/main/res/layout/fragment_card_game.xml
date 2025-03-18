@@ -91,4 +91,83 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
+    <LinearLayout
+        android:id="@+id/winPopup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@drawable/layout_background"
+        android:visibility="gone"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/congratulationsMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Congratulations! \n You won!"
+            android:textAlignment="center"
+            android:textSize="24sp"
+            android:textColor="@color/green"
+            android:layout_margin="20dp"
+            android:textStyle="bold"/>
+
+        <Button
+            android:id="@+id/closePopup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Close"
+            android:background="@drawable/button_selector"
+            android:textColor="@drawable/foreground_color"
+            android:layout_marginBottom="10dp"/>
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/fireworks1"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/fireworks"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/winPopup"
+        app:layout_constraintEnd_toStartOf="@id/fireworks2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/fireworks2"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/fireworks"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/winPopup"
+        app:layout_constraintStart_toEndOf="@id/fireworks1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"  />
+
+    <ImageView
+        android:id="@+id/fireworks3"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/fireworks"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/winPopup"
+        app:layout_constraintEnd_toStartOf="@id/fireworks4"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <ImageView
+        android:id="@+id/fireworks4"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/fireworks"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/winPopup"
+        app:layout_constraintStart_toEndOf="@id/fireworks3"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
