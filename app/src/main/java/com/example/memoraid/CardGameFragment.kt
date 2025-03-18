@@ -178,6 +178,9 @@ class CardGameFragment : Fragment() {
         moveCount = 0
         date = Timestamp(System.currentTimeMillis())
         isGameWon = false
+        matchedPairs = 0
+        firstCard = null
+        secondCard = null
 
         binding.moveDisplay.text = "Moves: $moveCount"
 
@@ -354,6 +357,8 @@ class CardGameFragment : Fragment() {
     private var isGameWon = false
 
     private fun showWinPopup() {
+        modifyTransparency(0.3f)
+        disable()
         val popupView = binding.winPopup
         val fireworks1 = binding.fireworks1
         val fireworks2 = binding.fireworks2
@@ -383,6 +388,8 @@ class CardGameFragment : Fragment() {
 
                 // Oprește animațiile artificiilor
                 fireworksAnimating = false
+                modifyTransparency(1f)
+                enable()
             }.start()
         }
     }
@@ -454,19 +461,8 @@ class CardGameFragment : Fragment() {
             addListener(object : Animator.AnimatorListener {
                 override fun onAnimationStart(animation: Animator) {
                     Log.d("AnimateMatchedCards", "Animation started")
-
-                    for (i in 0 until binding.cardsGrid.childCount) {
-                        val cardChild = binding.cardsGrid.getChildAt(i)
-                        if (cardChild != firstButton && cardChild != secondButton) {
-                            cardChild.alpha = 0.5f
-                        }
-                    }
-
-                    if (isGameWon) {
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            showWinPopup()
-                        }, 500)
-                    }
+                    modifyTransparency(0.3f)
+                    disable()
                 }
 
 
@@ -516,12 +512,13 @@ class CardGameFragment : Fragment() {
                 override fun onAnimationStart(animation: Animator) {}
 
                 override fun onAnimationEnd(animation: Animator) {
-                    // Reset transparency of other cards AFTER animation finishes
-                    for (i in 0 until binding.cardsGrid.childCount) {
-                        val cardChild = binding.cardsGrid.getChildAt(i)
-                        if (cardChild != firstButton && cardChild != secondButton) {
-                            cardChild.alpha = 1f // Reset to full opacity
-                        }
+                    modifyTransparency(1f)
+                    enable()
+
+                    if (isGameWon) {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            showWinPopup()
+                        }, 100)
                     }
                 }
 
@@ -531,6 +528,35 @@ class CardGameFragment : Fragment() {
             })
 
             start()
+        }
+    }
+
+    private fun disable() {
+        for (i in 0 until cardsGrid.childCount) {
+            val cardChild = cardsGrid.getChildAt(i)
+            cardChild.isClickable = false
+        }
+        binding.restartButton.isClickable = false
+    }
+
+    private fun enable() {
+        for (i in 0 until cardsGrid.childCount) {
+            val cardChild = cardsGrid.getChildAt(i)
+            cardChild.isClickable = true
+        }
+        binding.restartButton.isClickable = true
+    }
+
+    private fun modifyTransparency(transparency: Float) {
+        binding.gameTitle.alpha = transparency
+        binding.scoreDisplay.alpha = transparency
+        binding.timerMoveLayout.alpha = transparency
+        binding.restartButton.alpha = transparency
+        for (i in 0 until binding.cardsGrid.childCount) {
+            val cardChild = binding.cardsGrid.getChildAt(i)
+            if (cardChild != firstButton && cardChild != secondButton) {
+                cardChild.alpha = transparency
+            }
         }
     }
 
@@ -601,7 +627,7 @@ class CardGameFragment : Fragment() {
                         "levels" to updatedLevels
                     )
                 ).addOnSuccessListener {
-                    Toast.makeText(requireContext(), "Game data updated!", Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(requireContext(), "Game data updated!", Toast.LENGTH_SHORT).show()
                 }.addOnFailureListener { exception ->
                     Toast.makeText(requireContext(), "Error updating data: ${exception.message}", Toast.LENGTH_SHORT).show()
                 }
@@ -669,9 +695,6 @@ class CardGameFragment : Fragment() {
 
 
     private fun restartGame() {
-        matchedPairs = 0
-        firstCard = null
-        secondCard = null
         setupGame()
     }
 }
