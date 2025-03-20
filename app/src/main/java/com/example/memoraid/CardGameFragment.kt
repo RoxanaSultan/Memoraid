@@ -592,7 +592,7 @@ class CardGameFragment : Fragment() {
             }
         }
     }
-    
+
     private fun updateGameData() {
         val elapsedTime = System.currentTimeMillis() - startTime
         currentTime = elapsedTime
