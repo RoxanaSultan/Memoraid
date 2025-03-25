@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.memoraid.databinding.FragmentHealthBinding
+import com.google.android.material.tabs.TabLayoutMediator
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -33,6 +34,20 @@ class HealthFragment : Fragment() {
         // Navigare prin zile
         binding.previousDateButton.setOnClickListener { changeDate(-1) }
         binding.nextDateButton.setOnClickListener { changeDate(1) }
+
+        // Setăm adapterul pentru ViewPager2
+        val adapter = HealthPagerAdapter(this)
+        binding.viewPager.adapter = adapter
+
+        // Conectăm TabLayout cu ViewPager2
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
+            tab.text = when (position) {
+                0 -> "Appointments"
+                1 -> "Pills"
+                2 -> "Habits"
+                else -> ""
+            }
+        }.attach()
 
         return root
     }
