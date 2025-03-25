@@ -1,6 +1,64 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content"
+    tools:context=".HealthFragment">
+
+    <!-- Title Section -->
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="Let's keep track of your Health!"
+        android:textSize="20sp"
+        android:textColor="@color/blue"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/dateLayout"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Date Section -->
+    <LinearLayout
+        android:id="@+id/dateLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/titleText"
+        android:padding="10dp"
+        android:gravity="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" >
+
+        <ImageButton
+            android:id="@+id/previousDateButton"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/arrow_left"
+            android:scaleType="fitCenter"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
+        <!-- Current Date Text -->
+        <TextView
+            android:id="@+id/currentDateText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/blue"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:padding="10dp"
+            android:gravity="center_horizontal" />
+
+        <ImageButton
+            android:id="@+id/nextDateButton"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/arrow_right"
+            android:scaleType="fitCenter"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
