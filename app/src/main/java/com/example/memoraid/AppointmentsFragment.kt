@@ -8,9 +8,11 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.memoraid.databinding.FragmentAppointmentsBinding
 import com.example.memoraid.models.Appointment
+import com.example.memoraid.utils.VerticalSpaceItemDecoration
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -46,6 +48,8 @@ class AppointmentsFragment : Fragment() {
             getAppointments(date)
         }
 
+        binding.appointmentRecyclerView.addItemDecoration(VerticalSpaceItemDecoration(16)) // 16px sau 16dp de spațiu între iteme
+
         return root
     }
 
@@ -61,9 +65,10 @@ class AppointmentsFragment : Fragment() {
                 for (document in documents) {
                     val appointment = document.toObject(Appointment::class.java)
                     appointment.id = document.id
-                    appointment.isCompleted = document.getBoolean("isCompleted") ?: false
+                    appointment.isCompleted = document.get("isCompleted") as? Boolean ?: false
                     appointmentList.add(appointment)
                 }
+                appointmentAdapter.sortAppointmentsByTime()
                 appointmentAdapter.notifyDataSetChanged()
 
                 if (appointmentList.isEmpty()) {

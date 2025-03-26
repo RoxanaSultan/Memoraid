@@ -22,13 +22,17 @@ class AppointmentAdapter(private val appointments: MutableList<Appointment>) :
     }
 
     override fun getItemCount(): Int = appointments.size
+    fun sortAppointmentsByTime() {
+        appointments.sortWith(compareBy { it.time })
+        notifyDataSetChanged()
+    }
 
     inner class AppointmentViewHolder(private val binding: ItemAppointmentBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(appointment: Appointment) {
             binding.appointmentName.text = appointment.name
-            binding.appointmentDoctor.text = appointment.doctor ?: "No doctor assigned"
+            binding.appointmentDoctor.text = appointment.doctor ?: "-"
             binding.appointmentTime.text = appointment.time
             binding.appointmentLocation.text = appointment.location
             binding.appointmentCheckBox.isChecked = appointment.isCompleted
@@ -37,7 +41,6 @@ class AppointmentAdapter(private val appointments: MutableList<Appointment>) :
 
             binding.appointmentCheckBox.setOnCheckedChangeListener { _, isChecked ->
                 updateAppointmentStatus(appointment, isChecked)
-                // După actualizare, forțează re-randarea elementului
                 appointment.isCompleted = isChecked
                 updateLayout(isChecked, binding)
             }
