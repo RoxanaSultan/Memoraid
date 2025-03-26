@@ -61,6 +61,7 @@ class AppointmentsFragment : Fragment() {
                 for (document in documents) {
                     val appointment = document.toObject(Appointment::class.java)
                     appointment.id = document.id
+                    appointment.isCompleted = document.getBoolean("isCompleted") ?: false
                     appointmentList.add(appointment)
                 }
                 appointmentAdapter.notifyDataSetChanged()

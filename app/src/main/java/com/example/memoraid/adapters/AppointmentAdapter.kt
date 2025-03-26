@@ -1,5 +1,6 @@
 package com.example.memoraid
 
+import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -30,11 +31,15 @@ class AppointmentAdapter(private val appointments: MutableList<Appointment>) :
             binding.appointmentDoctor.text = appointment.doctor ?: "No doctor assigned"
             binding.appointmentTime.text = appointment.time
             binding.appointmentLocation.text = appointment.location
-
             binding.appointmentCheckBox.isChecked = appointment.isCompleted
+
+            updateLayout(appointment.isCompleted, binding)
 
             binding.appointmentCheckBox.setOnCheckedChangeListener { _, isChecked ->
                 updateAppointmentStatus(appointment, isChecked)
+                // După actualizare, forțează re-randarea elementului
+                appointment.isCompleted = isChecked
+                updateLayout(isChecked, binding)
             }
         }
 
@@ -42,12 +47,44 @@ class AppointmentAdapter(private val appointments: MutableList<Appointment>) :
             val db = FirebaseFirestore.getInstance()
             val appointmentRef = db.collection("appointments").document(appointment.id)
 
-            appointmentRef.update("completed", isCompleted)
+            appointmentRef.update("isCompleted", isCompleted)
                 .addOnSuccessListener {
+                    // Actualizarea s-a făcut cu succes
                     appointment.isCompleted = isCompleted
                 }
                 .addOnFailureListener {
+                    // Tratează erorile dacă e cazul
                 }
         }
+    }
+
+    private fun updateLayout(completed: Boolean, binding: ItemAppointmentBinding) {
+        if (completed) {
+            binding.root.alpha = 0.5f
+            binding.root.background = binding.root.context.getDrawable(R.drawable.completed_background)
+
+            updateFontStyleLabels(Typeface.BOLD_ITALIC, binding)
+            updateFontStyle(Typeface.ITALIC, binding)
+        } else {
+            binding.root.alpha = 1f
+            binding.root.background = binding.root.context.getDrawable(R.drawable.layout_background)
+
+            updateFontStyleLabels(Typeface.BOLD, binding)
+            updateFontStyle(Typeface.NORMAL, binding)
+        }
+    }
+
+    private fun updateFontStyle(style: Int, binding: ItemAppointmentBinding) {
+        binding.appointmentName.setTypeface(null, style)
+        binding.appointmentDoctor.setTypeface(null, style)
+        binding.appointmentTime.setTypeface(null, style)
+        binding.appointmentLocation.setTypeface(null, style)
+    }
+
+    private fun updateFontStyleLabels(style: Int, binding: ItemAppointmentBinding) {
+        binding.appointmentLabelName.setTypeface(null, style)
+        binding.appointmentLabelDoctor.setTypeface(null, style)
+        binding.appointmentLabelTime.setTypeface(null, style)
+        binding.appointmentLabelLocation.setTypeface(null, style)
     }
 }
