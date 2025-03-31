@@ -1,6 +1,10 @@
 package com.example.memoraid
 
 import android.graphics.Typeface
+import android.net.Uri
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.widget.Toast
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -43,6 +47,48 @@ class AppointmentAdapter(private val appointments: MutableList<Appointment>) :
                 updateAppointmentStatus(appointment, isChecked)
                 appointment.isCompleted = isChecked
                 updateLayout(isChecked, binding)
+            }
+
+            binding.mapsApp.setOnClickListener {
+                openGoogleMaps(appointment.location, binding)
+            }
+
+            binding.taxiApp.setOnClickListener {
+                openTaxi(appointment.location, binding)
+            }
+        }
+
+        private fun openGoogleMaps(location: String, binding: ItemAppointmentBinding) {
+            if (location.isBlank()) {
+                Toast.makeText(binding.root.context, "Invalid location", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val context = binding.root.context
+            try {
+                val gmmIntentUri = Uri.parse("geo:0,0?q=${Uri.encode(location)}")
+                val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+
+                context.startActivity(mapIntent)
+            } catch (e: Exception) {
+                val webUri = Uri.parse("https://www.google.com/maps/search/?q=${Uri.encode(location)}")
+                val webIntent = Intent(Intent.ACTION_VIEW, webUri)
+                context.startActivity(webIntent)
+            }
+        }
+
+        private fun openTaxi(destination: String, binding: ItemAppointmentBinding) {
+            val uri = Uri.parse("uber://?action=setPickup&pickup=my_location&dropoff[formatted_address]=${Uri.encode(destination)}")
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+            intent.setPackage("com.ubercab")
+
+            val context = binding.root.context
+            if (intent.resolveActivity(context.packageManager) != null) {
+                context.startActivity(intent)
+            } else {
+                val webUri = Uri.parse("https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${Uri.encode(destination)}")
+                val webIntent = Intent(Intent.ACTION_VIEW, webUri)
+                context.startActivity(webIntent)
             }
         }
 
