@@ -42,7 +42,7 @@ class AppointmentAdapter(private val appointments: MutableList<Appointment>) :
             binding.appointmentCheckBox.isChecked = appointment.isCompleted
 
             updateLayout(appointment.isCompleted, binding)
-
+            
             binding.appointmentCheckBox.setOnCheckedChangeListener { _, isChecked ->
                 updateAppointmentStatus(appointment, isChecked)
                 appointment.isCompleted = isChecked
@@ -98,11 +98,9 @@ class AppointmentAdapter(private val appointments: MutableList<Appointment>) :
 
             appointmentRef.update("isCompleted", isCompleted)
                 .addOnSuccessListener {
-                    // Actualizarea s-a făcut cu succes
                     appointment.isCompleted = isCompleted
                 }
                 .addOnFailureListener {
-                    // Tratează erorile dacă e cazul
                 }
         }
     }
