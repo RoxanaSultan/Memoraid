@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:text="No appointments for today!"
         android:textColor="@color/blue"
-        android:textSize="24sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"

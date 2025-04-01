@@ -50,7 +50,7 @@ class AppointmentAdapter(private val appointments: MutableList<Appointment>) :
             }
 
             binding.mapsApp.setOnClickListener {
-                openGoogleMaps(appointment.location, binding)
+                openMaps(appointment.location, binding)
             }
 
             binding.taxiApp.setOnClickListener {
@@ -58,7 +58,7 @@ class AppointmentAdapter(private val appointments: MutableList<Appointment>) :
             }
         }
 
-        private fun openGoogleMaps(location: String, binding: ItemAppointmentBinding) {
+        private fun openMaps(location: String, binding: ItemAppointmentBinding) {
             if (location.isBlank()) {
                 Toast.makeText(binding.root.context, "Invalid location", Toast.LENGTH_SHORT).show()
                 return

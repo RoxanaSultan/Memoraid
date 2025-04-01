@@ -65,8 +65,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@id/dateLayout"
-        app:tabIndicatorColor="@color/pink"
-        app:tabSelectedTextColor="@color/pink"
+        app:tabIndicatorColor="@color/green"
+        app:tabSelectedTextColor="@color/green"
         app:tabTextColor="@color/blue">
         <com.google.android.material.tabs.TabItem
             android:text="Appointments"/>
