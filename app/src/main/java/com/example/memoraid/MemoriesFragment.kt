@@ -10,8 +10,6 @@ import androidx.navigation.fragment.findNavController
 import com.example.memoraid.databinding.FragmentMemoriesBinding
 
 class MemoriesFragment : Fragment() {
-
-    // Declare the binding variable
     private var _binding: FragmentMemoriesBinding? = null
     private val binding get() = _binding!!
 
@@ -19,25 +17,21 @@ class MemoriesFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Initialize the binding object
         _binding = FragmentMemoriesBinding.inflate(inflater, container, false)
 
-        // Use the binding object to access the views
         binding.btnJournal.setOnClickListener {
             findNavController().navigate(R.id.action_memoriesFragment_to_journalFragment)
         }
 
         binding.btnAlbums.setOnClickListener {
-            findNavController().navigate(R.id.action_memoriesFragment_to_journalFragment)
+            findNavController().navigate(R.id.action_memoriesFragment_to_albumsFragment)
         }
 
-        // Return the root view of the binding object
         return binding.root
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Avoid memory leaks by setting the binding to null
         _binding = null
     }
 }

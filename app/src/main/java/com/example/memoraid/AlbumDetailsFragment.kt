@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,8 +20,10 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memoraid.adapters.ImageAdapter
-import com.example.memoraid.databinding.FragmentJournalDetailsBinding
-import com.example.memoraid.models.Journal
+import com.example.memoraid.databinding.FragmentAlbumDetailsBinding
+import com.example.memoraid.models.Album
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import java.io.File
@@ -31,23 +32,23 @@ import java.util.Date
 import java.util.Locale
 import java.util.UUID
 
-class JournalDetailsFragment : Fragment() {
+class AlbumDetailsFragment : Fragment() {
 
-    private var _binding: FragmentJournalDetailsBinding? = null
+    private var _binding: FragmentAlbumDetailsBinding? = null
     private val binding get() = _binding!!
 
-    private val db = FirebaseFirestore.getInstance()
+    private val database = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
-    private var journalId: String? = null
-    private var journal: Journal? = null
-    private val imageUris = mutableListOf<String>()
-    private val storageReference = storage.reference.child("journal_images")
-    private val firestoreCollection = db.collection("journals")
+    private var albumId: String? = null
+    private var album: Album? = null
+    private val images = mutableListOf<String>()
+    private val storageReference = storage.reference.child("album_images")
+    private val firestoreCollection = database.collection("albums")
     private var imagesToRemove = mutableListOf<String>()
     private val localToFirebaseUriMap = mutableMapOf<String, String>()
 
     private val imageAdapter by lazy {
-        ImageAdapter(imageUris,
+        ImageAdapter(images,
             onImageRemoved = { image ->
                 val uriToRemove = localToFirebaseUriMap[image] ?: image
                 imagesToRemove.add(uriToRemove)
@@ -56,7 +57,7 @@ class JournalDetailsFragment : Fragment() {
                 val bundle = Bundle().apply {
                     putString("image", image)
                 }
-                findNavController().navigate(R.id.action_journalDetailsFragment_to_fullScreenImageFragment, bundle)
+                findNavController().navigate(R.id.action_albumDetailsFragment_to_fullScreenImageFragment, bundle)
             }
         )
     }
@@ -68,16 +69,16 @@ class JournalDetailsFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentJournalDetailsBinding.inflate(inflater, container, false)
+        _binding = FragmentAlbumDetailsBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        journalId = arguments?.getString("journalId")
-        if (journalId != null) {
-            loadJournalDetails(journalId!!)
+        albumId = arguments?.getString("albumId")
+        if (albumId != null) {
+            loadAlbumDetails(albumId!!)
         }
 
         val recyclerView = view.findViewById<RecyclerView>(R.id.picture_recycler_view)
@@ -85,7 +86,7 @@ class JournalDetailsFragment : Fragment() {
         recyclerView.adapter = imageAdapter
 
         binding.saveButton.setOnClickListener {
-            saveJournalDetails()
+            saveAlbumDetails()
         }
 
         binding.pictureButton.setOnClickListener {
@@ -99,13 +100,13 @@ class JournalDetailsFragment : Fragment() {
         })
     }
 
-    private fun removeImageFromFirestore(imageUri: String) {
-        firestoreCollection.whereArrayContains("imageUris", imageUri)
+    private fun removeImageFromFirestore(image: String) {
+        firestoreCollection.whereArrayContains("images", image)
             .get()
             .addOnSuccessListener { documents ->
                 for (document in documents) {
-                    val updatedUris = (document["imageUris"] as List<String>).filter { it != imageUri }
-                    firestoreCollection.document(document.id).update("imageUris", updatedUris)
+                    val updatedUris = (document["images"] as List<String>).filter { it != image }
+                    firestoreCollection.document(document.id).update("images", updatedUris)
                 }
             }
             .addOnFailureListener {
@@ -113,8 +114,8 @@ class JournalDetailsFragment : Fragment() {
             }
     }
 
-    private fun removeImageFromStorage(imageUri: String) {
-        val fileReference = storage.getReferenceFromUrl(imageUri)
+    private fun removeImageFromStorage(image: String) {
+        val fileReference = storage.getReferenceFromUrl(image)
 
         fileReference.delete()
             .addOnSuccessListener {
@@ -125,29 +126,29 @@ class JournalDetailsFragment : Fragment() {
             }
     }
 
-    private fun loadJournalDetails(journalId: String) {
-        db.collection("journals").document(journalId).get()
+    private fun loadAlbumDetails(albumId: String) {
+        database.collection("albums").document(albumId).get()
             .addOnSuccessListener { document ->
-                journal = document.toObject(Journal::class.java)
-                journal?.let {
+                album = document.toObject(Album::class.java)
+                album?.let {
                     binding.title.setText(it.title)
-                    binding.content.setText(it.text)
-                    imageUris.clear()
-                    it.imageUris?.let { uris -> imageUris.addAll(uris) }
+                    binding.description.setText(it.description)
+                    images.clear()
+                    it.images?.let { uris -> images.addAll(uris) }
                     imageAdapter.notifyDataSetChanged()
                 }
             }
             .addOnFailureListener {
-                Toast.makeText(requireContext(), "Failed to load journal", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Failed to load album", Toast.LENGTH_SHORT).show()
             }
     }
 
-    private fun saveJournalDetails() {
+    private fun saveAlbumDetails() {
         binding.progressContainer.visibility = View.VISIBLE
 
         if (imagesToRemove.isNotEmpty()) {
-            for (imageUri in imagesToRemove) {
-                val firebaseUri = localToFirebaseUriMap[imageUri] ?: imageUri
+            for (image in imagesToRemove) {
+                val firebaseUri = localToFirebaseUriMap[image] ?: image
 
                 if (isFirebaseStorageUri(firebaseUri)) {
                     checkIfImageExistsInStorage(firebaseUri) { exists ->
@@ -161,45 +162,42 @@ class JournalDetailsFragment : Fragment() {
             imagesToRemove.clear()
         }
 
-        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        val formattedDate = sdf.format(Date())
+        album?.let { album ->
+            album.title = binding.title.text.toString()
+            album.description = binding.description.text.toString()
+            album.updatedAt = Timestamp.now()
 
-        journal?.let { journal ->
-            journal.title = binding.title.text.toString()
-            journal.entryDate = formattedDate
-            journal.text = binding.content.text.toString()
-
-            val uploadedImageUris = mutableListOf<String>()
+            val uploadedImages = mutableListOf<String>()
             var imagesUploaded = 0
-            val totalImages = imageUris.size
+            val totalImages = images.size
 
-            if (imageUris.isNotEmpty()) {
-                for (uriString in imageUris) {
+            if (images.isNotEmpty()) {
+                for (uriString in images) {
                     if (isFirebaseStorageUri(uriString)) {
-                        uploadedImageUris.add(uriString)
+                        uploadedImages.add(uriString)
                         imagesUploaded++
 
                         if (imagesUploaded == totalImages) {
-                            journal.imageUris = uploadedImageUris
-                            saveJournalToFirestore(journal)
+                            album.images = uploadedImages
+                            saveAlbumToFirestore(album)
                         }
                     } else {
                         val uri = Uri.parse(uriString)
                         uploadImageToStorage(
                             uri,
                             onSuccess = { uploadedUri ->
-                                uploadedImageUris.add(uploadedUri)
+                                uploadedImages.add(uploadedUri)
                                 localToFirebaseUriMap[uriString] = uploadedUri
-                                val index = imageUris.indexOf(uriString)
+                                val index = images.indexOf(uriString)
                                 if (index != -1) {
-                                    imageUris[index] = uploadedUri
+                                    images[index] = uploadedUri
                                     imageAdapter.notifyItemChanged(index)
                                 }
 
                                 imagesUploaded++
                                 if (imagesUploaded == totalImages) {
-                                    journal.imageUris = uploadedImageUris
-                                    saveJournalToFirestore(journal)
+                                    album.images = uploadedImages
+                                    saveAlbumToFirestore(album)
                                 }
                             },
                             onFailure = { exception ->
@@ -214,34 +212,34 @@ class JournalDetailsFragment : Fragment() {
                     }
                 }
             } else {
-                journal.imageUris = mutableListOf()
-                saveJournalToFirestore(journal)
+                album.images = mutableListOf()
+                saveAlbumToFirestore(album)
             }
         }
     }
 
     private fun handleImage(uri: Uri) {
         val uriString = uri.toString()
-        imageUris.add(uriString)
+        images.add(uriString)
         localToFirebaseUriMap.remove(uriString)
         imageAdapter.notifyDataSetChanged()
     }
 
-    private fun saveJournalToFirestore(journal: Journal) {
-        db.collection("journals").document(journalId!!)
-            .set(journal)
+    private fun saveAlbumToFirestore(album: Album) {
+        database.collection("albums").document(albumId!!)
+            .set(album)
             .addOnSuccessListener {
                 binding.progressContainer.visibility = View.GONE
-                Toast.makeText(requireContext(), "Journal saved", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Album saved", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
                 binding.progressContainer.visibility = View.GONE
-                Toast.makeText(requireContext(), "Failed to save journal: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Failed to save album: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
-    private fun checkIfImageExistsInStorage(imageUri: String, onResult: (Boolean) -> Unit) {
-        val fileReference = storage.getReferenceFromUrl(imageUri)
+    private fun checkIfImageExistsInStorage(image: String, onResult: (Boolean) -> Unit) {
+        val fileReference = storage.getReferenceFromUrl(image)
 
         fileReference.downloadUrl
             .addOnSuccessListener { uri ->
@@ -290,7 +288,7 @@ class JournalDetailsFragment : Fragment() {
     }
 
     private fun startCamera() {
-        val photoFile = File(requireContext().getExternalFilesDir(null), "journal_photo_${UUID.randomUUID()}.jpg")
+        val photoFile = File(requireContext().getExternalFilesDir(null), "album_photo_${UUID.randomUUID()}.jpg")
         photoUri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.fileprovider", photoFile)
 
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
@@ -319,11 +317,6 @@ class JournalDetailsFragment : Fragment() {
             }
         }
     }
-
-//    private fun handleImage(uri: Uri) {
-//        imageUris.add(uri.toString())
-//        imageAdapter.notifyDataSetChanged()
-//    }
 
     private fun isFirebaseStorageUri(uri: String): Boolean {
         return uri.startsWith("http://") || uri.startsWith("https://")

@@ -8,14 +8,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.memoraid.adapters.JournalAdapter
-import com.example.memoraid.adapters.ModalAdapter
+import com.example.memoraid.adapters.JournalModalAdapter
 import com.example.memoraid.databinding.FragmentJournalBinding
 import com.example.memoraid.models.Journal
 import com.google.firebase.auth.FirebaseAuth
@@ -23,7 +22,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.HashMap
 import java.util.Locale
 
 class JournalFragment : Fragment() {
@@ -34,7 +32,7 @@ class JournalFragment : Fragment() {
     private lateinit var journalAdapter: JournalAdapter
     private val journalList = mutableListOf<Journal>()
 
-    private lateinit var modalAdapter: ModalAdapter
+    private lateinit var journalModalAdapter: JournalModalAdapter
 
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
     private val db = FirebaseFirestore.getInstance()
@@ -183,12 +181,12 @@ class JournalFragment : Fragment() {
 
 
     private fun setupModal() {
-        modalAdapter = ModalAdapter { position ->
+        journalModalAdapter = JournalModalAdapter { position ->
             createJournal(position)
         }
         binding.modalRecyclerView.apply {
             layoutManager = GridLayoutManager(requireContext(), 3)
-            adapter = modalAdapter
+            adapter = journalModalAdapter
         }
     }
 
