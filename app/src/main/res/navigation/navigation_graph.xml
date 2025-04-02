@@ -97,6 +97,9 @@
         <action
             android:id="@+id/action_memoriesFragment_to_journalFragment"
             app:destination="@id/navigation_journal" />
+        <action
+            android:id="@+id/action_memoriesFragment_to_albumsFragment"
+            app:destination="@id/navigation_albums" />
     </fragment>
 
     <!-- Health Fragment -->
