@@ -1,13 +1,13 @@
-package com.example.memoraid
+package com.example.memoraid.adapters
 
 import android.graphics.Typeface
 import android.net.Uri
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.widget.Toast
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.memoraid.R
 import com.example.memoraid.databinding.ItemAppointmentBinding
 import com.example.memoraid.models.Appointment
 import com.google.firebase.firestore.FirebaseFirestore

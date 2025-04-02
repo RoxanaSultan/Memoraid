@@ -8,13 +8,13 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.memoraid.databinding.FragmentAppointmentsBinding
 import com.example.memoraid.models.Appointment
 import com.example.memoraid.utils.VerticalSpaceItemDecoration
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.example.memoraid.adapters.AppointmentAdapter
 
 class AppointmentsFragment : Fragment() {
 
@@ -47,8 +47,7 @@ class AppointmentsFragment : Fragment() {
         sharedViewModel.selectedDate.observe(viewLifecycleOwner) { date ->
             getAppointments(date)
         }
-
-        binding.appointmentRecyclerView.addItemDecoration(VerticalSpaceItemDecoration(16)) // 16px sau 16dp de spațiu între iteme
+        binding.appointmentRecyclerView.addItemDecoration(VerticalSpaceItemDecoration(16))
 
         return root
     }

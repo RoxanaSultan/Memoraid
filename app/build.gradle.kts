@@ -110,4 +110,6 @@ dependencies {
 
     implementation ("androidx.cardview:cardview:1.0.0")
     implementation ("androidx.fragment:fragment-ktx:1.6.2")
+
+    implementation ("androidx.work:work-runtime-ktx:2.8.1")
 }
