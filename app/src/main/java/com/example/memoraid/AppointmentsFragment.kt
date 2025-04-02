@@ -15,6 +15,7 @@ import com.example.memoraid.utils.VerticalSpaceItemDecoration
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.memoraid.adapters.AppointmentAdapter
+import com.example.memoraid.helpers.AlarmHelper
 
 class AppointmentsFragment : Fragment() {
 
@@ -62,19 +63,22 @@ class AppointmentsFragment : Fragment() {
             .addOnSuccessListener { documents ->
                 appointmentList.clear()
                 for (document in documents) {
-                    val appointment = document.toObject(Appointment::class.java)
-                    appointment.id = document.id
-                    appointment.isCompleted = document.get("isCompleted") as? Boolean ?: false
+                    val appointment = document.toObject(Appointment::class.java).apply {
+                        id = document.id
+                        isCompleted = document.get("isCompleted") as? Boolean ?: false
+                    }
                     appointmentList.add(appointment)
+
+                    // Set alarm for each appointment
+                    context?.let {
+                        AlarmHelper.setAlarm(it, appointment)
+                    }
                 }
                 appointmentAdapter.sortAppointmentsByTime()
                 appointmentAdapter.notifyDataSetChanged()
 
-                if (appointmentList.isEmpty()) {
-                    binding.noAppointmentsTextView.visibility = View.VISIBLE
-                } else {
-                    binding.noAppointmentsTextView.visibility = View.GONE
-                }
+                binding.noAppointmentsTextView.visibility =
+                    if (appointmentList.isEmpty()) View.VISIBLE else View.GONE
             }
             .addOnFailureListener { exception ->
                 Toast.makeText(context, "Error getting documents: $exception", Toast.LENGTH_SHORT).show()
