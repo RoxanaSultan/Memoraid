@@ -8,7 +8,7 @@
     <!-- Account Fragment -->
     <fragment
         android:id="@+id/navigation_account"
-        android:name="com.example.memoraid.view.AccountFragment"
+        android:name="com.example.memoraid.fragments.AccountFragment"
         android:label="Account"
         tools:layout="@layout/fragment_account">
         <action
@@ -33,7 +33,7 @@
     <!-- Games Fragment -->
     <fragment
         android:id="@+id/navigation_games"
-        android:name="com.example.memoraid.GamesFragment"
+        android:name="com.example.memoraid.fragments.GamesFragment"
         android:label="Games"
         tools:layout="@layout/fragment_games" >
         <action
@@ -67,7 +67,7 @@
 
     <fragment
         android:id="@+id/navigation_cards"
-        android:name="com.example.memoraid.CardGamesFragment"
+        android:name="com.example.memoraid.fragments.CardGamesFragment"
         android:label="Cards"
         tools:layout="@layout/fragment_card_games">
         <action
@@ -77,7 +77,7 @@
 
     <fragment
         android:id="@+id/navigation_card_game"
-        android:name="com.example.memoraid.CardGameFragment"
+        android:name="com.example.memoraid.fragments.CardGameFragment"
         android:label="CardGame"
         tools:layout="@layout/fragment_card_game">
         <action

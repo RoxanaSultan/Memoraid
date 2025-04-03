@@ -1,4 +1,4 @@
-package com.example.memoraid
+package com.example.memoraid.fragments
 
 import android.os.Bundle
 import android.os.Handler
@@ -20,6 +20,7 @@ import android.app.AlertDialog
 import android.util.Log
 import androidx.activity.addCallback
 import androidx.core.view.children
+import com.example.memoraid.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.sql.Timestamp

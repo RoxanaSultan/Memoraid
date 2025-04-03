@@ -1,4 +1,4 @@
-package com.example.memoraid.view
+package com.example.memoraid.fragments
 
 import android.content.Intent
 import android.os.Bundle

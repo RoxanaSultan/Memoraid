@@ -1,5 +1,5 @@
 
-package com.example.memoraid
+package com.example.memoraid.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,8 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.example.memoraid.R
 import com.example.memoraid.databinding.FragmentGamesBinding
-import com.example.memoraid.databinding.FragmentPuzzlesBinding
 
 class GamesFragment : Fragment() {
     private var _binding: FragmentGamesBinding? = null
