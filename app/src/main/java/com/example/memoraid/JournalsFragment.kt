@@ -24,7 +24,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class JournalFragment : Fragment() {
+class JournalsFragment : Fragment() {
 
     private var _binding: FragmentJournalBinding? = null
     private val binding get() = _binding!!
@@ -34,8 +34,8 @@ class JournalFragment : Fragment() {
 
     private lateinit var journalModalAdapter: JournalModalAdapter
 
-    private val userId = FirebaseAuth.getInstance().currentUser?.uid
-    private val db = FirebaseFirestore.getInstance()
+    private val currentUser = FirebaseAuth.getInstance().currentUser?.uid
+    private val database = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
 
     override fun onCreateView(
@@ -55,7 +55,7 @@ class JournalFragment : Fragment() {
         loadJournals()
 
         binding.newJournalImageButton.setOnClickListener {
-            if (userId == null) {
+            if (currentUser == null) {
                 Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -124,7 +124,7 @@ class JournalFragment : Fragment() {
     }
 
     private fun checkIfJournalDeleted(journalId: String) {
-        db.collection("journals").document(journalId).get()
+        database.collection("journals").document(journalId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     val imageUris = document.get("imageUris") as? List<String> ?: emptyList()
@@ -167,7 +167,7 @@ class JournalFragment : Fragment() {
     }
 
     private fun deleteJournalFromFirestore(journalId: String) {
-        db.collection("journals").document(journalId).delete()
+        database.collection("journals").document(journalId).delete()
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Journal deleted successfully", Toast.LENGTH_SHORT).show()
                 binding.progressContainer.visibility = View.GONE
@@ -191,7 +191,7 @@ class JournalFragment : Fragment() {
     }
 
     private fun createJournal(selectedImageIndex: Int) {
-        if (userId == null) {
+        if (currentUser == null) {
             Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
             return
         }
@@ -208,9 +208,9 @@ class JournalFragment : Fragment() {
             }
         }
 
-        val journalRef = db.collection("journals").document()
+        val journalRef = database.collection("journals").document()
         val journalInfo = hashMapOf(
-            "userId" to userId,
+            "userId" to currentUser,
             "entryDate" to formattedDate,
             "title" to "Untitled",
             "text" to "",
@@ -238,8 +238,8 @@ class JournalFragment : Fragment() {
 
     private fun loadJournals() {
         journalList.clear()
-        db.collection("journals")
-            .whereEqualTo("userId", userId)
+        database.collection("journals")
+            .whereEqualTo("userId", currentUser)
             .get()
             .addOnSuccessListener { documents ->
                 for (document in documents) {

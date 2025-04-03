@@ -19,7 +19,7 @@
     <!-- Journal Fragment -->
     <fragment
         android:id="@+id/navigation_journal"
-        android:name="com.example.memoraid.JournalFragment"
+        android:name="com.example.memoraid.JournalsFragment"
         android:label="Journal"
         tools:layout="@layout/fragment_journal">
         <action
