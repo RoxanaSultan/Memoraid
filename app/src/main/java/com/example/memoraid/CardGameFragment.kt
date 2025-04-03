@@ -12,22 +12,17 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.memoraid.databinding.FragmentCardGameBinding
-import com.example.memoraid.models.Card
+import com.example.memoraid.model.Card
 import android.animation.ObjectAnimator
 import android.animation.Animator
 import android.animation.AnimatorSet
 import android.app.AlertDialog
 import android.util.Log
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
-import android.graphics.Color
 import androidx.core.view.children
-import com.example.memoraid.databinding.FragmentAccountBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.delay
 import java.sql.Timestamp
-import java.time.LocalDateTime
 
 class CardGameFragment : Fragment() {
     private var _binding: FragmentCardGameBinding? = null

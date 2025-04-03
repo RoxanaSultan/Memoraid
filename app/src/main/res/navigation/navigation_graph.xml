@@ -8,7 +8,7 @@
     <!-- Account Fragment -->
     <fragment
         android:id="@+id/navigation_account"
-        android:name="com.example.memoraid.AccountFragment"
+        android:name="com.example.memoraid.view.AccountFragment"
         android:label="Account"
         tools:layout="@layout/fragment_account">
         <action

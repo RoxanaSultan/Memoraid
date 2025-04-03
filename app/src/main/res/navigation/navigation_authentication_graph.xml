@@ -51,7 +51,7 @@
 
     <fragment
         android:id="@+id/fragment_account"
-        android:name="com.example.memoraid.AccountFragment"
+        android:name="com.example.memoraid.view.AccountFragment"
         android:label="Account"
         tools:layout="@layout/fragment_account">
         <action

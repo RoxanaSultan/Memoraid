@@ -4,7 +4,7 @@ import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.memoraid.models.Habit
+import com.example.memoraid.model.Habit
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.memoraid.databinding.ItemHabitBinding
 

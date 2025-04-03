@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.memoraid.adapters.JournalAdapter
 import com.example.memoraid.adapters.JournalModalAdapter
 import com.example.memoraid.databinding.FragmentJournalBinding
-import com.example.memoraid.models.Journal
+import com.example.memoraid.model.Journal
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage

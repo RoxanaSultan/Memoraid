@@ -1,4 +1,4 @@
-package com.example.memoraid.models
+package com.example.memoraid.model
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId

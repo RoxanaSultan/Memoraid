@@ -1,4 +1,4 @@
-package com.example.memoraid.models
+package com.example.memoraid.model
 
 data class Habit (
     var id: String = "",

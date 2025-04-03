@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.memoraid.AlbumType
 import com.example.memoraid.R
 import com.example.memoraid.databinding.ItemAlbumBinding
-import com.example.memoraid.models.Album
+import com.example.memoraid.model.Album
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 

@@ -1,4 +1,4 @@
-package com.example.memoraid.models
+package com.example.memoraid.model
 
 data class Card(
     val id: Int, // Unique identifier

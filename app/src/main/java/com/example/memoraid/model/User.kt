@@ -1,18 +1,17 @@
-package com.example.memoraid.models
+package com.example.memoraid.model
 
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.IgnoreExtraProperties
-import java.sql.Timestamp
 
 @IgnoreExtraProperties
 open class User(
-    @DocumentId val id: String = "", // Firestore will auto-generate this
+    @DocumentId val id: String = "",
     val username: String = "",
     val email: String = "",
     val phoneNumber: String = "",
     val firstName: String? = "",
     val lastName: String? = "",
-    val role: String = "", // "patient" or "caretaker"
+    val role: String = "",
     val profilePictureUrl: String? = null,
-    val birthdate: String? = null // Optional: Store as "yyyy-MM-dd" or Timestamp
+    val birthdate: String? = null
 )

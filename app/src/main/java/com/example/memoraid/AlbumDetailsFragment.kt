@@ -21,15 +21,11 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memoraid.adapters.ImageAdapter
 import com.example.memoraid.databinding.FragmentAlbumDetailsBinding
-import com.example.memoraid.models.Album
+import com.example.memoraid.model.Album
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import java.util.UUID
 
 class AlbumDetailsFragment : Fragment() {

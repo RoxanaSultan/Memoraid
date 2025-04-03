@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.memoraid.databinding.FragmentAppointmentsBinding
-import com.example.memoraid.models.Appointment
+import com.example.memoraid.model.Appointment
 import com.example.memoraid.utils.VerticalSpaceItemDecoration
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
