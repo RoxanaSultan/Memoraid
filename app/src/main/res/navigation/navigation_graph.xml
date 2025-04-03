@@ -99,7 +99,32 @@
             app:destination="@id/navigation_journal" />
         <action
             android:id="@+id/action_memoriesFragment_to_albumsFragment"
-            app:destination="@id/navigation_albums" />
+            app:destination="@id/navigation_album" />
+    </fragment>
+
+    <!-- Albums Fragment -->
+    <fragment
+        android:id="@+id/navigation_album"
+        android:name="com.example.memoraid.AlbumFragment"
+        android:label="Album"
+        tools:layout="@layout/fragment_album">
+        <action
+            android:id="@+id/action_albumsFragment_to_albumDetailsFragment"
+            app:destination="@id/fragment_album_details" />
+        <action
+            android:id="@+id/action_albumModal_to_albumFragment"
+            app:destination="@id/navigation_album" />
+    </fragment>
+
+    <!-- Album Details Fragment -->
+    <fragment
+        android:id="@+id/fragment_album_details"
+        android:name="com.example.memoraid.AlbumDetailsFragment"
+        android:label="AlbumDetailsFragment"
+        tools:layout="@layout/fragment_album_details">
+        <action
+            android:id="@+id/action_albumDetailsFragment_to_fullScreenImageFragment"
+            app:destination="@id/navigation_full_screen_image" />
     </fragment>
 
     <!-- Health Fragment -->

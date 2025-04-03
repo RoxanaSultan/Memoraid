@@ -26,6 +26,7 @@ class JournalAdapter(
             when (journal.type) {
                 JournalType.JOURNAL_PINK.type -> binding.journalImageButton.setImageResource(R.drawable.journal_option_1)
                 JournalType.JOURNAL_BLUE.type -> binding.journalImageButton.setImageResource(R.drawable.journal_option_2)
+                JournalType.JOURNAL_YELLOW.type -> binding.journalImageButton.setImageResource(R.drawable.journal_option_3)
             }
 
             binding.journalTitle.text = journal.title

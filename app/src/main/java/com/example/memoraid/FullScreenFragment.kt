@@ -19,7 +19,7 @@ class FullScreenImageFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_full_screen_image, container, false)
         val imageView = view.findViewById<ImageView>(R.id.full_screen_image_view)
 
-        val imageUri = arguments?.getString("imageUri")
+        val imageUri = arguments?.getString("image")
         Glide.with(this)
             .load(imageUri)
             .into(imageView)

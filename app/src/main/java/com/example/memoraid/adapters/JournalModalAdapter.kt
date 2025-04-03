@@ -6,21 +6,22 @@ import com.example.memoraid.R
 import com.example.memoraid.databinding.ItemJournalBinding
 import android.view.LayoutInflater
 
-class ModalAdapter(private val onItemSelected: (Int) -> Unit) : RecyclerView.Adapter<ModalAdapter.ModalViewHolder>() {
+class JournalModalAdapter(private val onItemSelected: (Int) -> Unit) : RecyclerView.Adapter<JournalModalAdapter.JournalModalViewHolder>() {
 
     private val images = listOf(
         R.drawable.journal_option_1,
-        R.drawable.journal_option_2
+        R.drawable.journal_option_2,
+        R.drawable.journal_option_3
     )
 
-    class ModalViewHolder(val binding: ItemJournalBinding) : RecyclerView.ViewHolder(binding.root)
+    class JournalModalViewHolder(val binding: ItemJournalBinding) : RecyclerView.ViewHolder(binding.root)
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ModalViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): JournalModalViewHolder {
         val binding = ItemJournalBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ModalViewHolder(binding)
+        return JournalModalViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: ModalViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: JournalModalViewHolder, position: Int) {
         holder.binding.journalImageButton.setImageResource(images[position])
         holder.binding.journalTitle.visibility = RecyclerView.GONE
         holder.binding.journalRemoveButton.visibility = RecyclerView.GONE
