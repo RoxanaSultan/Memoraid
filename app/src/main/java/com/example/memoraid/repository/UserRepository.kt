@@ -1,6 +1,6 @@
 package com.example.memoraid.repository
 
-import com.example.memoraid.model.User
+import com.example.memoraid.models.User
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject

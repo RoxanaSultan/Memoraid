@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.memoraid.JournalType
 import com.example.memoraid.R
 import com.example.memoraid.databinding.ItemJournalBinding
-import com.example.memoraid.model.Journal
+import com.example.memoraid.models.Journal
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 

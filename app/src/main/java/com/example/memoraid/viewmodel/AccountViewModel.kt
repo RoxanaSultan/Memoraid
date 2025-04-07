@@ -3,7 +3,7 @@ package com.example.memoraid.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.memoraid.repository.UserRepository
-import com.example.memoraid.model.User
+import com.example.memoraid.models.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

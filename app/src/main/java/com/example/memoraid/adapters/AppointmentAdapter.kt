@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memoraid.R
 import com.example.memoraid.databinding.ItemAppointmentBinding
-import com.example.memoraid.model.Appointment
+import com.example.memoraid.models.Appointment
 import com.google.firebase.firestore.FirebaseFirestore
 
 class AppointmentAdapter(private val appointments: MutableList<Appointment>) :

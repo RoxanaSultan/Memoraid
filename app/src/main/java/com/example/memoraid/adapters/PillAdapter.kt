@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memoraid.databinding.ItemPillBinding
-import com.example.memoraid.model.Pill
+import com.example.memoraid.models.Pill
 import com.google.firebase.firestore.FirebaseFirestore
 
 class PillsAdapter(private val pills: MutableList<Pill>) :

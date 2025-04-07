@@ -12,7 +12,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.memoraid.databinding.FragmentCardGameBinding
-import com.example.memoraid.model.Card
+import com.example.memoraid.models.Card
 import android.animation.ObjectAnimator
 import android.animation.Animator
 import android.animation.AnimatorSet

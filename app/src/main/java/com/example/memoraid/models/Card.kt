@@ -1,4 +1,4 @@
-package com.example.memoraid.model
+package com.example.memoraid.models
 
 data class Card(
     val id: Int,

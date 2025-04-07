@@ -19,7 +19,7 @@
     <!-- Journal Fragment -->
     <fragment
         android:id="@+id/navigation_journal"
-        android:name="com.example.memoraid.JournalsFragment"
+        android:name="com.example.memoraid.fragments.JournalsFragment"
         android:label="Journal"
         tools:layout="@layout/fragment_journal">
         <action
@@ -138,7 +138,7 @@
     <!-- Journal Details Fragment -->
     <fragment
         android:id="@+id/fragment_journal_details"
-        android:name="com.example.memoraid.JournalDetailsFragment"
+        android:name="com.example.memoraid.fragments.JournalDetailsFragment"
         android:label="JournalDetailsFragment"
         tools:layout="@layout/fragment_journal_details">
         <action

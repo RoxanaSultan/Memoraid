@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.memoraid.databinding.FragmentHabitsBinding
-import com.example.memoraid.model.Habit
+import com.example.memoraid.models.Habit
 import com.example.memoraid.utils.VerticalSpaceItemDecoration
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore

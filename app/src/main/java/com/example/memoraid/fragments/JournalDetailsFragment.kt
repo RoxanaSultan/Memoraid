@@ -1,4 +1,4 @@
-package com.example.memoraid
+package com.example.memoraid.fragments
 
 import android.Manifest
 import android.app.Activity
@@ -16,32 +16,35 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.memoraid.R
 import com.example.memoraid.adapters.ImageAdapter
 import com.example.memoraid.databinding.FragmentJournalDetailsBinding
-import com.example.memoraid.model.Journal
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
+import com.example.memoraid.models.Journal
+import com.example.memoraid.viewmodel.JournalViewModel
+import androidx.lifecycle.lifecycleScope
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
-class JournalDetailsFragment : Fragment() {
+@AndroidEntryPoint
+class JournalDetailsFragment : Fragment(R.layout.fragment_journal_details) {
 
     private var _binding: FragmentJournalDetailsBinding? = null
     private val binding get() = _binding!!
 
-    private val db = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
+    private val journalViewModel: JournalViewModel by viewModels()
+
     private var journalId: String? = null
     private var journal: Journal? = null
     private val imageUris = mutableListOf<String>()
-    private val storageReference = storage.reference.child("journal_images")
-    private val firestoreCollection = db.collection("journals")
     private var imagesToRemove = mutableListOf<String>()
     private val localToFirebaseUriMap = mutableMapOf<String, String>()
 
@@ -98,47 +101,66 @@ class JournalDetailsFragment : Fragment() {
         })
     }
 
-    private fun removeImageFromFirestore(imageUri: String) {
-        firestoreCollection.whereArrayContains("imageUris", imageUri)
-            .get()
-            .addOnSuccessListener { documents ->
-                for (document in documents) {
-                    val updatedUris = (document["imageUris"] as List<String>).filter { it != imageUri }
-                    firestoreCollection.document(document.id).update("imageUris", updatedUris)
-                }
-            }
-            .addOnFailureListener {
-                Toast.makeText(requireContext(), "Failed to remove image from Firestore", Toast.LENGTH_SHORT).show()
-            }
-    }
+//    private fun removeImageFromFirestore(imageUri: String) {
+//        firestoreCollection.whereArrayContains("imageUris", imageUri)
+//            .get()
+//            .addOnSuccessListener { documents ->
+//                for (document in documents) {
+//                    val updatedUris = (document["imageUris"] as List<String>).filter { it != imageUri }
+//                    firestoreCollection.document(document.id).update("imageUris", updatedUris)
+//                }
+//            }
+//            .addOnFailureListener {
+//                Toast.makeText(requireContext(), "Failed to remove image from Firestore", Toast.LENGTH_SHORT).show()
+//            }
+//    }
 
-    private fun removeImageFromStorage(imageUri: String) {
-        val fileReference = storage.getReferenceFromUrl(imageUri)
+//    private fun removeImageFromStorage(imageUri: String) {
+//        val fileReference = storage.getReferenceFromUrl(imageUri)
+//
+//        fileReference.delete()
+//            .addOnSuccessListener {
+//                Toast.makeText(requireContext(), "Image deleted from storage", Toast.LENGTH_SHORT).show()
+//            }
+//            .addOnFailureListener { exception ->
+//                Toast.makeText(requireContext(), "Failed to delete image from storage", Toast.LENGTH_SHORT).show()
+//            }
+//    }
 
-        fileReference.delete()
-            .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Image deleted from storage", Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener { exception ->
-                Toast.makeText(requireContext(), "Failed to delete image from storage", Toast.LENGTH_SHORT).show()
-            }
-    }
+//    private fun loadJournalDetails(journalId: String) {
+//        db.collection("journals").document(journalId).get()
+//            .addOnSuccessListener { document ->
+//                journal = document.toObject(Journal::class.java)
+//                journal?.let {
+//                    binding.title.setText(it.title)
+//                    binding.content.setText(it.text)
+//                    imageUris.clear()
+//                    it.imageUris?.let { uris -> imageUris.addAll(uris) }
+//                    imageAdapter.notifyDataSetChanged()
+//                }
+//            }
+//            .addOnFailureListener {
+//                Toast.makeText(requireContext(), "Failed to load journal", Toast.LENGTH_SHORT).show()
+//            }
+//    }
 
     private fun loadJournalDetails(journalId: String) {
-        db.collection("journals").document(journalId).get()
-            .addOnSuccessListener { document ->
-                journal = document.toObject(Journal::class.java)
-                journal?.let {
-                    binding.title.setText(it.title)
-                    binding.content.setText(it.text)
+        binding.progressContainer.visibility = View.VISIBLE
+
+        journalViewModel.loadJournalDetails(journalId)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            journalViewModel.journalDetails.collect { loadedJournal ->
+                if (loadedJournal != null) {
+                    binding.title.setText(loadedJournal.title)
+                    binding.content.setText(loadedJournal.text)
                     imageUris.clear()
-                    it.imageUris?.let { uris -> imageUris.addAll(uris) }
+                    loadedJournal.imageUris?.let { uris -> imageUris.addAll(uris) }
                     imageAdapter.notifyDataSetChanged()
                 }
+                binding.progressContainer.visibility = View.GONE
             }
-            .addOnFailureListener {
-                Toast.makeText(requireContext(), "Failed to load journal", Toast.LENGTH_SHORT).show()
-            }
+        }
     }
 
     private fun saveJournalDetails() {
@@ -149,10 +171,10 @@ class JournalDetailsFragment : Fragment() {
                 val firebaseUri = localToFirebaseUriMap[imageUri] ?: imageUri
 
                 if (isFirebaseStorageUri(firebaseUri)) {
-                    checkIfImageExistsInStorage(firebaseUri) { exists ->
+                    journalViewModel.checkIfImageExistsInStorage(firebaseUri) { exists ->
                         if (exists) {
-                            removeImageFromFirestore(firebaseUri)
-                            removeImageFromStorage(firebaseUri)
+                            journalViewModel.removeImageFromFirestore(firebaseUri)
+                            journalViewModel.removeImageFromStorage(firebaseUri)
                         }
                     }
                 }
@@ -184,7 +206,7 @@ class JournalDetailsFragment : Fragment() {
                         }
                     } else {
                         val uri = Uri.parse(uriString)
-                        uploadImageToStorage(
+                        journalViewModel.uploadImageToStorage(
                             uri,
                             onSuccess = { uploadedUri ->
                                 uploadedImageUris.add(uploadedUri)
@@ -227,43 +249,19 @@ class JournalDetailsFragment : Fragment() {
     }
 
     private fun saveJournalToFirestore(journal: Journal) {
-        db.collection("journals").document(journalId!!)
-            .set(journal)
-            .addOnSuccessListener {
-                binding.progressContainer.visibility = View.GONE
+        binding.progressContainer.visibility = View.VISIBLE
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val isSaved = journalViewModel.saveJournalDetails(journal)
+
+            binding.progressContainer.visibility = View.GONE
+
+            if (isSaved) {
                 Toast.makeText(requireContext(), "Journal saved", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "Failed to save journal", Toast.LENGTH_SHORT).show()
             }
-            .addOnFailureListener { e ->
-                binding.progressContainer.visibility = View.GONE
-                Toast.makeText(requireContext(), "Failed to save journal: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun checkIfImageExistsInStorage(imageUri: String, onResult: (Boolean) -> Unit) {
-        val fileReference = storage.getReferenceFromUrl(imageUri)
-
-        fileReference.downloadUrl
-            .addOnSuccessListener { uri ->
-                onResult(true)
-            }
-            .addOnFailureListener { exception ->
-                onResult(false)
-            }
-    }
-
-    private fun uploadImageToStorage(uri: Uri, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
-        val fileName = UUID.randomUUID().toString() + ".jpg"
-        val fileReference = storageReference.child(fileName)
-
-        fileReference.putFile(uri)
-            .addOnSuccessListener {
-                fileReference.downloadUrl.addOnSuccessListener { downloadUri ->
-                    onSuccess(downloadUri.toString())
-                }
-            }
-            .addOnFailureListener { exception ->
-                onFailure(exception)
-            }
+        }
     }
 
     private fun showImageOptions() {

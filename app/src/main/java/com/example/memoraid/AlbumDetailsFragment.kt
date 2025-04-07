@@ -21,7 +21,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memoraid.adapters.ImageAdapter
 import com.example.memoraid.databinding.FragmentAlbumDetailsBinding
-import com.example.memoraid.model.Album
+import com.example.memoraid.models.Album
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage

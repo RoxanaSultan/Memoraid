@@ -1,4 +1,4 @@
-package com.example.memoraid
+package com.example.memoraid.fragments
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -13,10 +13,12 @@ import androidx.core.app.NotificationCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.memoraid.JournalType
+import com.example.memoraid.R
 import com.example.memoraid.adapters.JournalAdapter
 import com.example.memoraid.adapters.JournalModalAdapter
 import com.example.memoraid.databinding.FragmentJournalBinding
-import com.example.memoraid.model.Journal
+import com.example.memoraid.models.Journal
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -202,6 +204,7 @@ class JournalsFragment : Fragment() {
         val journalType = when (selectedImageIndex) {
             0 -> JournalType.JOURNAL_PINK.type
             1 -> JournalType.JOURNAL_BLUE.type
+            2 -> JournalType.JOURNAL_YELLOW.type
             else -> {
                 Toast.makeText(requireContext(), "Invalid selection", Toast.LENGTH_SHORT).show()
                 return
