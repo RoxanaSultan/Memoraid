@@ -10,6 +10,7 @@ import com.example.memoraid.databinding.ItemJournalBinding
 import com.example.memoraid.models.Journal
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import javax.inject.Inject
 
 class JournalAdapter(
     private val context: Context,
@@ -17,8 +18,6 @@ class JournalAdapter(
     private val onJournalClick: (Journal) -> Unit,
     private val onJournalDelete: (Journal) -> Unit
 ) : RecyclerView.Adapter<JournalAdapter.JournalViewHolder>() {
-    private val db = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
 
     inner class JournalViewHolder(private val binding: ItemJournalBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(journal: Journal) {
@@ -35,7 +34,7 @@ class JournalAdapter(
             }
 
             binding.journalRemoveButton.setOnClickListener {
-                deleteJournal(journal, adapterPosition)
+                deleteJournal(journal, adapterPosition, binding.root.context) // Pass context from root view
             }
         }
     }
@@ -51,14 +50,14 @@ class JournalAdapter(
 
     override fun getItemCount(): Int = journals.size
 
-    private fun deleteJournal(journal: Journal, position: Int) {
+    private fun deleteJournal(journal: Journal, position: Int, context: Context) {
         val alertDialog = android.app.AlertDialog.Builder(context)
             .setTitle("Delete Journal")
             .setMessage("Are you sure you want to delete this journal?")
             .setPositiveButton("Yes") { _, _ ->
                 journal.imageUris?.let { removeImagesFromStorage(it) }
 
-                db.collection("journals").document(journal.id)
+                FirebaseFirestore.getInstance().collection("journals").document(journal.id)
                     .delete()
                     .addOnSuccessListener {
                         journals.removeAt(position)
@@ -74,17 +73,15 @@ class JournalAdapter(
 
     private fun removeImagesFromStorage(imageUris: List<String>) {
         for (imageUri in imageUris) {
-            val fileReference = storage.getReferenceFromUrl(imageUri)
+            val fileReference = FirebaseStorage.getInstance().getReferenceFromUrl(imageUri)
 
             fileReference.delete()
                 .addOnSuccessListener {
 
                 }
                 .addOnFailureListener { exception ->
-//                Log.e("JournalDetailsFragment", "Failed to delete image: ${exception.message}")
-//                    Toast.makeText(requireContext(), "Failed to delete image from storage", Toast.LENGTH_SHORT).show()
+                    // Handle failure
                 }
         }
     }
-
 }
