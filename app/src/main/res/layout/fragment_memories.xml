@@ -24,6 +24,7 @@
             android:text="Journals"
             android:textSize="18sp"
             android:background="@drawable/button_selector"
+            android:textColor="@drawable/foreground_color"
             />
 
         <Button
@@ -33,7 +34,9 @@
             android:text="Albums"
             android:textSize="18sp"
             android:layout_marginTop="20dp"
-            android:background="@drawable/button_selector" />
+            android:background="@drawable/button_selector"
+            android:textColor="@drawable/foreground_color"
+            />
 
     </LinearLayout>
 
