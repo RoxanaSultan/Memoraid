@@ -1,4 +1,4 @@
-package com.example.memoraid.fragments
+package com.example.memoraid
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,14 +10,11 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
-import com.example.memoraid.JournalType
-import com.example.memoraid.R
 import com.example.memoraid.adapters.JournalAdapter
 import com.example.memoraid.adapters.JournalModalAdapter
 import com.example.memoraid.databinding.FragmentJournalBinding
-import com.example.memoraid.models.Journal
 import com.example.memoraid.viewmodel.JournalViewModel
-import com.example.memoraid.model.Journal
+import com.example.memoraid.models.Journal
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -90,70 +87,6 @@ class JournalsFragment : Fragment() {
 
     private fun setupModal() {
         journalModalAdapter = JournalModalAdapter { position ->
-            createJournal(position)
-        }
-        binding.modalRecyclerView.apply {
-            layoutManager = GridLayoutManager(requireContext(), 3)
-            adapter = journalModalAdapter
-        }
-    }
-
-    private fun createJournal(selectedImageIndex: Int) {
-        if (currentUser == null) {
-            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        val formattedDate = sdf.format(Date())
-
-        val journalType = when (selectedImageIndex) {
-            0 -> JournalType.JOURNAL_PINK.type
-            1 -> JournalType.JOURNAL_BLUE.type
-            2 -> JournalType.JOURNAL_YELLOW.type
-            else -> {
-                Toast.makeText(requireContext(), "Invalid selection", Toast.LENGTH_SHORT).show()
-                return
-            }
-        }
-
-        val journalRef = database.collection("journals").document()
-        val journalInfo = hashMapOf(
-            "userId" to currentUser,
-            "entryDate" to formattedDate,
-            "title" to "Untitled",
-            "text" to "",
-            "imageUris" to listOf<String>(),
-            "type" to journalType
-        )
-
-        journalRef.set(journalInfo).addOnSuccessListener {
-            Toast.makeText(requireContext(), "Journal created successfully", Toast.LENGTH_SHORT).show()
-            sendNotification()
-
-            val bundle = Bundle().apply {
-                putString("journalId", journalRef.id)
-            }
-            findNavController().navigate(R.id.action_journalFragment_to_journalDetailsFragment, bundle)
-
-            binding.modalContainer.visibility = View.GONE
-        }.addOnFailureListener { e ->
-            e.printStackTrace()
-            Toast.makeText(requireContext(), "Failed to create new journal: ${e.message}", Toast.LENGTH_LONG).show()
-        }
-    }
-
-
-
-    private fun loadJournals() {
-        journalList.clear()
-        database.collection("journals")
-            .whereEqualTo("userId", currentUser)
-            .get()
-            .addOnSuccessListener { documents ->
-                for (document in documents) {
-                    val journal = document.toObject(Journal::class.java).copy(id = document.id)
-                    journalList.add(journal)
             val journalType = when (position) {
                 0 -> JournalType.JOURNAL_PINK.type
                 1 -> JournalType.JOURNAL_BLUE.type

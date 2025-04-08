@@ -1,7 +1,6 @@
 package com.example.memoraid.viewmodel
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.memoraid.models.Journal
@@ -17,8 +16,8 @@ class JournalViewModel @Inject constructor(
     private val repository: JournalRepository
 ) : ViewModel() {
 
-    private val _journals = MutableStateFlow<List<Journal>>(emptyList())
-    val journals: StateFlow<List<Journal>> get() = _journals
+    private val _journals = MutableStateFlow<MutableList<Journal>>(mutableListOf())
+    val journals: StateFlow<MutableList<Journal>> get() = _journals
 
     private val _journalDetails = MutableStateFlow<Journal?>(null)
     val journalDetails: StateFlow<Journal?> get() = _journalDetails
@@ -26,10 +25,22 @@ class JournalViewModel @Inject constructor(
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> get() = _isSaving
 
+    fun loadJournals() {
+        viewModelScope.launch {
+            _journals.value = repository.loadJournals().toMutableList()
+        }
+    }
+
     fun loadJournalDetails(journalId: String) {
         viewModelScope.launch {
-            val journal = repository.loadJournalDetails(journalId)
-            _journalDetails.value = journal
+            _journalDetails.value = repository.loadJournalDetails(journalId)
+        }
+    }
+
+    fun createJournal(type: String, onSuccess: (String) -> Unit, onFailure: () -> Unit) {
+        viewModelScope.launch {
+            val id = repository.createJournal(type)
+            if (id != null) onSuccess(id) else onFailure()
         }
     }
 
@@ -42,6 +53,16 @@ class JournalViewModel @Inject constructor(
         } catch (e: Exception) {
             _isSaving.value = false
             false
+        }
+    }
+
+    fun deleteJournal(journalId: String, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            val result = repository.deleteJournal(journalId)
+            if (result) {
+                loadJournals()
+            }
+            onComplete()
         }
     }
 
