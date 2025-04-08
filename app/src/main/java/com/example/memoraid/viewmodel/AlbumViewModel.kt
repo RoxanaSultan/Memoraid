@@ -47,4 +47,52 @@ class AlbumViewModel @Inject constructor(
             onComplete()
         }
     }
+
+    fun loadAlbumDetails(albumId: String) {
+        viewModelScope.launch {
+            _albumDetails.value = repository.loadAlbumDetails(albumId)
+        }
+    }
+
+    suspend fun saveAlbumDetails(album: Album): Boolean {
+        _isSaving.value = true
+        return try {
+            val success = repository.saveAlbumDetails(album)
+            _isSaving.value = false
+            success
+        } catch (e: Exception) {
+            _isSaving.value = false
+            false
+        }
+    }
+
+    fun removeImageFromFirestore(image: String) {
+        viewModelScope.launch {
+            repository.removeImageFromFirestore(image)
+        }
+    }
+
+    fun removeImageFromStorage(image: String) {
+        viewModelScope.launch {
+            repository.removeImageFromStorage(image)
+        }
+    }
+
+    fun uploadImageToStorage(image: Uri, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
+        viewModelScope.launch {
+            val uploadedImage = repository.uploadImageToStorage(image)
+            if (uploadedImage != null) {
+                onSuccess(uploadedImage)
+            } else {
+                onFailure(Exception("Failed to upload image"))
+            }
+        }
+    }
+
+    fun checkIfImageExistsInStorage(image: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val exists = repository.checkIfImageExistsInStorage(image)
+            onResult(exists)
+        }
+    }
 }

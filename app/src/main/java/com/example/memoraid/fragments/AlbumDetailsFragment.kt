@@ -17,6 +17,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -24,24 +26,25 @@ import com.example.memoraid.R
 import com.example.memoraid.adapters.ImageAdapter
 import com.example.memoraid.databinding.FragmentAlbumDetailsBinding
 import com.example.memoraid.models.Album
+import com.example.memoraid.viewmodel.AlbumViewModel
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.UUID
+import kotlin.getValue
 
-class AlbumDetailsFragment : Fragment() {
+@AndroidEntryPoint
+class AlbumDetailsFragment : Fragment(R.layout.fragment_album_details) {
 
     private var _binding: FragmentAlbumDetailsBinding? = null
     private val binding get() = _binding!!
 
-    private val database = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
+    private val albumViewModel: AlbumViewModel by viewModels()
     private var albumId: String? = null
+
     private var album: Album? = null
     private val images = mutableListOf<String>()
-    private val storageReference = storage.reference.child("album_images")
-    private val firestoreCollection = database.collection("albums")
     private var imagesToRemove = mutableListOf<String>()
     private val localToFirebaseUriMap = mutableMapOf<String, String>()
 
@@ -98,47 +101,24 @@ class AlbumDetailsFragment : Fragment() {
         })
     }
 
-    private fun removeImageFromFirestore(image: String) {
-        firestoreCollection.whereArrayContains("images", image)
-            .get()
-            .addOnSuccessListener { documents ->
-                for (document in documents) {
-                    val updatedUris = (document["images"] as List<String>).filter { it != image }
-                    firestoreCollection.document(document.id).update("images", updatedUris)
-                }
-            }
-            .addOnFailureListener {
-                Toast.makeText(requireContext(), "Failed to remove image from Firestore", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun removeImageFromStorage(image: String) {
-        val fileReference = storage.getReferenceFromUrl(image)
-
-        fileReference.delete()
-            .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Image deleted from storage", Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener { exception ->
-                Toast.makeText(requireContext(), "Failed to delete image from storage", Toast.LENGTH_SHORT).show()
-            }
-    }
-
     private fun loadAlbumDetails(albumId: String) {
-        database.collection("albums").document(albumId).get()
-            .addOnSuccessListener { document ->
-                album = document.toObject(Album::class.java)
-                album?.let {
-                    binding.title.setText(it.title)
-                    binding.description.setText(it.description)
+        binding.progressContainer.visibility = View.VISIBLE
+
+        albumViewModel.loadAlbumDetails(albumId)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            albumViewModel.albumDetails.collect { loadedAlbum ->
+                if (loadedAlbum != null) {
+                    album = loadedAlbum
+                    binding.title.setText(loadedAlbum.title)
+                    binding.description.setText(loadedAlbum.description)
                     images.clear()
-                    it.images?.let { uris -> images.addAll(uris) }
+                    loadedAlbum.images?.let { uris -> images.addAll(uris) }
                     imageAdapter.notifyDataSetChanged()
                 }
+                binding.progressContainer.visibility = View.GONE
             }
-            .addOnFailureListener {
-                Toast.makeText(requireContext(), "Failed to load album", Toast.LENGTH_SHORT).show()
-            }
+        }
     }
 
     private fun saveAlbumDetails() {
@@ -149,10 +129,10 @@ class AlbumDetailsFragment : Fragment() {
                 val firebaseUri = localToFirebaseUriMap[image] ?: image
 
                 if (isFirebaseStorageUri(firebaseUri)) {
-                    checkIfImageExistsInStorage(firebaseUri) { exists ->
+                    albumViewModel.checkIfImageExistsInStorage(firebaseUri) { exists ->
                         if (exists) {
-                            removeImageFromFirestore(firebaseUri)
-                            removeImageFromStorage(firebaseUri)
+                            albumViewModel.removeImageFromFirestore(firebaseUri)
+                            albumViewModel.removeImageFromStorage(firebaseUri)
                         }
                     }
                 }
@@ -181,7 +161,7 @@ class AlbumDetailsFragment : Fragment() {
                         }
                     } else {
                         val uri = Uri.parse(uriString)
-                        uploadImageToStorage(
+                        albumViewModel.uploadImageToStorage(
                             uri,
                             onSuccess = { uploadedUri ->
                                 uploadedImages.add(uploadedUri)
@@ -224,43 +204,19 @@ class AlbumDetailsFragment : Fragment() {
     }
 
     private fun saveAlbumToFirestore(album: Album) {
-        database.collection("albums").document(albumId!!)
-            .set(album)
-            .addOnSuccessListener {
-                binding.progressContainer.visibility = View.GONE
+        binding.progressContainer.visibility = View.VISIBLE
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val isSaved = albumViewModel.saveAlbumDetails(album)
+
+            binding.progressContainer.visibility = View.GONE
+
+            if (isSaved) {
                 Toast.makeText(requireContext(), "Album saved", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "Failed to save album", Toast.LENGTH_SHORT).show()
             }
-            .addOnFailureListener { e ->
-                binding.progressContainer.visibility = View.GONE
-                Toast.makeText(requireContext(), "Failed to save album: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun checkIfImageExistsInStorage(image: String, onResult: (Boolean) -> Unit) {
-        val fileReference = storage.getReferenceFromUrl(image)
-
-        fileReference.downloadUrl
-            .addOnSuccessListener { uri ->
-                onResult(true)
-            }
-            .addOnFailureListener { exception ->
-                onResult(false)
-            }
-    }
-
-    private fun uploadImageToStorage(uri: Uri, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
-        val fileName = UUID.randomUUID().toString() + ".jpg"
-        val fileReference = storageReference.child(fileName)
-
-        fileReference.putFile(uri)
-            .addOnSuccessListener {
-                fileReference.downloadUrl.addOnSuccessListener { downloadUri ->
-                    onSuccess(downloadUri.toString())
-                }
-            }
-            .addOnFailureListener { exception ->
-                onFailure(exception)
-            }
+        }
     }
 
     private fun showImageOptions() {

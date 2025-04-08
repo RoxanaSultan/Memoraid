@@ -1,6 +1,8 @@
 package com.example.memoraid.repository
 
+import android.net.Uri
 import com.example.memoraid.models.Album
+import com.example.memoraid.models.Journal
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -78,5 +80,66 @@ class AlbumRepository @Inject constructor(
 
         firestoreCollection.document(albumId).delete().await()
         return true
+    }
+
+    suspend fun loadAlbumDetails(albumId: String): Album? {
+        return try {
+            val document = firestoreCollection.document(albumId).get().await()
+            document.toObject(Album::class.java)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun saveAlbumDetails(album: Album): Boolean {
+        return try {
+            firestoreCollection.document(album.id!!).set(album).await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun removeImageFromFirestore(image: String): Boolean {
+        return try {
+            firestoreCollection.whereArrayContains("images", image).get().await().documents.forEach { document ->
+                val updatedUris = (document["images"] as List<String>).filter { it != image }
+                firestoreCollection.document(document.id).update("images", updatedUris).await()
+            }
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun removeImageFromStorage(image: String): Boolean {
+        return try {
+            val fileReference = storage.getReferenceFromUrl(image)
+            fileReference.delete().await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun uploadImageToStorage(image: Uri): String? {
+        return try {
+            val fileName = "${System.currentTimeMillis()}.jpg"
+            val fileReference = storageReference.child(fileName)
+            fileReference.putFile(image).await()
+            fileReference.downloadUrl.await().toString()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun checkIfImageExistsInStorage(image: String): Boolean {
+        return try {
+            val fileReference = storage.getReferenceFromUrl(image)
+            fileReference.downloadUrl.await()
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 }

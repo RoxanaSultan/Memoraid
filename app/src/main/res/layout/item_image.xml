@@ -8,7 +8,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- Image View to display the image -->
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="match_parent"
@@ -16,7 +15,6 @@
             android:layout_centerInParent="true"
             android:scaleType="centerCrop" />
 
-        <!-- Remove Button positioned in the top-right corner -->
         <ImageButton
             android:id="@+id/picture_remove_button"
             android:layout_width="30dp"
