@@ -72,8 +72,6 @@ class JournalRepository @Inject constructor(
     }
 
     suspend fun deleteJournal(journalId: String): Boolean {
-        val userId = requireUserId()
-
         val document = firestoreCollection.document(journalId).get().await()
         val imageUris = document.get("imageUris") as? List<String> ?: emptyList()
 

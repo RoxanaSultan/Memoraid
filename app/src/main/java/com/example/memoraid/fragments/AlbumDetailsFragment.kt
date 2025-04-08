@@ -1,7 +1,8 @@
-package com.example.memoraid
+package com.example.memoraid.fragments
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -19,6 +20,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.memoraid.R
 import com.example.memoraid.adapters.ImageAdapter
 import com.example.memoraid.databinding.FragmentAlbumDetailsBinding
 import com.example.memoraid.models.Album
@@ -263,7 +265,7 @@ class AlbumDetailsFragment : Fragment() {
 
     private fun showImageOptions() {
         val options = arrayOf("Take Photo", "Choose from Gallery")
-        android.app.AlertDialog.Builder(requireContext())
+        AlertDialog.Builder(requireContext())
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> openCamera()

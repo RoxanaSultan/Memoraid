@@ -2,6 +2,7 @@ package com.example.memoraid.models
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
+import com.google.firebase.firestore.FieldValue
 
 data class Album(
     @DocumentId val id: String = "",
