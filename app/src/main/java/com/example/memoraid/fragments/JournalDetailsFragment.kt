@@ -47,6 +47,7 @@ class JournalDetailsFragment : Fragment(R.layout.fragment_journal_details) {
     private val imageUris = mutableListOf<String>()
     private var imagesToRemove = mutableListOf<String>()
     private val localToFirebaseUriMap = mutableMapOf<String, String>()
+    private val localUris = mutableMapOf<String, Uri>()
 
     private val imageAdapter by lazy {
         ImageAdapter(imageUris,
@@ -101,49 +102,6 @@ class JournalDetailsFragment : Fragment(R.layout.fragment_journal_details) {
         })
     }
 
-//    private fun removeImageFromFirestore(imageUri: String) {
-//        firestoreCollection.whereArrayContains("imageUris", imageUri)
-//            .get()
-//            .addOnSuccessListener { documents ->
-//                for (document in documents) {
-//                    val updatedUris = (document["imageUris"] as List<String>).filter { it != imageUri }
-//                    firestoreCollection.document(document.id).update("imageUris", updatedUris)
-//                }
-//            }
-//            .addOnFailureListener {
-//                Toast.makeText(requireContext(), "Failed to remove image from Firestore", Toast.LENGTH_SHORT).show()
-//            }
-//    }
-
-//    private fun removeImageFromStorage(imageUri: String) {
-//        val fileReference = storage.getReferenceFromUrl(imageUri)
-//
-//        fileReference.delete()
-//            .addOnSuccessListener {
-//                Toast.makeText(requireContext(), "Image deleted from storage", Toast.LENGTH_SHORT).show()
-//            }
-//            .addOnFailureListener { exception ->
-//                Toast.makeText(requireContext(), "Failed to delete image from storage", Toast.LENGTH_SHORT).show()
-//            }
-//    }
-
-//    private fun loadJournalDetails(journalId: String) {
-//        db.collection("journals").document(journalId).get()
-//            .addOnSuccessListener { document ->
-//                journal = document.toObject(Journal::class.java)
-//                journal?.let {
-//                    binding.title.setText(it.title)
-//                    binding.content.setText(it.text)
-//                    imageUris.clear()
-//                    it.imageUris?.let { uris -> imageUris.addAll(uris) }
-//                    imageAdapter.notifyDataSetChanged()
-//                }
-//            }
-//            .addOnFailureListener {
-//                Toast.makeText(requireContext(), "Failed to load journal", Toast.LENGTH_SHORT).show()
-//            }
-//    }
-
     private fun loadJournalDetails(journalId: String) {
         binding.progressContainer.visibility = View.VISIBLE
 
@@ -152,6 +110,7 @@ class JournalDetailsFragment : Fragment(R.layout.fragment_journal_details) {
         viewLifecycleOwner.lifecycleScope.launch {
             journalViewModel.journalDetails.collect { loadedJournal ->
                 if (loadedJournal != null) {
+                    journal = loadedJournal
                     binding.title.setText(loadedJournal.title)
                     binding.content.setText(loadedJournal.text)
                     imageUris.clear()
@@ -205,7 +164,7 @@ class JournalDetailsFragment : Fragment(R.layout.fragment_journal_details) {
                             saveJournalToFirestore(journal)
                         }
                     } else {
-                        val uri = Uri.parse(uriString)
+                        val uri = localUris[uriString] ?: Uri.parse(uriString)
                         journalViewModel.uploadImageToStorage(
                             uri,
                             onSuccess = { uploadedUri ->
@@ -244,7 +203,7 @@ class JournalDetailsFragment : Fragment(R.layout.fragment_journal_details) {
     private fun handleImage(uri: Uri) {
         val uriString = uri.toString()
         imageUris.add(uriString)
-        localToFirebaseUriMap.remove(uriString)
+        localUris[uriString] = uri
         imageAdapter.notifyDataSetChanged()
     }
 
@@ -316,11 +275,6 @@ class JournalDetailsFragment : Fragment(R.layout.fragment_journal_details) {
             }
         }
     }
-
-//    private fun handleImage(uri: Uri) {
-//        imageUris.add(uri.toString())
-//        imageAdapter.notifyDataSetChanged()
-//    }
 
     private fun isFirebaseStorageUri(uri: String): Boolean {
         return uri.startsWith("http://") || uri.startsWith("https://")

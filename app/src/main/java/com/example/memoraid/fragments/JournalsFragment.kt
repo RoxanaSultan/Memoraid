@@ -1,4 +1,4 @@
-package com.example.memoraid
+package com.example.memoraid.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,15 +10,17 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.memoraid.JournalType
 import com.example.memoraid.adapters.JournalAdapter
 import com.example.memoraid.adapters.JournalModalAdapter
 import com.example.memoraid.databinding.FragmentJournalBinding
 import com.example.memoraid.viewmodel.JournalViewModel
 import com.example.memoraid.models.Journal
+import com.example.memoraid.R
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class JournalsFragment : Fragment() {
+class JournalsFragment : Fragment(R.layout.fragment_journal) {
     private var _binding: FragmentJournalBinding? = null
     private val binding get() = _binding!!
 
@@ -90,6 +92,7 @@ class JournalsFragment : Fragment() {
             val journalType = when (position) {
                 0 -> JournalType.JOURNAL_PINK.type
                 1 -> JournalType.JOURNAL_BLUE.type
+                2 -> JournalType.JOURNAL_YELLOW.type
                 else -> {
                     Toast.makeText(requireContext(), "Invalid selection", Toast.LENGTH_SHORT).show()
                     return@JournalModalAdapter
