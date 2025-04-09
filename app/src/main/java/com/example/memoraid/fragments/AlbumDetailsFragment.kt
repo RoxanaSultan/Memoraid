@@ -20,7 +20,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.memoraid.R
@@ -85,7 +84,6 @@ class AlbumDetailsFragment : Fragment(R.layout.fragment_album_details) {
 
         val recyclerView = view.findViewById<RecyclerView>(R.id.picture_recycler_view)
         recyclerView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-
         recyclerView.adapter = imageAdapter
 
         binding.saveButton.setOnClickListener {

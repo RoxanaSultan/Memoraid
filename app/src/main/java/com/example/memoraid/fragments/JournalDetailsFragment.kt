@@ -26,6 +26,7 @@ import com.example.memoraid.databinding.FragmentJournalDetailsBinding
 import com.example.memoraid.models.Journal
 import com.example.memoraid.viewmodel.JournalViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -84,7 +85,7 @@ class JournalDetailsFragment : Fragment(R.layout.fragment_journal_details) {
         }
 
         val recyclerView = view.findViewById<RecyclerView>(R.id.picture_recycler_view)
-        recyclerView.layoutManager = GridLayoutManager(context, 3)
+        recyclerView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         recyclerView.adapter = imageAdapter
 
         binding.saveButton.setOnClickListener {
@@ -103,7 +104,10 @@ class JournalDetailsFragment : Fragment(R.layout.fragment_journal_details) {
     }
 
     private fun loadJournalDetails(journalId: String) {
-        binding.progressContainer.visibility = View.VISIBLE
+        binding.progressBar.visibility = View.VISIBLE
+//        binding.blockingView.visibility = View.VISIBLE
+        binding.root.alpha = 0.5f
+        binding.root.setEnabledRecursively(false)
 
         journalViewModel.loadJournalDetails(journalId)
 
@@ -117,13 +121,19 @@ class JournalDetailsFragment : Fragment(R.layout.fragment_journal_details) {
                     loadedJournal.imageUris?.let { uris -> imageUris.addAll(uris) }
                     imageAdapter.notifyDataSetChanged()
                 }
-                binding.progressContainer.visibility = View.GONE
+                binding.progressBar.visibility = View.GONE
+//                binding.blockingView.visibility = View.GONE
+                binding.root.alpha = 1f
+                binding.root.setEnabledRecursively(true)
             }
         }
     }
 
     private fun saveJournalDetails() {
-        binding.progressContainer.visibility = View.VISIBLE
+        binding.progressBar.visibility = View.VISIBLE
+//        binding.blockingView.visibility = View.VISIBLE
+        binding.root.alpha = 0.5f
+        binding.root.setEnabledRecursively(false)
 
         if (imagesToRemove.isNotEmpty()) {
             for (imageUri in imagesToRemove) {
@@ -188,7 +198,10 @@ class JournalDetailsFragment : Fragment(R.layout.fragment_journal_details) {
                                     "Failed to upload image: ${exception.message}",
                                     Toast.LENGTH_SHORT
                                 ).show()
-                                binding.progressContainer.visibility = View.GONE
+                                binding.progressBar.visibility = View.GONE
+//                                binding.blockingView.visibility = View.GONE
+                                binding.root.alpha = 1f
+                                binding.root.setEnabledRecursively(true)
                             }
                         )
                     }
@@ -208,12 +221,18 @@ class JournalDetailsFragment : Fragment(R.layout.fragment_journal_details) {
     }
 
     private fun saveJournalToFirestore(journal: Journal) {
-        binding.progressContainer.visibility = View.VISIBLE
+        binding.progressBar.visibility = View.VISIBLE
+//        binding.blockingView.visibility = View.VISIBLE
+        binding.root.alpha = 0.5f
+        binding.root.setEnabledRecursively(false)
 
         viewLifecycleOwner.lifecycleScope.launch {
             val isSaved = journalViewModel.saveJournalDetails(journal)
 
-            binding.progressContainer.visibility = View.GONE
+            binding.progressBar.visibility = View.GONE
+//            binding.blockingView.visibility = View.GONE
+            binding.root.alpha = 1f
+            binding.root.setEnabledRecursively(true)
 
             if (isSaved) {
                 Toast.makeText(requireContext(), "Journal saved", Toast.LENGTH_SHORT).show()
@@ -289,6 +308,15 @@ class JournalDetailsFragment : Fragment(R.layout.fragment_journal_details) {
                 } else {
                     Toast.makeText(requireContext(), "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
                 }
+            }
+        }
+    }
+
+    fun View.setEnabledRecursively(enabled: Boolean) {
+        this.isEnabled = enabled
+        if (this is ViewGroup) {
+            for (i in 0 until childCount) {
+                getChildAt(i).setEnabledRecursively(enabled)
             }
         }
     }
