@@ -2,10 +2,8 @@ package com.example.memoraid.repository
 
 import android.net.Uri
 import com.example.memoraid.models.Album
-import com.example.memoraid.models.Journal
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await

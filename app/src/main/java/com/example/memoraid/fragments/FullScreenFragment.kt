@@ -1,15 +1,13 @@
-package com.example.memoraid
+package com.example.memoraid.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
-import com.example.memoraid.databinding.FragmentFullScreenImageBinding
+import com.example.memoraid.R
 
 class FullScreenImageFragment : Fragment() {
     override fun onCreateView(

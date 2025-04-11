@@ -91,7 +91,7 @@
     <!-- Memories Fragment -->
     <fragment
         android:id="@+id/navigation_memories"
-        android:name="com.example.memoraid.MemoriesFragment"
+        android:name="com.example.memoraid.fragments.MemoriesFragment"
         android:label="Memories"
         tools:layout="@layout/fragment_memories">
         <action
@@ -130,7 +130,7 @@
     <!-- Health Fragment -->
     <fragment
         android:id="@+id/navigation_health"
-        android:name="com.example.memoraid.HealthFragment"
+        android:name="com.example.memoraid.fragments.HealthFragment"
         android:label="Health"
         tools:layout="@layout/fragment_health">
     </fragment>
@@ -149,7 +149,7 @@
     <!-- Full Screen Image Fragment -->
     <fragment
         android:id="@+id/navigation_full_screen_image"
-        android:name="com.example.memoraid.FullScreenImageFragment"
+        android:name="com.example.memoraid.fragments.FullScreenImageFragment"
         android:label="FullScreenImageFragment"
         tools:layout="@layout/fragment_full_screen_image">
     </fragment>

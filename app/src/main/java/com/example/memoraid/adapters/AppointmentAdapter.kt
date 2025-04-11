@@ -126,6 +126,7 @@ class AppointmentAdapter(private val appointments: MutableList<Appointment>) :
         binding.appointmentDoctor.setTypeface(null, style)
         binding.appointmentTime.setTypeface(null, style)
         binding.appointmentLocation.setTypeface(null, style)
+        binding.appointmentCheckBox.setTypeface(null, style)
     }
 
     private fun updateFontStyleLabels(style: Int, binding: ItemAppointmentBinding) {
@@ -133,5 +134,6 @@ class AppointmentAdapter(private val appointments: MutableList<Appointment>) :
         binding.appointmentLabelDoctor.setTypeface(null, style)
         binding.appointmentLabelTime.setTypeface(null, style)
         binding.appointmentLabelLocation.setTypeface(null, style)
+        binding.appointmentLabelCheckBox.setTypeface(null, style)
     }
 }

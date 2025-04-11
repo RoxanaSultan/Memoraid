@@ -1,4 +1,4 @@
-package com.example.memoraid
+package com.example.memoraid.fragments
 
 import SharedViewModel
 import android.app.DatePickerDialog
@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.memoraid.HealthPagerAdapter
 import com.example.memoraid.databinding.FragmentHealthBinding
 import com.google.android.material.tabs.TabLayoutMediator
 import java.text.SimpleDateFormat

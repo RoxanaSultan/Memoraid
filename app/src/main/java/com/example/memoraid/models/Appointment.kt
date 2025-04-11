@@ -1,7 +1,9 @@
 package com.example.memoraid.models
 
+import com.google.firebase.firestore.DocumentId
+
 data class Appointment(
-    var id: String = "",
+    @DocumentId val id: String = "",
     val name: String = "",
     val doctor: String? = null,
     val time: String = "",
