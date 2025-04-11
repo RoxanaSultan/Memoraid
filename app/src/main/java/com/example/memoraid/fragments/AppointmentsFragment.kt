@@ -1,4 +1,4 @@
-package com.example.memoraid
+package com.example.memoraid.fragments
 
 import SharedViewModel
 import android.os.Bundle
@@ -10,6 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.memoraid.R
 import com.example.memoraid.databinding.FragmentAppointmentsBinding
 import com.example.memoraid.models.Appointment
 import com.example.memoraid.utils.VerticalSpaceItemDecoration

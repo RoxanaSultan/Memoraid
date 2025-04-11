@@ -3,13 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".PillsFragment">
+    tools:context=".fragments.MedicineFragment">
 
     <TextView
-        android:id="@+id/noPillsTextView"
+        android:id="@+id/noMedicineTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="No pills to take!"
+        android:text="No medicine to take!"
         android:textColor="@color/blue"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -20,7 +20,7 @@
         android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/pillsRecyclerView"
+        android:id="@+id/medicineRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"

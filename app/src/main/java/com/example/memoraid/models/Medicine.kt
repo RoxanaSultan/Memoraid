@@ -1,6 +1,6 @@
 package com.example.memoraid.models
 
-data class Pill(
+data class Medicine(
     var id: String = "",
     val name: String = "",
     val time: String = "",

@@ -68,12 +68,6 @@
         app:tabIndicatorColor="@color/green"
         app:tabSelectedTextColor="@color/green"
         app:tabTextColor="@color/blue">
-        <com.google.android.material.tabs.TabItem
-            android:text="Appointments"/>
-        <com.google.android.material.tabs.TabItem
-            android:text="Pills"/>
-        <com.google.android.material.tabs.TabItem
-            android:text="Habits"/>
     </com.google.android.material.tabs.TabLayout>
 
     <!-- ViewPager pentru conținutul tab-urilor -->

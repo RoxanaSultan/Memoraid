@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.memoraid.adapters.HabitAdapter
 import com.example.memoraid.databinding.FragmentHabitsBinding
 import com.example.memoraid.models.Habit
 import com.example.memoraid.utils.VerticalSpaceItemDecoration

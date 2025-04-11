@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.memoraid.HealthPagerAdapter
+import com.example.memoraid.adapters.HealthPagerAdapter
 import com.example.memoraid.databinding.FragmentHealthBinding
 import com.google.android.material.tabs.TabLayoutMediator
 import java.text.SimpleDateFormat
@@ -42,7 +42,7 @@ class HealthFragment : Fragment() {
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = when (position) {
                 0 -> "Appointments"
-                1 -> "Pills"
+                1 -> "Medicine"
                 2 -> "Habits"
                 else -> ""
             }

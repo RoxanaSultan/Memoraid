@@ -1,4 +1,4 @@
-package com.example.memoraid
+package com.example.memoraid.adapters
 
 import android.graphics.Typeface
 import android.view.LayoutInflater
@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.memoraid.models.Habit
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.memoraid.databinding.ItemHabitBinding
+import com.example.memoraid.R
 
 class HabitAdapter(private val habits: MutableList<Habit>) :
     RecyclerView.Adapter<HabitAdapter.HabitViewHolder>() {

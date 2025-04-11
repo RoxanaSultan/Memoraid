@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <TextView
-                android:id="@+id/pillLabelName"
+                android:id="@+id/medicineLabelName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Name:"
@@ -28,7 +28,7 @@
                 android:textStyle="bold"
                 android:layout_marginEnd="8dp" />
             <TextView
-                android:id="@+id/pillName"
+                android:id="@+id/medicineName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Name"
@@ -41,7 +41,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <TextView
-                android:id="@+id/pillLabelDose"
+                android:id="@+id/medicineLabelDose"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Dose:"
@@ -49,7 +49,7 @@
                 android:textStyle="bold"
                 android:layout_marginEnd="8dp" />
             <TextView
-                android:id="@+id/pillDose"
+                android:id="@+id/medicineDose"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Dose"
@@ -62,7 +62,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <TextView
-                android:id="@+id/pillLabelNote"
+                android:id="@+id/medicineLabelNote"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Note:"
@@ -70,7 +70,7 @@
                 android:textStyle="bold"
                 android:layout_marginEnd="8dp" />
             <TextView
-                android:id="@+id/pillNote"
+                android:id="@+id/medicineNote"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Note"
@@ -83,7 +83,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <TextView
-                android:id="@+id/pillLabelTime"
+                android:id="@+id/medicineLabelTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Time:"
@@ -91,7 +91,7 @@
                 android:textStyle="bold"
                 android:layout_marginEnd="8dp" />
             <TextView
-                android:id="@+id/pillTime"
+                android:id="@+id/medicineTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Time"
@@ -102,7 +102,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <TextView
-                android:id="@+id/pillLabelTaken"
+                android:id="@+id/medicineLabelCheckBox"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Taken:"
@@ -110,7 +110,7 @@
                 android:textStyle="bold"
                 android:layout_marginEnd="8dp" />
             <CheckBox
-                android:id="@+id/pillCheckBox"
+                android:id="@+id/medicineCheckBox"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </LinearLayout>
