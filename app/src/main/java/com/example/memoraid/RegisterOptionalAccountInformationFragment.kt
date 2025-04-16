@@ -1,6 +1,5 @@
 package com.example.memoraid
 
-import RegisterViewModel
 import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -24,12 +23,12 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import android.telephony.PhoneNumberUtils
+import com.example.memoraid.viewmodel.RegisterSharedViewModel
 
 class RegisterOptionalAccountInformationFragment : Fragment() {
 
     private lateinit var binding: FragmentRegisterOptionalAccountInformationBinding
-    private val sharedViewModel: RegisterViewModel by activityViewModels()
+    private val sharedViewModel: RegisterSharedViewModel by activityViewModels()
     private var selectedImageUri: Uri? = null
     private var photoUri: Uri? = null
     private val storage = FirebaseStorage.getInstance()
@@ -156,12 +155,14 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         if (selectedImageUri != null) {
 //            uploadImageToFirebase { imageUrl ->
                 sharedViewModel.setProfilePicture(selectedImageUri.toString())
-                proceedToNextStep(firstName, lastName, phoneNumber, birthdate)
-//            }
-        } else {
-            sharedViewModel.setProfilePicture("https://firebasestorage.googleapis.com/v0/b/memoraid-application.firebasestorage.app/o/profile_pictures%2Fdefault_profile_picture.png?alt=media&token=fa0aea7d-b11e-49f9-95f7-4b9f820e3942")
-            proceedToNextStep(firstName, lastName, phoneNumber, birthdate)
         }
+        proceedToNextStep(firstName, lastName, phoneNumber, birthdate)
+//            }
+
+//        else {
+//            sharedViewModel.setProfilePicture("https://firebasestorage.googleapis.com/v0/b/memoraid-application.firebasestorage.app/o/profile_pictures%2Fdefault_profile_picture.png?alt=media&token=fa0aea7d-b11e-49f9-95f7-4b9f820e3942")
+//            proceedToNextStep(firstName, lastName, phoneNumber, birthdate)
+//        }
     }
 
     private fun proceedToNextStep(

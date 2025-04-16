@@ -1,8 +1,6 @@
 package com.example.memoraid
 
-import RegisterViewModel
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +11,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.memoraid.databinding.FragmentRegisterAccountInformationBinding
+import com.example.memoraid.viewmodel.RegisterSharedViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
@@ -21,9 +20,9 @@ import kotlinx.coroutines.tasks.await
 class RegisterAccountInformationFragment : Fragment() {
 
     private lateinit var binding: FragmentRegisterAccountInformationBinding
-    private val sharedViewModel: RegisterViewModel by activityViewModels()
+    private val sharedViewModel: RegisterSharedViewModel by activityViewModels()
     private lateinit var auth: FirebaseAuth
-    private lateinit var firestore: FirebaseFirestore // Firestore variable
+    private lateinit var firestore: FirebaseFirestore
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

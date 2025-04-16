@@ -78,7 +78,7 @@
 
     <fragment
         android:id="@+id/fragment_change_password"
-        android:name="com.example.memoraid.ChangePasswordFragment"
+        android:name="com.example.memoraid.fragments.ChangePasswordFragment"
         android:label="ChangePasswordFragment"
         tools:layout="@layout/fragment_change_password">
         <action

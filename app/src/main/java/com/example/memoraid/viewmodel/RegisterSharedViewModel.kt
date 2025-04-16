@@ -1,8 +1,10 @@
+package com.example.memoraid.viewmodel
+
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class RegisterViewModel : ViewModel() {
+class RegisterSharedViewModel : ViewModel() {
     private val _username = MutableLiveData<String>()
     val username: LiveData<String> get() = _username
 
@@ -30,8 +32,8 @@ class RegisterViewModel : ViewModel() {
     private val _birthdate = MutableLiveData<String>()
     val birthdate: LiveData<String> get() = _birthdate
 
-    private val _profilePictureUrl = MutableLiveData<String>()
-    val profilePictureUrl: LiveData<String> get() = _profilePictureUrl
+    private val _profilePictureUrl = MutableLiveData<String?>()
+    val profilePictureUrl: LiveData<String?> get() = _profilePictureUrl
 
     fun setPassword(password: String) {
         _password.value = password
@@ -69,7 +71,7 @@ class RegisterViewModel : ViewModel() {
         _birthdate.value = value
     }
 
-    fun setProfilePicture(value: String) {
+    fun setProfilePicture(value: String?) {
         _profilePictureUrl.value = value
     }
 

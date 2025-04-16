@@ -30,4 +30,19 @@ class UserRepository @Inject constructor(private val database: FirebaseFirestore
     fun getCurrentUserId(): String? {
         return FirebaseAuth.getInstance().currentUser?.uid
     }
+
+    suspend fun updatePassword(newPassword: String): Result<Unit> {
+        val user = FirebaseAuth.getInstance().currentUser
+        return if (user != null) {
+            try {
+                user.updatePassword(newPassword).await()
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        } else {
+            Result.failure(Exception("No user is logged in"))
+        }
+    }
+
 }

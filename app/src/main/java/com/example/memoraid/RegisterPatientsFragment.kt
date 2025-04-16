@@ -1,6 +1,5 @@
 package com.example.memoraid
 
-import RegisterViewModel
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -13,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.memoraid.databinding.FragmentRegisterPatientsBinding
+import com.example.memoraid.viewmodel.RegisterSharedViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -21,7 +21,7 @@ import com.google.firebase.storage.FirebaseStorage
 class RegisterPatientsFragment : Fragment() {
 
     private lateinit var binding: FragmentRegisterPatientsBinding
-    private val sharedViewModel: RegisterViewModel by activityViewModels()
+    private val sharedViewModel: RegisterSharedViewModel by activityViewModels()
     private lateinit var auth: FirebaseAuth
     private lateinit var firestore: FirebaseFirestore
     private val storage = FirebaseStorage.getInstance()
