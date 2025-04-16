@@ -27,7 +27,7 @@
         android:theme="@style/Theme.Memoraid"
         tools:targetApi="31">
         <activity
-            android:name=".AuthenticationActivity"
+            android:name=".activities.AuthenticationActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>

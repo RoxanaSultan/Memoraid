@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/fragment_login"
-        android:name="com.example.memoraid.LoginFragment"
+        android:name="com.example.memoraid.fragments.LoginFragment"
         android:label="Login"
         tools:layout="@layout/fragment_login">
         <action
@@ -16,6 +16,20 @@
         <action
             android:id="@+id/login_button"
             app:destination="@id/fragment_account" />
+        <action
+            android:id="@+id/action_loginFragment_to_resetPasswordFragment"
+            app:destination="@id/fragment_reset_password" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/fragment_reset_password"
+        android:name="com.example.memoraid.ResetPasswordFragment"
+        android:label="ResetPasswordFragment"
+        tools:layout="@layout/fragment_reset_password">
+        <action
+            android:id="@+id/action_resetPasswordFragment_to_loginFragment"
+            app:destination="@id/fragment_login" />
 
     </fragment>
 

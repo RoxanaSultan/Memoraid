@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.example.memoraid.AuthenticationActivity
+import com.example.memoraid.activities.AuthenticationActivity
 import com.example.memoraid.R
 import com.example.memoraid.databinding.FragmentAccountBinding
 import com.example.memoraid.viewmodel.AccountViewModel
