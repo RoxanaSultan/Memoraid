@@ -1,8 +1,10 @@
 package com.example.memoraid.models
 
+import com.google.firebase.firestore.DocumentId
+
 data class Habit (
-    var id: String = "",
+    @DocumentId val id: String = "",
     val name: String = "",
     val userId: String = "",
-    var isChecked: Boolean = false
+    val checkedDates: ArrayList<String> = arrayListOf(),
 )

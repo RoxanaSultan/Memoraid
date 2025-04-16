@@ -1,15 +1,17 @@
 package com.example.memoraid.adapters
 
+import SharedViewModel
 import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memoraid.models.Habit
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.memoraid.databinding.ItemHabitBinding
 import com.example.memoraid.R
 
-class HabitAdapter(private val habits: MutableList<Habit>) :
+class HabitAdapter(private val habits: MutableList<Habit>, private val date: String) :
     RecyclerView.Adapter<HabitAdapter.HabitViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HabitViewHolder {
@@ -28,27 +30,42 @@ class HabitAdapter(private val habits: MutableList<Habit>) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(habit: Habit) {
-            binding.habitName.text = habit.name
-            binding.habitCheckBox.isChecked = habit.isChecked
+            val isDateChecked = habit.checkedDates.contains(date)
 
-            updateLayout(habit.isChecked, binding)
+            binding.habitName.text = habit.name
+            binding.habitCheckBox.isChecked = isDateChecked
+            updateLayout(isDateChecked, binding)
+
+            binding.habitCheckBox.setOnCheckedChangeListener(null)
 
             binding.habitCheckBox.setOnCheckedChangeListener { _, isChecked ->
-                updateHabitStatus(habit, isChecked)
-                habit.isChecked = isChecked
+                toggleCheckedDate(habit, isChecked, date)
                 updateLayout(isChecked, binding)
             }
         }
 
-        private fun updateHabitStatus(habit: Habit, isCompleted: Boolean) {
+        private fun toggleCheckedDate(habit: Habit, isChecked: Boolean, today: String) {
             val db = FirebaseFirestore.getInstance()
             val habitRef = db.collection("habits").document(habit.id)
 
-            habitRef.update("isCompleted", isCompleted)
-                .addOnSuccessListener {
-                    habit.isChecked = isCompleted
+            val updatedDates = ArrayList(habit.checkedDates)
+
+            if (isChecked) {
+                if (!updatedDates.contains(today)) {
+                    updatedDates.add(today)
                 }
-                .addOnFailureListener {}
+            } else {
+                updatedDates.remove(today)
+            }
+
+            habitRef.update("checkedDates", updatedDates)
+                .addOnSuccessListener {
+                    habit.checkedDates.clear()
+                    habit.checkedDates.addAll(updatedDates)
+                }
+                .addOnFailureListener {
+                    // poți adăuga un toast sau log
+                }
         }
     }
 
