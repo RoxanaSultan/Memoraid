@@ -2,7 +2,7 @@ package com.example.memoraid.adapters
 
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.example.memoraid.HabitsFragment
+import com.example.memoraid.fragments.HabitsFragment
 import com.example.memoraid.fragments.AppointmentsFragment
 import com.example.memoraid.fragments.MedicineFragment
 

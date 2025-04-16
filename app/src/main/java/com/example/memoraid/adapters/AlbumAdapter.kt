@@ -4,7 +4,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.memoraid.AlbumType
+import com.example.memoraid.enums.AlbumType
 import com.example.memoraid.R
 import com.example.memoraid.databinding.ItemAlbumBinding
 import com.example.memoraid.models.Album

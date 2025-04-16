@@ -4,13 +4,12 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.memoraid.JournalType
+import com.example.memoraid.enums.JournalType
 import com.example.memoraid.R
 import com.example.memoraid.databinding.ItemJournalBinding
 import com.example.memoraid.models.Journal
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
-import javax.inject.Inject
 
 class JournalAdapter(
     private val context: Context,

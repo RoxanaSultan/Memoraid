@@ -1,4 +1,4 @@
-package com.example.memoraid
+package com.example.memoraid.fragments
 
 import SharedViewModel
 import android.os.Bundle
@@ -10,6 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.memoraid.R
 import com.example.memoraid.adapters.HabitAdapter
 import com.example.memoraid.databinding.FragmentHabitsBinding
 import com.example.memoraid.models.Habit

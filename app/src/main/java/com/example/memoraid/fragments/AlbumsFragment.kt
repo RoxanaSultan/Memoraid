@@ -10,7 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
-import com.example.memoraid.AlbumType
+import com.example.memoraid.enums.AlbumType
 import com.example.memoraid.R
 import com.example.memoraid.adapters.AlbumAdapter
 import com.example.memoraid.adapters.AlbumModalAdapter

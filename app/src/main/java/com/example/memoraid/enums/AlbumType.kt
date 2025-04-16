@@ -1,4 +1,4 @@
-package com.example.memoraid
+package com.example.memoraid.enums
 
 enum class AlbumType(val type: String) {
     ALBUM_PINK("pink"),

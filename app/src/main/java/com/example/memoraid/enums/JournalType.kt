@@ -1,4 +1,4 @@
-package com.example.memoraid
+package com.example.memoraid.enums
 
 enum class JournalType(val type: String) {
     JOURNAL_PINK("pink"),
