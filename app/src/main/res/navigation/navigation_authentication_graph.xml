@@ -39,7 +39,7 @@
         android:label="RegisterAccountInformationFragment"
         tools:layout="@layout/fragment_register_account_information">
         <action
-            android:id="@+id/first_register_continue_button"
+            android:id="@+id/action_registerAccountInfoFragment_to_registerOptionalAccountInfoFragment"
             app:destination="@id/fragment_register_optional_account_info" />
     </fragment>
 
@@ -49,7 +49,7 @@
         android:label="RegisterOptionalAccountInformationFragment"
         tools:layout="@layout/fragment_register_account_information">
         <action
-            android:id="@+id/second_register_continue_button"
+            android:id="@+id/action_registerOptionalAccountInfoFragment_to_registerPatientsFragment"
             app:destination="@id/fragment_register_patients" />
     </fragment>
 
@@ -59,7 +59,7 @@
         android:label="RegisterPatientsFragment"
         tools:layout="@layout/fragment_register_account_information">
     <action
-        android:id="@+id/register_finish_button"
+        android:id="@+id/action_registerPatientsFragment_to_loginFragment"
         app:destination="@id/fragment_login" />
     </fragment>
 

@@ -8,35 +8,34 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.memoraid.databinding.FragmentRegisterAccountInformationBinding
 import com.example.memoraid.viewmodel.RegisterSharedViewModel
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.memoraid.viewmodel.RegisterViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
+@AndroidEntryPoint
 class RegisterAccountInformationFragment : Fragment() {
 
-    private lateinit var binding: FragmentRegisterAccountInformationBinding
+    private var _binding: FragmentRegisterAccountInformationBinding? = null
+    private val binding get() = _binding!!
+
     private val sharedViewModel: RegisterSharedViewModel by activityViewModels()
-    private lateinit var auth: FirebaseAuth
-    private lateinit var firestore: FirebaseFirestore
+    private val registerViewModel: RegisterViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentRegisterAccountInformationBinding.inflate(inflater, container, false)
+        _binding = FragmentRegisterAccountInformationBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        auth = FirebaseAuth.getInstance()
-        firestore = FirebaseFirestore.getInstance()
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -53,11 +52,12 @@ class RegisterAccountInformationFragment : Fragment() {
 
             lifecycleScope.launch {
                 if (validateInput(email, username, password, confirmPassword)) {
-                    findNavController().navigate(R.id.fragment_register_optional_account_info)
+                    findNavController().navigate(R.id.action_registerAccountInfoFragment_to_registerOptionalAccountInfoFragment)
                 }
             }
         }
     }
+
     private suspend fun validateInput(
         email: String,
         username: String,
@@ -79,8 +79,9 @@ class RegisterAccountInformationFragment : Fragment() {
             return false
         }
 
-        if (password.length < 8) {
-            Toast.makeText(requireContext(), "Password must be at least 8 characters.", Toast.LENGTH_SHORT).show()
+        val passwordError = isPasswordValid(password)
+        if (passwordError != null) {
+            Toast.makeText(requireContext(), passwordError, Toast.LENGTH_SHORT).show()
             return false
         }
 
@@ -89,12 +90,12 @@ class RegisterAccountInformationFragment : Fragment() {
             return false
         }
 
-        if (!isUsernameUnique(username)) {
+        if (!registerViewModel.isUsernameUnique(username)) {
             Toast.makeText(requireContext(), "Username is already taken.", Toast.LENGTH_SHORT).show()
             return false
         }
 
-        if (!isEmailUnique(email)) {
+        if (!registerViewModel.isEmailUnique(email)) {
             Toast.makeText(requireContext(), "Email is already registered.", Toast.LENGTH_SHORT).show()
             return false
         }
@@ -106,19 +107,15 @@ class RegisterAccountInformationFragment : Fragment() {
         return true
     }
 
-    private suspend fun isUsernameUnique(username: String): Boolean {
-        val querySnapshot = firestore.collection("users")
-            .whereEqualTo("username", username)
-            .get()
-            .await()
-        return querySnapshot.isEmpty
-    }
-
-    private suspend fun isEmailUnique(email: String): Boolean {
-        val querySnapshot = firestore.collection("users")
-            .whereEqualTo("email", email)
-            .get()
-            .await()
-        return querySnapshot.isEmpty
+    private fun isPasswordValid(password: String): String? {
+        return when {
+            password.length < 8 -> "Password must be at least 8 characters"
+            !password.any { it.isUpperCase() } -> "Password must contain at least one uppercase letter"
+            !password.any { it.isLowerCase() } -> "Password must contain at least one lowercase letter"
+            !password.any { it.isDigit() } -> "Password must contain at least one digit"
+            !password.any { "!@#\$%^&*()-_=+[{]}|;:'\",<.>/?`~".contains(it) } ->
+                "Password must contain at least one special character"
+            else -> null
+        }
     }
 }

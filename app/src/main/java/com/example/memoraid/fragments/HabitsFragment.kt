@@ -19,7 +19,7 @@ import com.example.memoraid.viewmodel.HabitViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class HabitsFragment : Fragment(R.layout.fragment_habits) {
+class HabitsFragment : Fragment() {
 
     private var _binding: FragmentHabitsBinding? = null
     private val binding get() = _binding!!

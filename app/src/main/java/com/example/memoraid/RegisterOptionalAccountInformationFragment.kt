@@ -15,23 +15,27 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.memoraid.databinding.FragmentRegisterOptionalAccountInformationBinding
-import com.google.firebase.storage.FirebaseStorage
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import com.example.memoraid.viewmodel.RegisterSharedViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class RegisterOptionalAccountInformationFragment : Fragment() {
 
-    private lateinit var binding: FragmentRegisterOptionalAccountInformationBinding
+    private var _binding: FragmentRegisterOptionalAccountInformationBinding? = null
+    private val binding get() = _binding!!
+
     private val sharedViewModel: RegisterSharedViewModel by activityViewModels()
+
     private var selectedImageUri: Uri? = null
     private var photoUri: Uri? = null
-    private val storage = FirebaseStorage.getInstance()
 
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -55,7 +59,7 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentRegisterOptionalAccountInformationBinding.inflate(inflater, container, false)
+        _binding = FragmentRegisterOptionalAccountInformationBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -101,8 +105,8 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                sharedViewModel.clearData() // Clear all data stored in the ViewModel
-                findNavController().navigateUp() // Navigates to the previous fragment
+                sharedViewModel.clearData()
+                findNavController().navigateUp()
             }
         })
     }
@@ -153,16 +157,9 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         val birthdate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(calendar.time)
 
         if (selectedImageUri != null) {
-//            uploadImageToFirebase { imageUrl ->
                 sharedViewModel.setProfilePicture(selectedImageUri.toString())
         }
         proceedToNextStep(firstName, lastName, phoneNumber, birthdate)
-//            }
-
-//        else {
-//            sharedViewModel.setProfilePicture("https://firebasestorage.googleapis.com/v0/b/memoraid-application.firebasestorage.app/o/profile_pictures%2Fdefault_profile_picture.png?alt=media&token=fa0aea7d-b11e-49f9-95f7-4b9f820e3942")
-//            proceedToNextStep(firstName, lastName, phoneNumber, birthdate)
-//        }
     }
 
     private fun proceedToNextStep(
@@ -176,7 +173,7 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         sharedViewModel.setPhoneNumber(if (phoneNumber.isEmpty()) "No phone number" else phoneNumber)
         sharedViewModel.setBirthdate(if (birthdate.isEmpty()) "No birthdate" else birthdate)
 
-        findNavController().navigate(R.id.fragment_register_patients)
+        findNavController().navigate(R.id.action_registerOptionalAccountInfoFragment_to_registerPatientsFragment)
     }
 
     override fun onRequestPermissionsResult(

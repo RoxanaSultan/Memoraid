@@ -1,0 +1,52 @@
+package com.example.memoraid.adapters
+
+import android.content.Context
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.CheckBox
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+import com.example.memoraid.R
+import com.example.memoraid.databinding.ItemPatientBinding
+import com.example.memoraid.models.Patient
+import com.squareup.picasso.Picasso
+
+class PatientAdapter(
+    private val context: Context,
+    private val patientsList: List<Patient>,
+    private val onCheckboxChanged: (Patient, Boolean) -> Unit
+) : RecyclerView.Adapter<PatientAdapter.PatientViewHolder>() {
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PatientViewHolder {
+        val binding = ItemPatientBinding.inflate(LayoutInflater.from(context), parent, false)
+        return PatientViewHolder(binding)
+    }
+
+    override fun onBindViewHolder(holder: PatientViewHolder, position: Int) {
+        val patient = patientsList[position]
+        holder.bind(patient)
+    }
+
+    override fun getItemCount(): Int {
+        return patientsList.size
+    }
+
+    inner class PatientViewHolder(private val binding: ItemPatientBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(patient: Patient) {
+            Picasso.get()
+                .load(patient.profilePicture)
+                .into(binding.patientProfilePicture)
+
+            binding.patientUsername.text = patient.username
+            binding.patientEmail.text = patient.e
+            binding.checkboxPatientSelect.setOnCheckedChangeListener { _, isChecked ->
+                onCheckboxChanged(patient, isChecked)
+            }
+        }
+
+    }
+}
