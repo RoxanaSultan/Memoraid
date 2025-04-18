@@ -37,12 +37,17 @@ class PatientAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(patient: Patient) {
-            Picasso.get()
-                .load(patient.profilePicture)
-                .into(binding.patientProfilePicture)
-
+            if (!patient.profilePicture.isNullOrEmpty()) {
+                Picasso.get()
+                    .load(patient.profilePicture)
+                    .into(binding.patientProfilePicture)
+            }
+            else
+            {
+                binding.patientProfilePicture.setImageResource(R.drawable.default_profile_picture)
+            }
             binding.patientUsername.text = patient.username
-            binding.patientEmail.text = patient.e
+            binding.patientEmail.text = patient.email
             binding.checkboxPatientSelect.setOnCheckedChangeListener { _, isChecked ->
                 onCheckboxChanged(patient, isChecked)
             }

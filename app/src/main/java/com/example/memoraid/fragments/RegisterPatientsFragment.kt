@@ -1,4 +1,4 @@
-package com.example.memoraid
+package com.example.memoraid.fragments
 
 import android.content.Intent
 import android.net.Uri
@@ -10,17 +10,17 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.memoraid.R
 import com.example.memoraid.adapters.PatientAdapter
-import com.example.memoraid.databinding.FragmentRegisterAccountInformationBinding
 import com.example.memoraid.databinding.FragmentRegisterPatientsBinding
 import com.example.memoraid.models.Patient
 import com.example.memoraid.viewmodel.RegisterSharedViewModel
 import com.example.memoraid.viewmodel.RegisterViewModel
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class RegisterPatientsFragment : Fragment() {
@@ -46,7 +46,15 @@ class RegisterPatientsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupRecyclerView()
+        registerViewModel.getPatients()
+
+        lifecycleScope.launchWhenStarted {
+            registerViewModel.patients.collect { list ->
+                if (list.isNotEmpty()) {
+                    setupRecyclerView(list)
+                }
+            }
+        }
 
         binding.checkboxCaretaker.setOnCheckedChangeListener { _, isChecked ->
             binding.recyclerViewPatientsList.visibility = if (isChecked) View.VISIBLE else View.GONE
@@ -72,14 +80,13 @@ class RegisterPatientsFragment : Fragment() {
         }
 
         binding.linkTermsConditions.setOnClickListener {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.terms_conditions_url)))
+            val intent =
+                Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.terms_conditions_url)))
             startActivity(intent)
         }
     }
 
-    private fun setupRecyclerView() {
-        val patientsList = getPatients()
-
+    private fun setupRecyclerView(patientsList: List<Patient>) {
         patientAdapter = PatientAdapter(requireContext(), patientsList) { patient, isChecked ->
             if (isChecked) {
                 selectedPatients.add(patient.id)
@@ -92,61 +99,29 @@ class RegisterPatientsFragment : Fragment() {
         binding.recyclerViewPatientsList.adapter = patientAdapter
     }
 
-
-    private fun getPatients(): List<Patient> {
-        val patientsList = mutableListOf<Patient>()
-
-        val db = FirebaseFirestore.getInstance()
-        val usersCollection = db.collection("users")
-
-        // Query to get users with the role "patient"
-        usersCollection.whereEqualTo("role", "patient")
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                // Iterate through the query results
-                for (document in querySnapshot) {
-                    val patientId = document.id
-                    val username = document.getString("username")!!
-                    val name = document.getString("firstName") + " " + document.getString("lastName")
-                    val profilePictureUrl = document.getString("profilePictureUrl")
-                    patientsList.add(Patient(patientId, username, name, profilePictureUrl))
-                }
-
-                patientAdapter.notifyDataSetChanged()
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Error fetching patients: $e", Toast.LENGTH_SHORT).show()
-            }
-
-        return patientsList
-    }
-
     private fun registerUser(email: String, password: String) {
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
+        registerViewModel.registerUser(email, password) { isSuccess, errorMessage ->
+            if (isSuccess) {
+                lifecycleScope.launch {
                     saveUserDetails()
-                } else {
-                    Toast.makeText(requireContext(), "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                 }
+            } else {
+                Toast.makeText(requireContext(), "Error: $errorMessage", Toast.LENGTH_LONG).show()
             }
+        }
     }
 
-    private fun saveUserDetails() {
-        val user = FirebaseAuth.getInstance().currentUser
-        val db = FirebaseFirestore.getInstance()
-        val userRef = db.collection("users").document(user?.uid ?: "")
-
+    private suspend fun saveUserDetails() {
         val username = sharedViewModel.username.value
         val email = sharedViewModel.email.value
         val firstName = sharedViewModel.firstName.value
         val lastName = sharedViewModel.lastName.value
         val caretakerStatus = binding.checkboxCaretaker.isChecked
-        val patientsList = selectedPatients // Use the selected patients list
         val role = if (caretakerStatus) "caretaker" else "patient"
         val phoneNumber = sharedViewModel.phoneNumber.value
         val birthdate = sharedViewModel.birthdate.value
         val profilePictureUrl = sharedViewModel.profilePictureUrl.value
+        val selectedPatientsList = selectedPatients
         sharedViewModel.setRole(role)
 
         val userInfo = hashMapOf(
@@ -154,19 +129,40 @@ class RegisterPatientsFragment : Fragment() {
             "email" to email,
             "firstName" to firstName,
             "lastName" to lastName,
-            "patients" to patientsList,
-            "role" to role,
             "phoneNumber" to phoneNumber,
             "birthdate" to birthdate,
-            "profilePictureUrl" to profilePictureUrl
+            "profilePictureUrl" to profilePictureUrl,
+            "role" to role,
+            "caretakers" to emptyList<String>(),
+            "patients" to emptyList<String>(),
         )
 
-        userRef.set(userInfo)
-            .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Registration complete", Toast.LENGTH_SHORT).show()
+        if (role == "patient") {
+            userInfo["caretakers"] = emptyList<String>()
+            userInfo["patients"] = null
+        } else {
+            userInfo["patients"] = selectedPatientsList
+            userInfo["caretakers"] = null
+
+            selectedPatientsList.forEach { patientId ->
+                val patient = registerViewModel.getUserById(patientId)
+                if (patient != null) {
+                    val updatedCaretakers = patient.caretakers?.toMutableList()
+                    updatedCaretakers?.add(registerViewModel.getCurrentUser()?.uid!!)
+                    registerViewModel.updatePatientCaretakers(patientId, updatedCaretakers)
+                }
             }
-            .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Error updating user info: $e", Toast.LENGTH_SHORT).show()
+        }
+
+        lifecycleScope.launch {
+            val uid = registerViewModel.getCurrentUser()?.uid ?: return@launch
+            registerViewModel.saveUserDetails(uid, userInfo) { result ->
+                if (result) {
+                    Toast.makeText(requireContext(), "User details saved successfully", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), "Error saving user details", Toast.LENGTH_SHORT).show()
+                }
             }
+        }
     }
 }

@@ -1,6 +1,7 @@
-package com.example.memoraid
+package com.example.memoraid.fragments
 
 import android.os.Bundle
+import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +12,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.example.memoraid.R
 import com.example.memoraid.databinding.FragmentRegisterAccountInformationBinding
 import com.example.memoraid.viewmodel.RegisterSharedViewModel
 import com.example.memoraid.viewmodel.RegisterViewModel
@@ -46,7 +48,7 @@ class RegisterAccountInformationFragment : Fragment() {
 
         binding.firstRegisterContinueButton.setOnClickListener {
             val username = binding.registerUsername.text.toString().trim()
-            val email = binding.registerEmailPhoneNumber.text.toString().trim()
+            val email = binding.registerEmail.text.toString().trim()
             val password = binding.registerPassword.text.toString().trim()
             val confirmPassword = binding.registerConfirmPassword.text.toString().trim()
 
@@ -69,7 +71,7 @@ class RegisterAccountInformationFragment : Fragment() {
             return false
         }
 
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             Toast.makeText(requireContext(), "Invalid email", Toast.LENGTH_SHORT).show()
             return false
         }

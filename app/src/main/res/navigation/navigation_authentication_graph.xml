@@ -35,7 +35,7 @@
 
     <fragment
         android:id="@+id/fragment_register_account_info"
-        android:name="com.example.memoraid.RegisterAccountInformationFragment"
+        android:name="com.example.memoraid.fragments.RegisterAccountInformationFragment"
         android:label="RegisterAccountInformationFragment"
         tools:layout="@layout/fragment_register_account_information">
         <action
@@ -45,7 +45,7 @@
 
     <fragment
         android:id="@+id/fragment_register_optional_account_info"
-        android:name="com.example.memoraid.RegisterOptionalAccountInformationFragment"
+        android:name="com.example.memoraid.fragments.RegisterOptionalAccountInformationFragment"
         android:label="RegisterOptionalAccountInformationFragment"
         tools:layout="@layout/fragment_register_account_information">
         <action
@@ -55,7 +55,7 @@
 
     <fragment
         android:id="@+id/fragment_register_patients"
-        android:name="com.example.memoraid.RegisterPatientsFragment"
+        android:name="com.example.memoraid.fragments.RegisterPatientsFragment"
         android:label="RegisterPatientsFragment"
         tools:layout="@layout/fragment_register_account_information">
     <action

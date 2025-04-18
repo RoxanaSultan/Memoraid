@@ -13,5 +13,7 @@ open class User(
     val lastName: String? = "",
     val role: String = "",
     val profilePictureUrl: String? = null,
-    val birthdate: String? = null
+    val birthdate: String? = null,
+    val patients: List<String>? = null,
+    val caretakers: List<String>? = null,
 )

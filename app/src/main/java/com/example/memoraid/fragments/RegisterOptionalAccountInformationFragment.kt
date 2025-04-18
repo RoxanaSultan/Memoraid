@@ -1,5 +1,6 @@
-package com.example.memoraid
+package com.example.memoraid.fragments
 
+import android.Manifest
 import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -15,16 +16,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.example.memoraid.R
 import com.example.memoraid.databinding.FragmentRegisterOptionalAccountInformationBinding
+import com.example.memoraid.viewmodel.RegisterSharedViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import com.example.memoraid.viewmodel.RegisterSharedViewModel
-import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class RegisterOptionalAccountInformationFragment : Fragment() {
@@ -77,7 +78,7 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         monthPicker.maxValue = 12
 
         yearPicker.minValue = 1900
-        yearPicker.maxValue = 2025
+        yearPicker.maxValue = Calendar.getInstance().get(Calendar.YEAR)
 
         var selectedYear = yearPicker.value
         var selectedMonth = monthPicker.value
@@ -124,7 +125,7 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
     }
 
     private fun checkAndRequestPermissions() {
-        val cameraPermission = android.Manifest.permission.CAMERA
+        val cameraPermission = Manifest.permission.CAMERA
         if (requireContext().checkSelfPermission(cameraPermission) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(cameraPermission), 1001)
         } else {
