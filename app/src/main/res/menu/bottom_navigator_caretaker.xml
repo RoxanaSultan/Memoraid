@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_caretaker_account"
+        android:icon="@drawable/account"
+        android:title="Account" />
+
+    <item
+        android:id="@+id/navigation_patient_account"
+        android:icon="@drawable/patient"
+        android:title="Patient Account" />
+
+    <item
+        android:id="@+id/navigation_memories"
+        android:icon="@drawable/memories"
+        android:title="Memories Obsevation" />
+
+    <item
+        android:id="@+id/navigation_health"
+        android:icon="@drawable/health"
+        android:title="Health Observation" />
+
+    <item
+        android:id="@+id/navigation_games"
+        android:icon="@drawable/games"
+        android:title="Games Statistics" />
+</menu>

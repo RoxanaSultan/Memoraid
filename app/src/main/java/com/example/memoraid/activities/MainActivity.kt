@@ -2,29 +2,45 @@ package com.example.memoraid.activities
 
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.memoraid.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
+import com.example.memoraid.viewmodel.UserViewModel
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var bottomNavigationView: BottomNavigationView
+    private val userViewModel: UserViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        bottomNavigationView = findViewById(R.id.bottom_navigation)
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         val navController = navHostFragment.navController
 
-        val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottom_navigation)
-        bottomNavigationView.setupWithNavController(navController)
+        userViewModel.userRole.observe(this) { role ->
+            when (role) {
+                "patient" -> bottomNavigationView.inflateMenu(R.menu.bottom_navigator_patient)
+                "caretaker" -> bottomNavigationView.inflateMenu(R.menu.bottom_navigator_caretaker)
+                else -> Log.e("MainActivity", "Unknown role")
+            }
+            bottomNavigationView.setupWithNavController(navController)
 
-        if (savedInstanceState == null) {
-            bottomNavigationView.selectedItemId = R.id.navigation_account
+            if (savedInstanceState == null) {
+                bottomNavigationView.selectedItemId = R.id.navigation_account
+            }
         }
+
+        userViewModel.fetchUserRole()
     }
 
     override fun onStart() {

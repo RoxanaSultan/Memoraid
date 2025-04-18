@@ -6,7 +6,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class UserRepository @Inject constructor(private val database: FirebaseFirestore) {
+class UserRepository @Inject constructor(
+    private val database: FirebaseFirestore,
+    private val authentication: FirebaseAuth
+) {
     private val firebaseCollection = database.collection("users")
 
     suspend fun getUser(userId: String): User? {
@@ -45,4 +48,19 @@ class UserRepository @Inject constructor(private val database: FirebaseFirestore
         }
     }
 
+    suspend fun getUserRole(): String? {
+        val currentUser = authentication.currentUser ?: return null
+
+        return try {
+            val snapshot = firebaseCollection
+                .document(currentUser.uid)
+                .get()
+                .await()
+
+            val user = snapshot.toObject(User::class.java)
+            user?.role
+        } catch (e: Exception) {
+            null
+        }
+    }
 }
