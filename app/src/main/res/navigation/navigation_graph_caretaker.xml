@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation_graph_caretaker"
+    app:startDestination="@id/navigation_account_caretaker">
+
+    <!-- Account Fragment -->
+    <fragment
+        android:id="@+id/navigation_account_caretaker"
+        android:name="com.example.memoraid.fragments.AccountCaretakerFragment"
+        android:label="Account"
+        tools:layout="@layout/fragment_account_caretaker">
+        <action
+            android:id="@+id/action_accountFragment_to_changePasswordFragment"
+            app:destination="@id/fragment_change_password" />
+    </fragment>
+
+    <!-- Journal Fragment -->
+    <fragment
+        android:id="@+id/navigation_journal"
+        android:name="com.example.memoraid.fragments.JournalsFragment"
+        android:label="Journal"
+        tools:layout="@layout/fragment_journal">
+        <action
+            android:id="@+id/action_journalFragment_to_journalDetailsFragment"
+            app:destination="@id/fragment_journal_details" />
+        <action
+            android:id="@+id/action_journalModal_to_journalFragment"
+            app:destination="@id/navigation_journal" />
+    </fragment>
+
+    <!-- Games Fragment -->
+    <fragment
+        android:id="@+id/navigation_games"
+        android:name="com.example.memoraid.fragments.GamesFragment"
+        android:label="Games"
+        tools:layout="@layout/fragment_games" >
+        <action
+            android:id="@+id/action_gamesFragment_to_puzzlesFragment"
+            app:destination="@id/navigation_puzzles" />
+        <action
+            android:id="@+id/action_gamesFragment_to_cardGamesFragment"
+            app:destination="@id/navigation_cards" />
+    </fragment>
+
+    <!-- Puzzles Fragment -->
+    <fragment
+        android:id="@+id/navigation_puzzles"
+        android:name="com.example.memoraid.PuzzlesFragment"
+        android:label="Puzzles"
+        tools:layout="@layout/fragment_puzzles">
+        <action
+            android:id="@+id/action_puzzlesFragment_to_puzzleFragment"
+            app:destination="@id/navigation_puzzle" />
+    </fragment>
+
+    <!-- Puzzle Fragment (with argument) -->
+    <fragment
+        android:id="@+id/navigation_puzzle"
+        android:name="com.example.memoraid.PuzzleFragment"
+        android:label="Puzzle">
+        <argument
+            android:name="imageResId"
+            app:argType="integer"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_cards"
+        android:name="com.example.memoraid.fragments.CardGamesFragment"
+        android:label="Cards"
+        tools:layout="@layout/fragment_card_games">
+        <action
+            android:id="@+id/action_cardGamesFragment_to_cardGameFragment"
+            app:destination="@id/navigation_card_game"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_card_game"
+        android:name="com.example.memoraid.fragments.CardGameFragment"
+        android:label="CardGame"
+        tools:layout="@layout/fragment_card_game">
+        <action
+            android:id="@+id/action_cardGamesFragment_to_cardGameFragment"
+            app:destination="@id/navigation_card_game" />
+        <argument
+            android:name="difficulty_level"
+            app:argType="string"/>
+    </fragment>
+
+    <!-- Memories Fragment -->
+    <fragment
+        android:id="@+id/navigation_memories"
+        android:name="com.example.memoraid.fragments.MemoriesFragment"
+        android:label="Memories"
+        tools:layout="@layout/fragment_memories">
+        <action
+            android:id="@+id/action_memoriesFragment_to_journalFragment"
+            app:destination="@id/navigation_journal" />
+        <action
+            android:id="@+id/action_memoriesFragment_to_albumsFragment"
+            app:destination="@id/navigation_album" />
+    </fragment>
+
+    <!-- Albums Fragment -->
+    <fragment
+        android:id="@+id/navigation_album"
+        android:name="com.example.memoraid.fragments.AlbumsFragment"
+        android:label="Album"
+        tools:layout="@layout/fragment_album">
+        <action
+            android:id="@+id/action_albumsFragment_to_albumDetailsFragment"
+            app:destination="@id/fragment_album_details" />
+        <action
+            android:id="@+id/action_albumModal_to_albumFragment"
+            app:destination="@id/navigation_album" />
+    </fragment>
+
+    <!-- Album Details Fragment -->
+    <fragment
+        android:id="@+id/fragment_album_details"
+        android:name="com.example.memoraid.fragments.AlbumDetailsFragment"
+        android:label="AlbumDetailsFragment"
+        tools:layout="@layout/fragment_album_details">
+        <action
+            android:id="@+id/action_albumDetailsFragment_to_fullScreenImageFragment"
+            app:destination="@id/navigation_full_screen_image" />
+    </fragment>
+
+    <!-- Health Fragment -->
+    <fragment
+        android:id="@+id/navigation_health"
+        android:name="com.example.memoraid.fragments.HealthFragment"
+        android:label="Health"
+        tools:layout="@layout/fragment_health">
+    </fragment>
+
+    <!-- Journal Details Fragment -->
+    <fragment
+        android:id="@+id/fragment_journal_details"
+        android:name="com.example.memoraid.fragments.JournalDetailsFragment"
+        android:label="JournalDetailsFragment"
+        tools:layout="@layout/fragment_journal_details">
+        <action
+            android:id="@+id/action_journalDetailsFragment_to_fullScreenImageFragment"
+            app:destination="@id/navigation_full_screen_image" />
+    </fragment>
+
+    <!-- Full Screen Image Fragment -->
+    <fragment
+        android:id="@+id/navigation_full_screen_image"
+        android:name="com.example.memoraid.fragments.FullScreenImageFragment"
+        android:label="FullScreenImageFragment"
+        tools:layout="@layout/fragment_full_screen_image">
+    </fragment>
+
+    <!-- Change Password Fragment -->
+    <fragment
+        android:id="@+id/fragment_change_password"
+        android:name="com.example.memoraid.fragments.ChangePasswordFragment"
+        android:label="ChangePasswordFragment"
+        tools:layout="@layout/fragment_change_password">
+        <action
+            android:id="@+id/action_changePasswordFragment_to_accountFragment"
+            app:destination="@id/navigation_account" />
+    </fragment>
+</navigation>

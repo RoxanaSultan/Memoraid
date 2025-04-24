@@ -28,11 +28,25 @@ class MainActivity : AppCompatActivity() {
         val navController = navHostFragment.navController
 
         userViewModel.userRole.observe(this) { role ->
+            bottomNavigationView.menu.clear()
+
+            val navController = navHostFragment.navController
+            val navInflater = navController.navInflater
+
             when (role) {
-                "patient" -> bottomNavigationView.inflateMenu(R.menu.bottom_navigator_patient)
-                "caretaker" -> bottomNavigationView.inflateMenu(R.menu.bottom_navigator_caretaker)
+                "patient" -> {
+                    bottomNavigationView.inflateMenu(R.menu.bottom_navigator_patient)
+                    val graph = navInflater.inflate(R.navigation.navigation_graph_patient)
+                    navController.graph = graph
+                }
+                "caretaker" -> {
+                    bottomNavigationView.inflateMenu(R.menu.bottom_navigator_caretaker)
+                    val graph = navInflater.inflate(R.navigation.navigation_graph_caretaker)
+                    navController.graph = graph
+                }
                 else -> Log.e("MainActivity", "Unknown role")
             }
+
             bottomNavigationView.setupWithNavController(navController)
 
             if (savedInstanceState == null) {

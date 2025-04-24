@@ -19,7 +19,7 @@ class AuthenticationViewModel @Inject constructor(
     val authCheckState: StateFlow<Result<User>?> = _authCheckState
 
     fun checkIfUserLoggedIn() {
-        val currentUser = repository.getCurrentUserId()
+        val currentUser = repository.getCurrentUser()?.uid
         if (currentUser != null) {
             viewModelScope.launch {
                 try {

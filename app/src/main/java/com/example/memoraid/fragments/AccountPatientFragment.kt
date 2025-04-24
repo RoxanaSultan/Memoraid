@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class AccountFragment : Fragment(R.layout.fragment_account) {
+class AccountPatientFragment : Fragment(R.layout.fragment_account) {
 
     private var _binding: FragmentAccountBinding? = null
     private val binding get() = _binding!!
@@ -48,7 +48,7 @@ class AccountFragment : Fragment(R.layout.fragment_account) {
                     binding.phoneNumber.text = it.phoneNumber
                     binding.birthdate.text = it.birthdate
 
-                    Glide.with(this@AccountFragment)
+                    Glide.with(this@AccountPatientFragment)
                         .load(it.profilePictureUrl)
                         .placeholder(R.drawable.default_profile_picture)
                         .into(binding.profilePicture)
