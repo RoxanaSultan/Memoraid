@@ -28,6 +28,7 @@ import android.os.Environment
 import androidx.core.content.FileProvider
 import androidx.core.content.ContextCompat
 import android.content.pm.PackageManager
+import android.util.Log
 import android.util.Patterns
 import android.widget.Toast
 import java.text.ParseException
@@ -44,6 +45,7 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
     private var photoUri: Uri? = null
 
     private var isEmailChanged = false
+    private var isImageRemoved = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -127,7 +129,6 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
         uri?.let {
             selectedImageUri = it
             binding.profilePicture.setImageURI(it)
-            accountViewModel.updateProfilePicture(it)
         }
     }
 
@@ -137,19 +138,25 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
         if (success && photoUri != null) {
             selectedImageUri = photoUri
             binding.profilePicture.setImageURI(photoUri)
-            accountViewModel.updateProfilePicture(photoUri)
         }
     }
 
     private fun showModal() {
-        val options = arrayOf("Take a Picture", "Choose from Gallery", "Remove Picture")
+        val hasPicture = accountViewModel.user.value?.profilePictureUrl != null
+
+        val options = if (hasPicture) {
+            arrayOf("Take a Picture", "Choose from Gallery", "Remove Picture")
+        } else {
+            arrayOf("Take a Picture", "Choose from Gallery")
+        }
+
         AlertDialog.Builder(requireContext())
             .setTitle("Edit Picture")
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> checkAndRequestPermissions()
                     1 -> chooseImageFromGallery()
-                    2 -> removeProfilePicture()
+                    2 -> if (hasPicture) removeProfilePicture()
                 }
             }
             .show()
@@ -157,12 +164,14 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
 
     private fun removeProfilePicture() {
         binding.profilePicture.setImageResource(R.drawable.default_profile_picture)
-        accountViewModel.updateProfilePicture(null)
-
-        val profileUrl = accountViewModel.user.value?.profilePictureUrl
-        if (!profileUrl.isNullOrEmpty()) {
-            accountViewModel.deleteImageFromStorage(profileUrl)
-        }
+//        accountViewModel.updateProfilePicture(null)
+        selectedImageUri = null
+        isImageRemoved = true
+//
+//        val profileUrl = accountViewModel.user.value?.profilePictureUrl
+//        if (!profileUrl.isNullOrEmpty()) {
+//            accountViewModel.deleteImageFromStorage(profileUrl)
+//        }
     }
 
     private fun checkAndRequestPermissions() {
@@ -228,17 +237,24 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
                     didAnythingChange = true
                 }
             }
-            if (birthdate != accountViewModel.user.value?.birthdate) {
+            if (birthdate != accountViewModel.user.value?.birthdate ) {
                 if (validateBirthdate(birthdate)) {
                     didAnythingChange = true
                 }
             }
 
-            if (selectedImageUri != null) {
-                if (accountViewModel.user.value?.profilePictureUrl != null) {
-                    accountViewModel.deleteImageFromStorage(accountViewModel.user.value!!.profilePictureUrl!!)
+            if (selectedImageUri != null && !isImageRemoved) {
+                accountViewModel.user.value?.profilePictureUrl?.let { profilePictureUrl ->
+                    accountViewModel.deleteImageFromStorage(profilePictureUrl)
                 }
-                accountViewModel.uploadImageToStorage(selectedImageUri!!)
+
+                accountViewModel.uploadAndSaveProfilePicture(selectedImageUri!!)
+                didAnythingChange = true
+            }
+
+            if (isImageRemoved) {
+                accountViewModel.removeProfilePicture()
+                isImageRemoved = false
                 didAnythingChange = true
             }
 

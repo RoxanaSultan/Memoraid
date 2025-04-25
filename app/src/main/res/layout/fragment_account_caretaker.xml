@@ -5,34 +5,42 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ImageView
-        android:id="@+id/profile_picture"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:src="@drawable/default_profile_picture"
-        android:scaleType="centerCrop"
+    <RelativeLayout
+        android:id="@+id/profile_picture_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/data_layout"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <ImageButton
-        android:id="@+id/edit_picture_button"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/edit"
-        android:contentDescription="Edit picture"
-        app:layout_constraintTop_toTopOf="@id/profile_picture"
-        app:layout_constraintEnd_toEndOf="@id/profile_picture"
-        android:padding="4dp"/>
+        <ImageView
+            android:id="@+id/profile_picture"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/default_profile_picture"
+            android:scaleType="centerCrop" />
+
+        <ImageButton
+            android:id="@+id/edit_picture_button"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/edit"
+            android:contentDescription="Edit picture"
+            android:scaleType="centerCrop"
+            android:background="@null"
+            android:padding="4dp"
+            android:layout_alignBottom="@id/profile_picture"
+            android:layout_alignEnd="@id/profile_picture"/>
+    </RelativeLayout>
+
 
     <LinearLayout
         android:id="@+id/data_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/profile_picture"
+        app:layout_constraintTop_toBottomOf="@id/profile_picture_layout"
         app:layout_constraintBottom_toTopOf="@id/buttons_layout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

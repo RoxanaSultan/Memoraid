@@ -84,38 +84,59 @@ class UserRepository @Inject constructor(
         }
     }
 
-    suspend fun updateProfilePicture(uri: Uri?) {
-        val userId = getCurrentUser()?.uid ?: return
-        try {
+    suspend fun uploadAndSaveProfilePicture(uri: Uri): Boolean {
+        val userId = getCurrentUser()?.uid ?: return false
+        return try {
             val storageRef = storage.reference
-                .child("profile_pictures/${System.currentTimeMillis()}.jpg")
+                .child("profile_pictures/${userId}.jpg")
 
-            if (uri != null) {
-                storageRef.putFile(uri).await()
-            }
+            storageRef.putFile(uri).await()
+
             val downloadUrl = storageRef.downloadUrl.await().toString()
 
             firebaseCollection.document(userId)
                 .update("profilePictureUrl", downloadUrl)
                 .await()
+
+            true
         } catch (e: Exception) {
-            Log.e("UserRepository", "Error uploading profile picture: ${e.message}", e)
+            Log.e("UserRepository", "Error uploading and saving profile picture: ${e.message}", e)
+            false
         }
     }
 
-    suspend fun uploadImageToStorage(uri: Uri): String? {
-        return try {
-            val storageRef = storage.reference
-                .child("profile_pictures/${System.currentTimeMillis()}.jpg")
+    suspend fun removeProfilePicture() {
+        val userId = getCurrentUser()?.uid ?: return
+        val storageRef = storage.reference.child("profile_pictures/${userId}.jpg")
 
-            storageRef.putFile(uri).await()
+        try {
+            storageRef.delete().await()
 
-            storageRef.downloadUrl.await().toString()
+            firebaseCollection.document(userId)
+                .update("profilePictureUrl", null)
+                .await()
+
+            Log.d("UserRepository", "Profile picture removed successfully.")
         } catch (e: Exception) {
-            Log.e("UserRepository", "Error uploading image: ${e.message}", e)
-            null
+            Log.e("UserRepository", "Error removing profile picture: ${e.message}", e)
         }
     }
+
+//
+//    suspend fun uploadImageToStorage(uri: Uri): String? {
+//        val userId = getCurrentUser()?.uid
+//        return try {
+//            val storageRef = storage.reference
+//                .child("profile_pictures/${userId}.jpg")
+//
+//            storageRef.putFile(uri).await()
+//
+//            storageRef.downloadUrl.await().toString()
+//        } catch (e: Exception) {
+//            Log.e("UserRepository", "Error uploading image: ${e.message}", e)
+//            null
+//        }
+//    }
 
     suspend fun deleteImageFromStorage(imageUrl: String) {
         try {

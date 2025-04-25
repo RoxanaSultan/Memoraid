@@ -45,28 +45,39 @@ class AccountViewModel @Inject constructor(
         }
     }
 
-    fun updateProfilePicture(uri: Uri?) {
+    fun uploadAndSaveProfilePicture(uri: Uri) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                repository.updateProfilePicture(uri)
+                repository.uploadAndSaveProfilePicture(uri)
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
-    fun uploadImageToStorage(uri: Uri) {
+    fun removeProfilePicture() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val imageUrl = repository.uploadImageToStorage(uri)
-                imageUrl?.let { updateProfilePicture(Uri.parse(it)) }
+                repository.removeProfilePicture()
             } finally {
                 _isLoading.value = false
             }
         }
     }
+
+//
+//    fun uploadImageToStorage(uri: Uri) {
+//        viewModelScope.launch {
+//            _isLoading.value = true
+//            try {
+//                repository.uploadImageToStorage(uri)
+//            } finally {
+//                _isLoading.value = false
+//            }
+//        }
+//    }
 
     suspend fun saveUserDetails(userUpdates: Map<String, String>): Boolean {
         _isLoading.value = true
