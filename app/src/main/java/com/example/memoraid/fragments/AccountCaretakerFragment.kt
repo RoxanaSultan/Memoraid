@@ -69,6 +69,7 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
                     Glide.with(this@AccountCaretakerFragment)
                         .load(it.profilePictureUrl)
                         .placeholder(R.drawable.default_profile_picture)
+                        .circleCrop()
                         .into(binding.profilePicture)
                 }
             }
@@ -115,7 +116,6 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
             .show()
     }
 
-
     private fun logout() {
         FirebaseAuth.getInstance().signOut()
         val intent = Intent(requireContext(), AuthenticationActivity::class.java)
@@ -128,7 +128,7 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
     ) { uri: Uri? ->
         uri?.let {
             selectedImageUri = it
-            binding.profilePicture.setImageURI(it)
+            cropImage(it)
         }
     }
 
@@ -137,7 +137,7 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
     ) { success: Boolean ->
         if (success && photoUri != null) {
             selectedImageUri = photoUri
-            binding.profilePicture.setImageURI(photoUri)
+            cropImage(photoUri!!)
         }
     }
 
@@ -164,14 +164,8 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
 
     private fun removeProfilePicture() {
         binding.profilePicture.setImageResource(R.drawable.default_profile_picture)
-//        accountViewModel.updateProfilePicture(null)
         selectedImageUri = null
         isImageRemoved = true
-//
-//        val profileUrl = accountViewModel.user.value?.profilePictureUrl
-//        if (!profileUrl.isNullOrEmpty()) {
-//            accountViewModel.deleteImageFromStorage(profileUrl)
-//        }
     }
 
     private fun checkAndRequestPermissions() {
@@ -203,6 +197,13 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile("JPEG_${timestamp}_", ".jpg", storageDir)
+    }
+
+    private fun cropImage(uri: Uri) {
+        // Here you can implement your image cropping logic.
+        // For simplicity, I'm just setting the image without cropping.
+        // You can use libraries like Android's Image Cropper to crop the image as needed.
+        binding.profilePicture.setImageURI(uri)
     }
 
     private fun saveUpdates() {
