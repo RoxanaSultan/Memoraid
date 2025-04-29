@@ -14,8 +14,6 @@ import com.bumptech.glide.Glide
 import com.example.memoraid.activities.AuthenticationActivity
 import com.example.memoraid.R
 import com.example.memoraid.databinding.FragmentAccountCaretakerBinding
-import com.example.memoraid.viewmodel.AccountViewModel
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -28,11 +26,12 @@ import android.os.Environment
 import androidx.core.content.FileProvider
 import androidx.core.content.ContextCompat
 import android.content.pm.PackageManager
-import android.util.Log
 import android.util.Patterns
 import android.widget.Toast
+import androidx.navigation.fragment.findNavController
+import com.example.memoraid.viewmodel.AccountCaretakerViewModel
+import com.google.firebase.auth.FirebaseAuth
 import java.text.ParseException
-import kotlin.math.log
 
 @AndroidEntryPoint
 class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
@@ -40,7 +39,7 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
     private var _binding: FragmentAccountCaretakerBinding? = null
     private val binding get() = _binding!!
 
-    private val accountViewModel: AccountViewModel by viewModels()
+    private val accountViewModel: AccountCaretakerViewModel by viewModels()
     private var selectedImageUri: Uri? = null
     private var photoUri: Uri? = null
 
@@ -56,7 +55,7 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
 
         accountViewModel.loadUser()
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             accountViewModel.user.collectLatest { user ->
                 user?.let {
                     binding.username.setText(it.username ?: "")
@@ -86,6 +85,14 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
                     showReauthenticationDialog()
                 }
             }
+        }
+
+        binding.changePasswordButton.setOnClickListener {
+            findNavController().navigate(R.id.action_accountFragment_to_changePasswordFragment)
+        }
+
+        binding.editPatients.setOnClickListener {
+            findNavController().navigate(R.id.action_accountCaretakerFragment_to_editPatientsFragment)
         }
 
         binding.logoutButton.setOnClickListener {
@@ -128,7 +135,11 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
     ) { uri: Uri? ->
         uri?.let {
             selectedImageUri = it
-            cropImage(it)
+            Glide.with(this)
+                .load(it)
+                .placeholder(R.drawable.default_profile_picture)
+                .circleCrop()
+                .into(binding.profilePicture)
         }
     }
 
@@ -137,7 +148,11 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
     ) { success: Boolean ->
         if (success && photoUri != null) {
             selectedImageUri = photoUri
-            cropImage(photoUri!!)
+            Glide.with(this)
+                .load(selectedImageUri)
+                .placeholder(R.drawable.default_profile_picture)
+                .circleCrop()
+                .into(binding.profilePicture)
         }
     }
 
@@ -199,13 +214,6 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
         return File.createTempFile("JPEG_${timestamp}_", ".jpg", storageDir)
     }
 
-    private fun cropImage(uri: Uri) {
-        // Here you can implement your image cropping logic.
-        // For simplicity, I'm just setting the image without cropping.
-        // You can use libraries like Android's Image Cropper to crop the image as needed.
-        binding.profilePicture.setImageURI(uri)
-    }
-
     private fun saveUpdates() {
         val username = binding.username.text.toString().trim()
         val email = binding.email.text.toString().trim()
@@ -249,12 +257,12 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
                     accountViewModel.deleteImageFromStorage(profilePictureUrl)
                 }
 
-                accountViewModel.uploadAndSaveProfilePicture(selectedImageUri!!)
+                accountViewModel.uploadAndSaveProfilePicture(selectedImageUri!!, accountViewModel.user.value?.id!!)
                 didAnythingChange = true
             }
 
             if (isImageRemoved) {
-                accountViewModel.removeProfilePicture()
+                accountViewModel.removeProfilePicture(accountViewModel.user.value?.id!!)
                 isImageRemoved = false
                 didAnythingChange = true
             }
@@ -286,8 +294,8 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
         )
 
         lifecycleScope.launch {
-            val success = accountViewModel.saveUserDetails(userUpdates)
-            if (success) {
+            val success = accountViewModel.user.value?.let { accountViewModel.saveUserDetails(userUpdates, it.id) }
+            if (success == true) {
                 Toast.makeText(requireContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(requireContext(), "Failed to update profile", Toast.LENGTH_SHORT).show()

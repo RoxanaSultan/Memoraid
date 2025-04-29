@@ -233,6 +233,7 @@
             android:padding="13dp"
             android:background="@drawable/button_selector"
             android:textColor="@drawable/foreground_color"/>
+
         <android.widget.Button
             android:id="@+id/change_password_button"
             android:layout_width="110dp"
@@ -241,6 +242,7 @@
             android:padding="13dp"
             android:background="@drawable/button_selector"
             android:textColor="@drawable/foreground_color"/>
+
         <android.widget.Button
             android:id="@+id/edit_patients"
             android:layout_width="110dp"

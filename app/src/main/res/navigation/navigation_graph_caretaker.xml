@@ -3,16 +3,30 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/navigation_graph_caretaker"
-    app:startDestination="@id/navigation_account_caretaker">
+    app:startDestination="@id/navigation_caretaker_account">
 
-    <!-- Account Fragment -->
+    <!-- Account Caretaker Fragment -->
     <fragment
-        android:id="@+id/navigation_account_caretaker"
+        android:id="@+id/navigation_caretaker_account"
         android:name="com.example.memoraid.fragments.AccountCaretakerFragment"
-        android:label="Account"
+        android:label="AccountCaretakerFragment"
         tools:layout="@layout/fragment_account_caretaker">
         <action
             android:id="@+id/action_accountFragment_to_changePasswordFragment"
+            app:destination="@id/fragment_change_password" />
+        <action
+            android:id="@+id/action_accountCaretakerFragment_to_editPatientsFragment"
+            app:destination="@id/fragment_edit_patients" />
+    </fragment>
+
+    <!-- Account Patient Fragment -->
+    <fragment
+        android:id="@+id/navigation_patient_account"
+        android:name="com.example.memoraid.fragments.AccountPatientFragment"
+        android:label="AccountPatientFragment"
+        tools:layout="@layout/fragment_account_patient">
+        <action
+            android:id="@+id/action_accountPatientFragment_to_changePasswordFragment"
             app:destination="@id/fragment_change_password" />
     </fragment>
 
@@ -162,6 +176,18 @@
         tools:layout="@layout/fragment_change_password">
         <action
             android:id="@+id/action_changePasswordFragment_to_accountFragment"
-            app:destination="@id/navigation_account" />
+            app:destination="@id/navigation_caretaker_account" />
     </fragment>
+
+    <!-- Edit Patients Fragment -->
+    <fragment
+        android:id="@+id/fragment_edit_patients"
+        android:name="com.example.memoraid.fragments.EditPatientsFragment"
+        android:label="EditPatientsFragment"
+        tools:layout="@layout/fragment_edit_patients">
+        <action
+            android:id="@+id/action_editPatientsFragment_to_accountCaretakerFragment"
+            app:destination="@id/navigation_caretaker_account" />
+    </fragment>
+
 </navigation>

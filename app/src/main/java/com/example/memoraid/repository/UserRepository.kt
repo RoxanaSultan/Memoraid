@@ -9,7 +9,11 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import android.util.Log
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FieldPath
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class UserRepository @Inject constructor(
     private val database: FirebaseFirestore,
@@ -39,6 +43,22 @@ class UserRepository @Inject constructor(
         }
     }
 
+    suspend fun getPatient(caretakerId: String): User? {
+        return try {
+            val caretakerDocument = firebaseCollection.document(caretakerId).get().await()
+            val caretaker = caretakerDocument.toObject(User::class.java)
+            val selectedPatientId = caretaker?.selectedPatient
+
+            if (selectedPatientId != null) {
+                getUser(selectedPatientId)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     suspend fun getUserData(uid: String): User? {
         return try {
             val doc = firebaseCollection.document(uid).get().await()
@@ -50,6 +70,15 @@ class UserRepository @Inject constructor(
 
     fun getCurrentUser(): FirebaseUser? {
         return authentication.currentUser
+    }
+
+    suspend fun getCurrentPatient(): User? {
+        val currentUser = authentication.currentUser ?: return null
+        val userSnapshot = firebaseCollection.document(currentUser.uid).get().await()
+        val selectedPatientId = userSnapshot.getString("selectedPatient") ?: return null
+
+        val patientSnapshot = firebaseCollection.document(selectedPatientId).get().await()
+        return patientSnapshot.toObject(User::class.java)
     }
 
     suspend fun updatePassword(newPassword: String): Result<Unit> {
@@ -67,25 +96,21 @@ class UserRepository @Inject constructor(
     }
 
     suspend fun getUserRole(): String? {
-        val currentUser = getCurrentUser()
-
+        val userId = getCurrentUser()?.uid ?: return null
         return try {
-            val snapshot = currentUser?.let {
-                firebaseCollection
-                    .document(it.uid)
-                    .get()
-                    .await()
-            }
+            val snapshot = firebaseCollection
+                .document(userId)
+                .get()
+                .await()
 
-            val user = snapshot?.toObject(User::class.java)
+            val user = snapshot.toObject(User::class.java)
             user?.role
         } catch (e: Exception) {
             null
         }
     }
 
-    suspend fun uploadAndSaveProfilePicture(uri: Uri): Boolean {
-        val userId = getCurrentUser()?.uid ?: return false
+    suspend fun uploadAndSaveProfilePicture(uri: Uri, userId: String): Boolean {
         return try {
             val storageRef = storage.reference
                 .child("profile_pictures/${userId}.jpg")
@@ -105,8 +130,7 @@ class UserRepository @Inject constructor(
         }
     }
 
-    suspend fun removeProfilePicture() {
-        val userId = getCurrentUser()?.uid ?: return
+    suspend fun removeProfilePicture(userId: String) {
         val storageRef = storage.reference.child("profile_pictures/${userId}.jpg")
 
         try {
@@ -121,22 +145,6 @@ class UserRepository @Inject constructor(
             Log.e("UserRepository", "Error removing profile picture: ${e.message}", e)
         }
     }
-
-//
-//    suspend fun uploadImageToStorage(uri: Uri): String? {
-//        val userId = getCurrentUser()?.uid
-//        return try {
-//            val storageRef = storage.reference
-//                .child("profile_pictures/${userId}.jpg")
-//
-//            storageRef.putFile(uri).await()
-//
-//            storageRef.downloadUrl.await().toString()
-//        } catch (e: Exception) {
-//            Log.e("UserRepository", "Error uploading image: ${e.message}", e)
-//            null
-//        }
-//    }
 
     suspend fun deleteImageFromStorage(imageUrl: String) {
         try {
@@ -163,15 +171,90 @@ class UserRepository @Inject constructor(
         return result.isEmpty
     }
 
-    suspend fun saveUserDetails(userUpdates: Map<String, Any>): Boolean {
-        val uid = getCurrentUser()?.uid ?: return false
+    suspend fun saveUserDetails(userUpdates: Map<String, Any>, userId: String): Boolean {
         return try {
-            firebaseCollection.document(uid)
+            firebaseCollection.document(userId)
                 .update(userUpdates)
                 .await()
             true
         } catch (e: Exception) {
             false
         }
+    }
+
+    suspend fun getAssignedPatients(): List<User> {
+        val caretakerId = getCurrentUser()?.uid ?: return emptyList()
+
+        return withContext(Dispatchers.IO) {
+            val caretakerDoc = firebaseCollection
+                .document(caretakerId)
+                .get()
+                .await()
+
+            val patientIds = caretakerDoc.get("patients") as? List<String> ?: emptyList()
+            if (patientIds.isEmpty()) return@withContext emptyList()
+
+            val snapshot = firebaseCollection
+                .whereIn(FieldPath.documentId(), patientIds)
+                .get()
+                .await()
+
+            return@withContext snapshot.toObjects(User::class.java)
+        }
+    }
+
+    suspend fun findPatientByQuery(query: String): User? {
+        return withContext(Dispatchers.IO) {
+            val snapshot = firebaseCollection
+                .whereEqualTo("role", "patient")
+                .get()
+                .await()
+
+            val allPatients = snapshot.toObjects(User::class.java)
+            val lowerQuery = query.trim().lowercase()
+
+            return@withContext allPatients.firstOrNull { user ->
+                user.username?.trim()?.lowercase() == lowerQuery ||
+                        user.firstName?.trim()?.lowercase() == lowerQuery ||
+                        user.lastName?.trim()?.lowercase() == lowerQuery ||
+                        user.phoneNumber?.trim()?.lowercase() == lowerQuery ||
+                        user.email?.trim()?.lowercase() == lowerQuery
+            }
+        }
+    }
+
+    fun addPatientToCurrentCaretaker(patient: User) {
+        val caretakerId = getCurrentUser()?.uid ?: return
+
+        val caretakerRef = firebaseCollection.document(caretakerId)
+        val patientRef = firebaseCollection.document(patient.id)
+
+        caretakerRef.update("patients", FieldValue.arrayUnion(patient.id))
+
+        patientRef.update("caretakers", FieldValue.arrayUnion(caretakerId))
+    }
+
+    fun removePatientFromCaretaker(patientId: String, onComplete: (Boolean) -> Unit) {
+        val caretakerId = getCurrentUser()?.uid ?: run {
+            onComplete(false)
+            return
+        }
+
+        val caretakerRef = firebaseCollection.document(caretakerId)
+        val patientRef = firebaseCollection.document(patientId)
+
+        caretakerRef.update("patients", FieldValue.arrayRemove(patientId))
+            .addOnSuccessListener {
+                patientRef.update("caretakers", FieldValue.arrayRemove(caretakerId))
+                    .addOnSuccessListener {
+                        onComplete(true)
+                    }
+                    .addOnFailureListener {
+                        onComplete(false)
+                    }
+            }
+            .addOnFailureListener {
+                onComplete(false)
+            }
     }
 }

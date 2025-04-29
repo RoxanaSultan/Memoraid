@@ -5,54 +5,54 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ImageView
-        android:id="@+id/profile_picture"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:src="@drawable/default_profile_picture"
-        app:layout_constraintBottom_toTopOf="@id/picture_buttons_layout"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <LinearLayout
-        android:id="@+id/picture_buttons_layout"
+    <RelativeLayout
+        android:id="@+id/profile_picture_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/profile_picture"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/data_layout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <android.widget.Button
-            android:id="@+id/change_picture_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:text="Change picture"
-            android:padding="13dp"
-            android:background="@drawable/button_selector"
-            android:textColor="@drawable/foreground_color"/>
+        <ImageView
+            android:id="@+id/profile_picture"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/default_profile_picture"
+            android:scaleType="centerCrop" />
 
-        <android.widget.Button
-            android:id="@+id/delete_picture_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Delete picture"
-            android:padding="13dp"
-            android:background="@drawable/button_selector"
-            android:textColor="@drawable/foreground_color"/>
+        <ImageButton
+            android:id="@+id/edit_picture_button"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/edit"
+            android:contentDescription="Edit picture"
+            android:scaleType="centerCrop"
+            android:background="@null"
+            android:padding="4dp"
+            android:layout_alignBottom="@id/profile_picture"
+            android:layout_alignEnd="@id/profile_picture"/>
 
-    </LinearLayout>
+        <ImageButton
+            android:id="@+id/switch_patient_button"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/drop_down"
+            android:contentDescription="Switch patient"
+            android:scaleType="centerCrop"
+            android:background="@null"
+            android:padding="4dp"
+            android:layout_alignTop="@id/profile_picture"
+            android:layout_alignStart="@id/profile_picture"/>
+    </RelativeLayout>
+
 
     <LinearLayout
         android:id="@+id/data_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/picture_buttons_layout"
+        app:layout_constraintTop_toBottomOf="@id/profile_picture_layout"
         app:layout_constraintBottom_toTopOf="@id/buttons_layout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -105,7 +105,7 @@
                 android:textColor="@color/blue"
                 android:textStyle="bold|italic"/>
 
-            <TextView
+            <EditText
                 android:id="@+id/email"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -225,8 +225,6 @@
                 android:textSize="16sp"
                 android:layout_marginStart="10dp"/>
         </LinearLayout>
-
-
     </LinearLayout>
 
     <LinearLayout
@@ -235,35 +233,32 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintTop_toBottomOf="@id/data_layout"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/logout_button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <android.widget.Button
             android:id="@+id/save_changes_button"
-            android:layout_width="wrap_content"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:text="Save changes"
+            android:text="Save Changes"
             android:padding="13dp"
             android:background="@drawable/button_selector"
             android:textColor="@drawable/foreground_color"/>
-        <android.widget.Button
-            android:id="@+id/change_password_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Change Password"
-            android:padding="13dp"
-            android:background="@drawable/button_selector"
-            android:textColor="@drawable/foreground_color"/>
-
-        <android.widget.Button
-            android:id="@+id/logout_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Logout"
-            android:padding="13dp"
-            android:background="@drawable/button_selector"
-            android:textColor="@drawable/foreground_color"/>
-
     </LinearLayout>
+
+
+    <android.widget.Button
+        android:id="@+id/logout_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Logout"
+        android:padding="13dp"
+        android:background="@drawable/button_selector"
+        android:textColor="@drawable/foreground_color"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttons_layout"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>

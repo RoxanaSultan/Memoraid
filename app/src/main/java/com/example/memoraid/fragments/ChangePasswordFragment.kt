@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -21,6 +22,15 @@ class ChangePasswordFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: ChangePasswordViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            showExitConfirmationDialog()
+        }
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,6 +59,17 @@ class ChangePasswordFragment : Fragment() {
         observeViewModel()
 
         return binding.root
+    }
+
+    private fun showExitConfirmationDialog() {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Confirm Exit")
+            .setMessage("Are you sure you want to leave without saving?")
+            .setPositiveButton("Yes") { _, _ ->
+                findNavController().popBackStack()
+            }
+            .setNegativeButton("No", null)
+            .show()
     }
 
     private fun observeViewModel() {

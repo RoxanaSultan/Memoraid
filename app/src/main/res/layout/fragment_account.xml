@@ -197,18 +197,18 @@
 
     </LinearLayout>
 
-<!--    <android.widget.Button-->
-<!--        android:id="@+id/notifications_button"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="Notifications"-->
-<!--        android:padding="13dp"-->
-<!--        android:background="@drawable/button_selector"-->
-<!--        android:textColor="@drawable/foreground_color"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/data_layout"-->
-<!--        app:layout_constraintBottom_toTopOf="@id/logout_button"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"/>-->
+    <android.widget.Button
+        android:id="@+id/change_password_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Change Password"
+        android:padding="13dp"
+        android:background="@drawable/button_selector"
+        android:textColor="@drawable/foreground_color"
+        app:layout_constraintTop_toBottomOf="@id/data_layout"
+        app:layout_constraintBottom_toTopOf="@id/logout_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <android.widget.Button
         android:id="@+id/logout_button"

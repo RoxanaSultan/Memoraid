@@ -4,7 +4,7 @@ import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.IgnoreExtraProperties
 
 @IgnoreExtraProperties
-open class User(
+data class User(
     @DocumentId val id: String = "",
     val username: String = "",
     val email: String = "",
@@ -16,4 +16,5 @@ open class User(
     val birthdate: String? = null,
     val patients: List<String>? = null,
     val caretakers: List<String>? = null,
+    val selectedPatient: String? = null
 )

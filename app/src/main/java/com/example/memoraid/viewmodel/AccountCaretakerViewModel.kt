@@ -13,15 +13,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AccountViewModel @Inject constructor(
+class AccountCaretakerViewModel @Inject constructor(
     private val repository: UserRepository
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
-
-    private val _patient = MutableStateFlow<User?>(null)
-    val patient: StateFlow<User?> get() = _patient
 
     private var snapshotListener: ListenerRegistration? = null
 
@@ -42,6 +39,36 @@ class AccountViewModel @Inject constructor(
         val userId = repository.getCurrentUser()?.uid
         viewModelScope.launch {
             _user.value = repository.getUser(userId!!)
+        }
+    }
+
+    fun uploadAndSaveProfilePicture(uri: Uri, userId: String) {
+        viewModelScope.launch {
+            repository.uploadAndSaveProfilePicture(uri, userId)
+        }
+    }
+
+    fun removeProfilePicture(userId: String) {
+        viewModelScope.launch {
+            repository.removeProfilePicture(userId)
+        }
+    }
+
+    suspend fun saveUserDetails(userUpdates: Map<String, String>, userId: String): Boolean {
+        return repository.saveUserDetails(userUpdates.toMutableMap(), userId)
+    }
+
+    suspend fun isUsernameUnique(username: String): Boolean {
+        return repository.isUsernameUnique(username)
+    }
+
+    suspend fun isEmailUnique(email: String): Boolean {
+        return repository.isEmailUnique(email)
+    }
+
+    fun deleteImageFromStorage(image: String) {
+        viewModelScope.launch {
+            repository.deleteImageFromStorage(image)
         }
     }
 
