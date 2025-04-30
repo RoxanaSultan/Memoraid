@@ -59,6 +59,39 @@ class UserRepository @Inject constructor(
         }
     }
 
+    suspend fun getOtherPatients(): List<User?> {
+        val caretakerId = getCurrentUser()?.uid ?: return emptyList()
+
+        val caretakerDoc = firebaseCollection.document(caretakerId).get().await()
+        val patientIds = caretakerDoc.get("patients") as? List<String> ?: emptyList()
+
+        val selectedPatientId = caretakerDoc.get("selectedPatient") as? String
+            ?: return emptyList()
+
+        val otherPatientIds = patientIds.filter { it != selectedPatientId }
+
+        val otherPatients = otherPatientIds.map { patientId ->
+            firebaseCollection.document(patientId).get().await().toObject(User::class.java)
+        }
+
+        return otherPatients
+    }
+
+    suspend fun selectPatient(patientId: String): User? {
+        val userId = getCurrentUser()?.uid ?: return null
+
+        return try {
+            firebaseCollection.document(userId)
+                .update("selectedPatient", patientId)
+                .await()
+
+            getUser(patientId)
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error selecting patient: ${e.message}", e)
+            null
+        }
+    }
+
     suspend fun getUserData(uid: String): User? {
         return try {
             val doc = firebaseCollection.document(uid).get().await()

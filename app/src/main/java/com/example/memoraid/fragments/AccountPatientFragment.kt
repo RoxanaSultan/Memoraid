@@ -14,7 +14,6 @@ import com.bumptech.glide.Glide
 import com.example.memoraid.activities.AuthenticationActivity
 import com.example.memoraid.R
 import com.example.memoraid.databinding.FragmentAccountPatientBinding
-import com.example.memoraid.viewmodel.AccountPatientViewModel
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -29,8 +28,11 @@ import androidx.core.content.FileProvider
 import androidx.core.content.ContextCompat
 import android.content.pm.PackageManager
 import android.util.Patterns
+import android.widget.PopupMenu
 import android.widget.Toast
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import com.example.memoraid.viewmodel.AccountCaretakerViewModel
 import java.text.ParseException
 
 @AndroidEntryPoint
@@ -39,7 +41,8 @@ class AccountPatientFragment : Fragment() {
     private var _binding: FragmentAccountPatientBinding? = null
     private val binding get() = _binding!!
 
-    private val accountViewModel: AccountPatientViewModel by viewModels()
+    private val accountViewModel: AccountCaretakerViewModel by viewModels()
+
     private var selectedImageUri: Uri? = null
     private var photoUri: Uri? = null
 
@@ -54,28 +57,14 @@ class AccountPatientFragment : Fragment() {
         val view = binding.root
 
         accountViewModel.loadPatient()
-
-        lifecycleScope.launch {
-            accountViewModel.patient.collectLatest { patient ->
-                patient?.let {
-                    binding.username.setText(it.username ?: "")
-                    binding.email.setText(it.email ?: "")
-                    binding.firstName.setText(it.firstName ?: "")
-                    binding.lastName.setText(it.lastName ?: "")
-                    binding.phoneNumber.setText(it.phoneNumber ?: "")
-                    binding.birthdate.setText(it.birthdate ?: "")
-
-                    Glide.with(this@AccountPatientFragment)
-                        .load(it.profilePictureUrl)
-                        .placeholder(R.drawable.default_profile_picture)
-                        .circleCrop()
-                        .into(binding.profilePicture)
-                }
-            }
-        }
+        observeSelectedPatient()
 
         binding.editPictureButton.setOnClickListener {
             showModal()
+        }
+
+        binding.switchPatientButton.setOnClickListener {
+            showDropDown()
         }
 
         binding.saveChangesButton.setOnClickListener {
@@ -92,6 +81,56 @@ class AccountPatientFragment : Fragment() {
         }
 
         return view
+    }
+
+    private fun observeSelectedPatient() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                accountViewModel.selectedPatient.collectLatest { patient ->
+                    patient?.let {
+                        binding.username.setText(it.username ?: "")
+                        binding.email.setText(it.email ?: "")
+                        binding.firstName.setText(it.firstName ?: "")
+                        binding.lastName.setText(it.lastName ?: "")
+                        binding.phoneNumber.setText(it.phoneNumber ?: "")
+                        binding.birthdate.setText(it.birthdate ?: "")
+
+                        Glide.with(this@AccountPatientFragment)
+                            .load(it.profilePictureUrl)
+                            .placeholder(R.drawable.default_profile_picture)
+                            .circleCrop()
+                            .into(binding.profilePicture)
+                    }
+                }
+            }
+        }
+    }
+
+
+    private fun showDropDown() {
+        val popupMenu = PopupMenu(requireContext(), binding.switchPatientButton)
+
+        lifecycleScope.launch {
+            accountViewModel.getOtherPatients()
+            accountViewModel.patients.collectLatest { patients ->
+                popupMenu.menu.clear()
+                patients.forEachIndexed { index, patient ->
+                    if (patient != null) {
+                        popupMenu.menu.add(0, index, index, patient.username ?: "Unknown")
+                    }
+                }
+
+                popupMenu.setOnMenuItemClickListener { menuItem ->
+                    val selectedPatient = patients[menuItem.itemId]
+                    if (selectedPatient != null) {
+                        accountViewModel.selectPatient(selectedPatient.id)
+                    }
+                    true
+                }
+
+                popupMenu.show()
+            }
+        }
     }
 
     private fun showLogoutConfirmationDialog() {
@@ -149,7 +188,7 @@ class AccountPatientFragment : Fragment() {
     }
 
     private fun showModal() {
-        val hasPicture = accountViewModel.patient.value?.profilePictureUrl != null
+        val hasPicture = accountViewModel.selectedPatient.value?.profilePictureUrl != null
 
         val options = if (hasPicture) {
             arrayOf("Take a Picture", "Choose from Gallery", "Remove Picture")
@@ -216,45 +255,45 @@ class AccountPatientFragment : Fragment() {
         var didAnythingChange = false
 
         lifecycleScope.launch {
-            if (username != accountViewModel.patient.value?.username) {
+            if (username != accountViewModel.selectedPatient.value?.username) {
                 if (validateUsername(username)) {
                     didAnythingChange = true
                 }
             }
-            if (email != accountViewModel.patient.value?.email) {
+            if (email != accountViewModel.selectedPatient.value?.email) {
                 if (validateEmailAddress(email)) {
                     didAnythingChange = true
                     isEmailChanged = true
                 }
             }
-            if (firstName != accountViewModel.patient.value?.firstName) {
+            if (firstName != accountViewModel.selectedPatient.value?.firstName) {
                 didAnythingChange = true
             }
-            if (lastName != accountViewModel.patient.value?.lastName) {
+            if (lastName != accountViewModel.selectedPatient.value?.lastName) {
                 didAnythingChange = true
             }
-            if (phoneNumber != accountViewModel.patient.value?.phoneNumber) {
+            if (phoneNumber != accountViewModel.selectedPatient.value?.phoneNumber) {
                 if (validatePhone(phoneNumber)) {
                     didAnythingChange = true
                 }
             }
-            if (birthdate != accountViewModel.patient.value?.birthdate ) {
+            if (birthdate != accountViewModel.selectedPatient.value?.birthdate ) {
                 if (validateBirthdate(birthdate)) {
                     didAnythingChange = true
                 }
             }
 
             if (selectedImageUri != null && !isImageRemoved) {
-                accountViewModel.patient.value?.profilePictureUrl?.let { profilePictureUrl ->
+                accountViewModel.selectedPatient.value?.profilePictureUrl?.let { profilePictureUrl ->
                     accountViewModel.deleteImageFromStorage(profilePictureUrl)
                 }
 
-                accountViewModel.uploadAndSaveProfilePicture(selectedImageUri!!, accountViewModel.patient.value?.id!!)
+                accountViewModel.uploadAndSaveProfilePicture(selectedImageUri!!, accountViewModel.selectedPatient.value?.id!!)
                 didAnythingChange = true
             }
 
             if (isImageRemoved) {
-                accountViewModel.removeProfilePicture(accountViewModel.patient.value?.id!!)
+                accountViewModel.removeProfilePicture(accountViewModel.selectedPatient.value?.id!!)
                 isImageRemoved = false
                 didAnythingChange = true
             }
@@ -286,7 +325,7 @@ class AccountPatientFragment : Fragment() {
         )
 
         lifecycleScope.launch {
-            val success = accountViewModel.patient.value?.let { accountViewModel.saveUserDetails(userUpdates, it.id) }
+            val success = accountViewModel.selectedPatient.value?.let { accountViewModel.saveUserDetails(userUpdates, it.id) }
             if (success == true) {
                 Toast.makeText(requireContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show()
             } else {

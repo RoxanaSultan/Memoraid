@@ -20,6 +20,12 @@ class AccountCaretakerViewModel @Inject constructor(
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
 
+    private val _selectedPatient = MutableStateFlow<User?>(null)
+    val selectedPatient: StateFlow<User?> get() = _selectedPatient
+
+    private val _patients = MutableStateFlow<List<User?>>(emptyList())
+    val patients: StateFlow<List<User?>> get() = _patients
+
     private var snapshotListener: ListenerRegistration? = null
 
     init {
@@ -32,6 +38,19 @@ class AccountCaretakerViewModel @Inject constructor(
 
         snapshotListener = repository.observeUser(userId) { user ->
             _user.value = user
+        }
+    }
+
+    fun getOtherPatients() {
+        viewModelScope.launch {
+            _patients.value = repository.getOtherPatients()
+        }
+    }
+
+    fun loadPatient() {
+        val userId = repository.getCurrentUser()?.uid
+        viewModelScope.launch {
+            _selectedPatient.value = repository.getPatient(userId!!)
         }
     }
 
@@ -71,6 +90,14 @@ class AccountCaretakerViewModel @Inject constructor(
             repository.deleteImageFromStorage(image)
         }
     }
+
+
+    fun selectPatient(patientId: String) {
+        viewModelScope.launch {
+            _selectedPatient.value = repository.selectPatient(patientId)
+        }
+    }
+
 
     override fun onCleared() {
         snapshotListener?.remove()
