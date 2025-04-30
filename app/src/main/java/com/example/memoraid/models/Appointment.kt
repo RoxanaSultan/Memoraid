@@ -10,6 +10,6 @@ data class Appointment(
     val location: String = "",
     val type: String = "",
     val date: String = "",
-    val userId: String = "",
+    var userId: String = "",
     var isCompleted: Boolean = false
 )

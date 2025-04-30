@@ -8,15 +8,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.memoraid.adapters.HealthPagerAdapter
-import com.example.memoraid.databinding.FragmentHealthBinding
+import com.example.memoraid.adapters.HealthObservationAdapter
+import com.example.memoraid.databinding.FragmentHealthCaretakerBinding
 import com.google.android.material.tabs.TabLayoutMediator
 import java.text.SimpleDateFormat
 import java.util.*
 
 class HealthObservationFragment : Fragment() {
 
-    private var _binding: FragmentHealthBinding? = null
+    private var _binding: FragmentHealthCaretakerBinding? = null
     private val binding get() = _binding!!
     private val calendar: Calendar = Calendar.getInstance()
     private lateinit var sharedViewModel: SharedViewModel
@@ -25,7 +25,7 @@ class HealthObservationFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentHealthBinding.inflate(inflater, container, false)
+        _binding = FragmentHealthCaretakerBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         sharedViewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
@@ -36,7 +36,7 @@ class HealthObservationFragment : Fragment() {
         binding.previousDateButton.setOnClickListener { changeDate(-1) }
         binding.nextDateButton.setOnClickListener { changeDate(1) }
 
-        val adapter = HealthPagerAdapter(this)
+        val adapter = HealthObservationAdapter(this)
         binding.viewPager.adapter = adapter
 
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->

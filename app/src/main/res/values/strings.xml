@@ -24,4 +24,12 @@
     <string name="card_match_scoring">Scoring is based on time and moves: faster times and fewer moves earn higher scores.</string>
     <string name="card_match_description">Match pairs of cards by flipping them. Try to complete the game in the shortest time and with the fewest moves.</string>
     <string name="card_match_title">Welcome to Card Match!</string>
+
+    <array name="appointment_types">
+        <item>Consultation</item>
+        <item>Examination</item>
+        <item>Surgery</item>
+        <item>Follow-up</item>
+        <item>Other</item>
+    </array>
 </resources>

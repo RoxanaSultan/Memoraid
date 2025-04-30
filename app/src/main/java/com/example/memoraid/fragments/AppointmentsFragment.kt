@@ -41,17 +41,19 @@ class AppointmentsFragment : Fragment(R.layout.fragment_appointments) {
         binding.appointmentRecyclerView.layoutManager = LinearLayoutManager(context)
         binding.appointmentRecyclerView.adapter = appointmentAdapter
 
+        appointmentViewModel.loadUser()
+
         sharedViewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
         sharedViewModel.selectedDate.observe(viewLifecycleOwner) { date ->
-            loadAppointments(date)
+            loadAppointments(date, appointmentViewModel.user.value?.id ?: "")
         }
         binding.appointmentRecyclerView.addItemDecoration(VerticalSpaceItemDecoration(16))
 
         return root
     }
 
-    private fun loadAppointments(date: String) {
-        appointmentViewModel.loadAppointments(date)
+    private fun loadAppointments(date: String, userId: String) {
+        appointmentViewModel.loadAppointments(date, userId)
 
         lifecycleScope.launchWhenStarted {
             appointmentViewModel.appointments.collect { uploadedAppointments ->

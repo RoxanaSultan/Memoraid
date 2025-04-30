@@ -18,8 +18,7 @@ class AppointmentRepository @Inject constructor(
         return auth.currentUser?.uid ?: throw SecurityException("User not authenticated")
     }
 
-    suspend fun loadAppointments(date: String): List<Appointment> {
-        val userId = requireUserId()
+    suspend fun loadAppointments(date: String, userId: String): List<Appointment> {
         return firestoreCollection
             .whereEqualTo("userId", userId)
             .whereEqualTo("date", date)
@@ -30,5 +29,36 @@ class AppointmentRepository @Inject constructor(
                 val appointment = doc.toObject(Appointment::class.java)?.copy(id = doc.id)
                 appointment?.copy(isCompleted = doc.getBoolean("isCompleted") ?: false)
             }
+    }
+
+    suspend fun createAppointment(appointment: Appointment): String? {
+        val userId = requireUserId()
+
+        val patientId = firestore.collection("users")
+            .document(userId)
+            .get()
+            .await()
+            .getString("selectedPatient")
+
+        appointment.isCompleted = false
+        if (patientId != null) {
+            appointment.userId = patientId
+        }
+
+        return try {
+            val docRef = firestoreCollection.add(appointment).await()
+            docRef.id
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun deleteAppointment(appointmentId: String): Boolean {
+        return try {
+            firestoreCollection.document(appointmentId).delete().await()
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 }

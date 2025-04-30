@@ -105,6 +105,12 @@ class UserRepository @Inject constructor(
         return authentication.currentUser
     }
 
+    suspend fun getUser(): User? {
+        val currentUser = authentication.currentUser ?: return null
+        val userSnapshot = firebaseCollection.document(currentUser.uid).get().await()
+        return userSnapshot.toObject(User::class.java)
+    }
+
     suspend fun getCurrentPatient(): User? {
         val currentUser = authentication.currentUser ?: return null
         val userSnapshot = firebaseCollection.document(currentUser.uid).get().await()

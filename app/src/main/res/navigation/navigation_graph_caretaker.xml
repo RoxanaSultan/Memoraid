@@ -144,9 +144,9 @@
     <!-- Health Fragment -->
     <fragment
         android:id="@+id/navigation_health"
-        android:name="com.example.memoraid.fragments.HealthFragment"
+        android:name="com.example.memoraid.fragments.HealthObservationFragment"
         android:label="Health"
-        tools:layout="@layout/fragment_health">
+        tools:layout="@layout/fragment_health_caretaker">
     </fragment>
 
     <!-- Journal Details Fragment -->
