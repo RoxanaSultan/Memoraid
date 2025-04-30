@@ -48,33 +48,34 @@ class EditPatientsFragment : Fragment() {
     private fun setupAdapters() {
         existingPatientAdapter = ExistingPatientAdapter(
             patients = emptyList(),
-            context = requireContext(),
-            onDeleteClick = { patient ->
-                viewModel.removePatientFromCaretaker(patient)
-            }
-        )
+            context = requireContext()
+        ) { patient ->
+            viewModel.removePatientFromCaretaker(patient)
+        }
 
         foundPatientAdapter = FoundPatientAdapter(
             patients = emptyList(),
-            context = requireContext(),
-            onAddClick = { patient ->
-                viewModel.addPatientToCaretaker(patient)
-                // Ascunde RecyclerView-ul după adăugare
-                binding.foundPatientsRecyclerView.visibility = View.GONE
-            }
-        )
+            context = requireContext()
+        ) { patient ->
+            // Adaugă pacientul și resetează interfața
+            viewModel.addPatientToCaretaker(patient)
+            binding.searchEditText.text?.clear()
+            binding.foundPatientsRecyclerView.visibility = View.GONE
+        }
     }
 
     private fun setupRecyclerViews() {
         binding.patientsRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = existingPatientAdapter
+            setHasFixedSize(true)
         }
 
         binding.foundPatientsRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = foundPatientAdapter
-            visibility = View.GONE // Inițial ascuns
+            visibility = View.GONE
+            setHasFixedSize(true)
         }
     }
 
@@ -83,6 +84,10 @@ class EditPatientsFragment : Fragment() {
             // Observer pentru pacienții asignați
             viewModel.patients.collect { patients ->
                 existingPatientAdapter.updatePatients(patients)
+                // Forțează refresh UI
+                binding.patientsRecyclerView.post {
+                    existingPatientAdapter.notifyDataSetChanged()
+                }
             }
         }
 
@@ -100,15 +105,18 @@ class EditPatientsFragment : Fragment() {
     }
 
     private fun setupSearch() {
-        binding.searchEditText.doOnTextChanged { text, _, _, _ ->
-            val query = text?.toString()?.trim() ?: ""
-            if (query.length >= 2) { // Caută doar dacă sunt cel puțin 2 caractere
-                viewModel.searchPatients(query)
-            } else {
-                // Ascunde rezultatele dacă textul este prea scurt sau gol
-                binding.foundPatientsRecyclerView.visibility = View.GONE
-                viewModel.clearSearchResults()
+        binding.searchEditText.apply {
+            doOnTextChanged { text, _, _, _ ->
+                val query = text?.toString()?.trim() ?: ""
+                if (query.length >= 2) {
+                    viewModel.searchPatients(query)
+                } else {
+                    binding.foundPatientsRecyclerView.visibility = View.GONE
+                }
             }
+
+            // Opțional: Focus automat pe câmpul de căutare
+            requestFocus()
         }
     }
 }
