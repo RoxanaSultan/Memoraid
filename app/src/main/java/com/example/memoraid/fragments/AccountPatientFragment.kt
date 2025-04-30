@@ -112,7 +112,7 @@ class AccountPatientFragment : Fragment() {
 
         lifecycleScope.launch {
             accountViewModel.getOtherPatients()
-            accountViewModel.patients.collectLatest { patients ->
+            accountViewModel.availablePatients.collectLatest { patients ->
                 popupMenu.menu.clear()
                 patients.forEachIndexed { index, patient ->
                     if (patient != null) {

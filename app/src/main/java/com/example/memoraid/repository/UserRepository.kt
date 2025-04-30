@@ -236,22 +236,27 @@ class UserRepository @Inject constructor(
         }
     }
 
-    suspend fun findPatientByQuery(query: String): User? {
+    suspend fun findPatientsByQuery(query: String): List<User> {
         return withContext(Dispatchers.IO) {
-            val snapshot = firebaseCollection
-                .whereEqualTo("role", "patient")
-                .get()
-                .await()
+            try {
+                val snapshot = firebaseCollection
+                    .whereEqualTo("role", "patient")
+                    .get()
+                    .await()
 
-            val allPatients = snapshot.toObjects(User::class.java)
-            val lowerQuery = query.trim().lowercase()
+                val allPatients = snapshot.toObjects(User::class.java)
+                val lowerQuery = query.trim().lowercase()
 
-            return@withContext allPatients.firstOrNull { user ->
-                user.username?.trim()?.lowercase() == lowerQuery ||
-                        user.firstName?.trim()?.lowercase() == lowerQuery ||
-                        user.lastName?.trim()?.lowercase() == lowerQuery ||
-                        user.phoneNumber?.trim()?.lowercase() == lowerQuery ||
-                        user.email?.trim()?.lowercase() == lowerQuery
+                allPatients.filter { user ->
+                    (user.username?.trim()?.lowercase()?.contains(lowerQuery) == true ||
+                            (user.firstName?.trim()?.lowercase()?.contains(lowerQuery) == true ||
+                                    (user.lastName?.trim()?.lowercase()?.contains(lowerQuery) == true ||
+                                            (user.phoneNumber?.trim()?.lowercase()?.contains(lowerQuery) == true) ||
+                                            (user.email?.trim()?.lowercase()?.contains(lowerQuery) == true)
+                                            )))
+                }
+            } catch (e: Exception) {
+                emptyList()
             }
         }
     }

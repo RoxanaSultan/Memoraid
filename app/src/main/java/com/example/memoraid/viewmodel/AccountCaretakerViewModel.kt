@@ -23,6 +23,12 @@ class AccountCaretakerViewModel @Inject constructor(
     private val _selectedPatient = MutableStateFlow<User?>(null)
     val selectedPatient: StateFlow<User?> get() = _selectedPatient
 
+    private val _availablePatients = MutableStateFlow<List<User?>>(emptyList())
+    val availablePatients: StateFlow<List<User?>> get() = _availablePatients
+
+    private val _searchResults = MutableStateFlow<List<User>>(emptyList())
+    val searchResults: StateFlow<List<User>> get() = _searchResults
+
     private val _patients = MutableStateFlow<List<User?>>(emptyList())
     val patients: StateFlow<List<User?>> get() = _patients
 
@@ -43,7 +49,7 @@ class AccountCaretakerViewModel @Inject constructor(
 
     fun getOtherPatients() {
         viewModelScope.launch {
-            _patients.value = repository.getOtherPatients()
+            _availablePatients.value = repository.getOtherPatients()
         }
     }
 
@@ -98,6 +104,43 @@ class AccountCaretakerViewModel @Inject constructor(
         }
     }
 
+    fun loadAssignedPatients() {
+        viewModelScope.launch {
+            _patients.value = repository.getAssignedPatients()
+        }
+    }
+
+    fun searchPatients(query: String) {
+        viewModelScope.launch {
+            if (query.isNotEmpty()) {
+                val results = repository.findPatientsByQuery(query)
+                val currentPatients = _patients.value.map { it?.id }
+                _searchResults.value = results.filterNot { patient ->
+                    currentPatients.contains(patient.id)
+                }
+            } else {
+                _searchResults.value = emptyList()
+            }
+        }
+    }
+
+    fun addPatientToCaretaker(patient: User) {
+        viewModelScope.launch {
+            repository.addPatientToCurrentCaretaker(patient)
+        }
+    }
+
+    fun removePatientFromCaretaker(patient: User) {
+        repository.removePatientFromCaretaker(patient.id) { success ->
+            if (success) {
+                loadAssignedPatients()
+            }
+        }
+    }
+
+    fun clearSearchResults() {
+        _searchResults.value = emptyList()
+    }
 
     override fun onCleared() {
         snapshotListener?.remove()

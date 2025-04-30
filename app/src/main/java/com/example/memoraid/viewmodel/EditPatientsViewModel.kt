@@ -29,11 +29,11 @@ class EditPatientsViewModel @Inject constructor(
         }
     }
 
-    fun searchPatient(query: String) {
-        viewModelScope.launch {
-            _searchResult.value = userRepository.findPatientByQuery(query)
-        }
-    }
+//    fun searchPatient(query: String) {
+//        viewModelScope.launch {
+//            _searchResult.value = userRepository.findPatientByQuery(query)
+//        }
+//    }
 
     fun addPatientToCaretaker(patient: User) {
         viewModelScope.launch {

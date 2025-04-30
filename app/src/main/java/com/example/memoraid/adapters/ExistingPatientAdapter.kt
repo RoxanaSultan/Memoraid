@@ -9,7 +9,7 @@ import com.example.memoraid.databinding.ItemExistingPatientBinding
 import com.example.memoraid.models.User
 
 class ExistingPatientAdapter(
-    private var patients: List<User>,
+    private var patients: List<User?>,
     private val context: Context,
     private val onDeleteClick: (User) -> Unit
 ) : RecyclerView.Adapter<ExistingPatientAdapter.PatientViewHolder>() {
@@ -21,7 +21,9 @@ class ExistingPatientAdapter(
 
     override fun onBindViewHolder(holder: PatientViewHolder, position: Int) {
         val patient = patients[position]
-        holder.bind(patient)
+        if (patient != null) {
+            holder.bind(patient)
+        }
     }
 
     override fun getItemCount(): Int = patients.size
@@ -34,8 +36,7 @@ class ExistingPatientAdapter(
             binding.patientPhone.text = patient.phoneNumber
 //            binding.patientProfilePicture.setImageResource(patient.profilePicture)
 
-            // Setăm listener pentru butonul de delete
-            binding.addButton.setOnClickListener {
+            binding.deleteButton.setOnClickListener {
                 showDeleteConfirmationDialog(patient)
             }
         }
@@ -53,8 +54,8 @@ class ExistingPatientAdapter(
         }
     }
 
-    fun updatePatients(newPatients: List<User>) {
-          patients = newPatients
+    fun updatePatients(newPatients: List<User?>) {
+        patients = newPatients
         notifyDataSetChanged()
     }
 }
