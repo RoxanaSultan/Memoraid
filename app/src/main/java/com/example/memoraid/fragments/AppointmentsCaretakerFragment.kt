@@ -234,15 +234,27 @@ class AppointmentsCaretakerFragment : Fragment() {
 
     private fun saveAppointment(appointment: Appointment) {
         lifecycleScope.launch {
-            appointmentViewModel.createAppointment(
-                appointment,
-                onSuccess = {
-                    Toast.makeText(requireContext(), "Appointment added successfully", Toast.LENGTH_SHORT).show()
-                },
-                onFailure = {
-                    Toast.makeText(requireContext(), "Error saving appointment", Toast.LENGTH_SHORT).show()
-                }
-            )
+            if (appointment.id != null && appointment.id.isNotEmpty()) {
+                appointmentViewModel.updateAppointment(
+                    appointment,
+                    onSuccess = {
+                        Toast.makeText(requireContext(), "Appointment updated successfully", Toast.LENGTH_SHORT).show()
+                    },
+                    onFailure = {
+                        Toast.makeText(requireContext(), "Error updating appointment", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            } else {
+                appointmentViewModel.createAppointment(
+                    appointment,
+                    onSuccess = { id ->
+                        Toast.makeText(requireContext(), "Appointment added successfully", Toast.LENGTH_SHORT).show()
+                    },
+                    onFailure = {
+                        Toast.makeText(requireContext(), "Error saving appointment", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
         }
     }
 

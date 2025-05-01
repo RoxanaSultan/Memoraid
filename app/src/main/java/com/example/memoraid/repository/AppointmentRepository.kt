@@ -53,6 +53,19 @@ class AppointmentRepository @Inject constructor(
         }
     }
 
+    suspend fun updateAppointment(appointment: Appointment): Boolean {
+        return try {
+            if (appointment.id != null) {
+                firestoreCollection.document(appointment.id!!).set(appointment).await()
+                true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     suspend fun deleteAppointment(appointmentId: String): Boolean {
         return try {
             firestoreCollection.document(appointmentId).delete().await()

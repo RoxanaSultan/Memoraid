@@ -37,6 +37,13 @@ class AppointmentViewModel @Inject constructor(
         }
     }
 
+    fun updateAppointment(appointment: Appointment, onSuccess: () -> Unit, onFailure: () -> Unit) {
+        viewModelScope.launch {
+            val success = appointmentRepository.updateAppointment(appointment)
+            if (success) onSuccess() else onFailure()
+        }
+    }
+
     fun loadUser() {
         viewModelScope.launch {
             _user.value = userRepository.getUser()

@@ -8,7 +8,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memoraid.R
-import com.example.memoraid.databinding.ItemAppointmentBinding
+import com.example.memoraid.databinding.ItemAppointmentCaretakerBinding
 import com.example.memoraid.models.Appointment
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -20,7 +20,7 @@ class AppointmentCaretakerAdapter(
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppointmentViewHolder {
-        val itemBinding = ItemAppointmentBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val itemBinding = ItemAppointmentCaretakerBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return AppointmentViewHolder(itemBinding)
     }
 
@@ -35,7 +35,7 @@ class AppointmentCaretakerAdapter(
         notifyDataSetChanged()
     }
 
-    inner class AppointmentViewHolder(private val binding: ItemAppointmentBinding) :
+    inner class AppointmentViewHolder(private val binding: ItemAppointmentCaretakerBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(appointment: Appointment) {
@@ -53,46 +53,12 @@ class AppointmentCaretakerAdapter(
                 updateLayout(isChecked, binding)
             }
 
-            binding.mapsApp.setOnClickListener {
-                openMaps(appointment.location, binding)
+            binding.editButton.setOnClickListener {
+                onEditClick(appointment)
             }
 
-            binding.taxiApp.setOnClickListener {
-                openTaxi(appointment.location, binding)
-            }
-        }
-
-        private fun openMaps(location: String, binding: ItemAppointmentBinding) {
-            if (location.isBlank()) {
-                Toast.makeText(binding.root.context, "Invalid location", Toast.LENGTH_SHORT).show()
-                return
-            }
-
-            val context = binding.root.context
-            try {
-                val gmmIntentUri = Uri.parse("geo:0,0?q=${Uri.encode(location)}")
-                val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
-
-                context.startActivity(mapIntent)
-            } catch (e: Exception) {
-                val webUri = Uri.parse("https://www.google.com/maps/search/?q=${Uri.encode(location)}")
-                val webIntent = Intent(Intent.ACTION_VIEW, webUri)
-                context.startActivity(webIntent)
-            }
-        }
-
-        private fun openTaxi(destination: String, binding: ItemAppointmentBinding) {
-            val uri = Uri.parse("uber://?action=setPickup&pickup=my_location&dropoff[formatted_address]=${Uri.encode(destination)}")
-            val intent = Intent(Intent.ACTION_VIEW, uri)
-            intent.setPackage("com.ubercab")
-
-            val context = binding.root.context
-            if (intent.resolveActivity(context.packageManager) != null) {
-                context.startActivity(intent)
-            } else {
-                val webUri = Uri.parse("https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${Uri.encode(destination)}")
-                val webIntent = Intent(Intent.ACTION_VIEW, webUri)
-                context.startActivity(webIntent)
+            binding.deleteButton.setOnClickListener {
+                onDeleteClick(appointment)
             }
         }
 
@@ -109,7 +75,7 @@ class AppointmentCaretakerAdapter(
         }
     }
 
-    private fun updateLayout(completed: Boolean, binding: ItemAppointmentBinding) {
+    private fun updateLayout(completed: Boolean, binding: ItemAppointmentCaretakerBinding) {
         if (completed) {
             binding.root.alpha = 0.5f
             binding.root.background = binding.root.context.getDrawable(R.drawable.completed_background)
@@ -125,7 +91,7 @@ class AppointmentCaretakerAdapter(
         }
     }
 
-    private fun updateFontStyle(style: Int, binding: ItemAppointmentBinding) {
+    private fun updateFontStyle(style: Int, binding: ItemAppointmentCaretakerBinding) {
         binding.appointmentName.setTypeface(null, style)
         binding.appointmentDoctor.setTypeface(null, style)
         binding.appointmentTime.setTypeface(null, style)
@@ -133,7 +99,7 @@ class AppointmentCaretakerAdapter(
         binding.appointmentCheckBox.setTypeface(null, style)
     }
 
-    private fun updateFontStyleLabels(style: Int, binding: ItemAppointmentBinding) {
+    private fun updateFontStyleLabels(style: Int, binding: ItemAppointmentCaretakerBinding) {
         binding.appointmentLabelName.setTypeface(null, style)
         binding.appointmentLabelDoctor.setTypeface(null, style)
         binding.appointmentLabelTime.setTypeface(null, style)
