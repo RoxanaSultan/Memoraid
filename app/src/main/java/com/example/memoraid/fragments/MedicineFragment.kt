@@ -42,7 +42,7 @@ class MedicineFragment : Fragment(R.layout.fragment_medicine) {
 
         sharedViewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
         sharedViewModel.selectedDate.observe(viewLifecycleOwner) { date ->
-            loadMedicine(date)
+            loadMedicine(date, medicineViewModel.user.value?.id ?: "")
         }
 
         binding.medicineRecyclerView.addItemDecoration(VerticalSpaceItemDecoration(16)) // 16px spațiu între iteme
@@ -50,8 +50,8 @@ class MedicineFragment : Fragment(R.layout.fragment_medicine) {
         return root
     }
 
-    private fun loadMedicine(date: String) {
-        medicineViewModel.loadMedicine(date)
+    private fun loadMedicine(date: String, userId: String) {
+        medicineViewModel.loadMedicine(date, userId)
 
         lifecycleScope.launchWhenStarted {
             medicineViewModel.medicine.collect { loadedMedicine ->

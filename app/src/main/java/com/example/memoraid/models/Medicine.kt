@@ -1,12 +1,14 @@
 package com.example.memoraid.models
 
+import com.google.firebase.firestore.DocumentId
+
 data class Medicine(
-    var id: String = "",
+    @DocumentId val id: String = "",
     val name: String = "",
-    val time: String = "",
     val date: String = "",
+    val time: String = "",
     val dose: String = "",
+    val note: String = "",
     var userId: String = "",
-    var isTaken: Boolean = false,
-    val note: String? = null
+    var taken: Boolean = false
 )

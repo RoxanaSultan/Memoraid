@@ -40,13 +40,13 @@ class MedicineCaretakerAdapter(
             binding.medicineTime.text = medicine.time
             binding.medicineDose.text = medicine.dose
             binding.medicineNote.text = medicine.note ?: "No notes"
-            binding.medicineCheckBox.isChecked = medicine.isTaken
+            binding.medicineCheckBox.isChecked = medicine.taken
 
-            updateLayout(medicine.isTaken, binding)
+            updateLayout(medicine.taken, binding)
 
             binding.medicineCheckBox.setOnCheckedChangeListener { _, isChecked ->
                 updateMedicineStatus(medicine, isChecked)
-                medicine.isTaken = isChecked
+                medicine.taken = isChecked
                 updateLayout(isChecked, binding)
             }
 
@@ -59,13 +59,13 @@ class MedicineCaretakerAdapter(
             }
         }
 
-        private fun updateMedicineStatus(medicine: Medicine, isTaken: Boolean) {
+        private fun updateMedicineStatus(medicine: Medicine, taken: Boolean) {
             val db = FirebaseFirestore.getInstance()
             val medicineRef = db.collection("medicine").document(medicine.id)
 
-            medicineRef.update("isTaken", isTaken)
+            medicineRef.update("taken", taken)
                 .addOnSuccessListener {
-                    medicine.isTaken = isTaken
+                    medicine.taken = taken
                 }
                 .addOnFailureListener {
                 }

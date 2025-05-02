@@ -43,13 +43,13 @@ class AppointmentCaretakerAdapter(
             binding.appointmentDoctor.text = appointment.doctor ?: "-"
             binding.appointmentTime.text = appointment.time
             binding.appointmentLocation.text = appointment.location
-            binding.appointmentCheckBox.isChecked = appointment.isCompleted
+            binding.appointmentCheckBox.isChecked = appointment.completed
 
-            updateLayout(appointment.isCompleted, binding)
+            updateLayout(appointment.completed, binding)
 
             binding.appointmentCheckBox.setOnCheckedChangeListener { _, isChecked ->
                 updateAppointmentStatus(appointment, isChecked)
-                appointment.isCompleted = isChecked
+                appointment.completed = isChecked
                 updateLayout(isChecked, binding)
             }
 
@@ -62,13 +62,13 @@ class AppointmentCaretakerAdapter(
             }
         }
 
-        private fun updateAppointmentStatus(appointment: Appointment, isCompleted: Boolean) {
+        private fun updateAppointmentStatus(appointment: Appointment, completed: Boolean) {
             val db = FirebaseFirestore.getInstance()
             val appointmentRef = db.collection("appointments").document(appointment.id)
 
-            appointmentRef.update("isCompleted", isCompleted)
+            appointmentRef.update("completed", completed)
                 .addOnSuccessListener {
-                    appointment.isCompleted = isCompleted
+                    appointment.completed = completed
                 }
                 .addOnFailureListener {
                 }

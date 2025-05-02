@@ -92,7 +92,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:background="@drawable/edit_text_box"
-            android:hint="Note"
+            android:hint="Take with water"
             android:padding="12dp"/>
 
         <!-- Save Button -->

@@ -27,7 +27,7 @@ class MedicineRepository @Inject constructor(
             .documents
             .mapNotNull { doc ->
                 val medicine = doc.toObject(Medicine::class.java)?.copy(id = doc.id)
-                medicine?.copy(isTaken = doc.getBoolean("isTaken") ?: false)
+                medicine?.copy(taken = doc.getBoolean("taken") ?: false)
             }
     }
 
@@ -40,7 +40,7 @@ class MedicineRepository @Inject constructor(
             .await()
             .getString("selectedPatient")
 
-        medicine.isTaken = false
+        medicine.taken = false
         if (patientId != null) {
             medicine.userId = patientId
         }

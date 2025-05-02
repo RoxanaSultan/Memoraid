@@ -126,11 +126,14 @@ class MedicineCaretakerFragment : Fragment() {
 
             if (validateMedicineInput(name, date, time, dose, note)) {
                 val newMedicine = medicine?.copy(
+                    id = medicine.id,
                     name = name,
                     date = date,
                     time = time,
                     dose = dose,
-                    note = note
+                    note = note,
+                    userId = medicine.userId,
+                    taken = medicine.taken
                 ) ?: Medicine(name, date, time, dose, note)
 
                 saveMedicine(newMedicine)

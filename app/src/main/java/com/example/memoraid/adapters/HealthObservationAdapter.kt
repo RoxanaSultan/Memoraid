@@ -4,7 +4,7 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.memoraid.fragments.HabitsFragment
 import com.example.memoraid.fragments.AppointmentsCaretakerFragment
-import com.example.memoraid.fragments.MedicineFragment
+import com.example.memoraid.fragments.MedicineCaretakerFragment
 
 class HealthObservationAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
     override fun getItemCount(): Int = 3
@@ -12,7 +12,7 @@ class HealthObservationAdapter(fragment: Fragment) : FragmentStateAdapter(fragme
     override fun createFragment(position: Int): Fragment {
         return when (position) {
             0 -> AppointmentsCaretakerFragment()
-            1 -> MedicineFragment()
+            1 -> MedicineCaretakerFragment()
             2 -> HabitsFragment()
             else -> throw IllegalArgumentException("Invalid tab position")
         }

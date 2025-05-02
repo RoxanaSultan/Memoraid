@@ -27,24 +27,11 @@ class AppointmentRepository @Inject constructor(
             .documents
             .mapNotNull { doc ->
                 val appointment = doc.toObject(Appointment::class.java)?.copy(id = doc.id)
-                appointment?.copy(isCompleted = doc.getBoolean("isCompleted") ?: false)
+                appointment?.copy(completed = doc.getBoolean("completed") ?: false)
             }
     }
 
     suspend fun createAppointment(appointment: Appointment): String? {
-        val userId = requireUserId()
-
-        val patientId = firestore.collection("users")
-            .document(userId)
-            .get()
-            .await()
-            .getString("selectedPatient")
-
-        appointment.isCompleted = false
-        if (patientId != null) {
-            appointment.userId = patientId
-        }
-
         return try {
             val docRef = firestoreCollection.add(appointment).await()
             docRef.id

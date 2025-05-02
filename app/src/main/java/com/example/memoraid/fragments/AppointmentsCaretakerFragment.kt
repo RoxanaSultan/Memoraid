@@ -124,13 +124,25 @@ class AppointmentsCaretakerFragment : Fragment() {
 
             if (validateAppointmentInput(title, doctor, date, time, location, type)) {
                 val newAppointment = appointment?.copy(
+                    id = appointment.id,
                     name = title,
                     doctor = doctor,
                     date = date,
                     time = time,
                     location = location,
-                    type = type
-                ) ?: Appointment(title, doctor, date, time, location, type)
+                    type = type,
+                    userId = appointment.userId,
+                    completed = false
+                ) ?: Appointment(
+                    appointment?.id ?: "",
+                    title,
+                    doctor,
+                    date,
+                    time,
+                    location,
+                    type,
+                    appointmentViewModel.user.value?.selectedPatient ?: "",
+                    false)
 
                 saveAppointment(newAppointment)
                 dialog.dismiss()
