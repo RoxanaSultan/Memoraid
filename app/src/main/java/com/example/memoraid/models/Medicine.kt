@@ -6,7 +6,7 @@ data class Medicine(
     val time: String = "",
     val date: String = "",
     val dose: String = "",
-    val userId: String = "",
+    var userId: String = "",
     var isTaken: Boolean = false,
     val note: String? = null
 )

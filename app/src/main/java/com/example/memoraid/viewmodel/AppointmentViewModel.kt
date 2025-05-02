@@ -24,6 +24,12 @@ class AppointmentViewModel @Inject constructor(
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
 
+    fun loadUser() {
+        viewModelScope.launch {
+            _user.value = userRepository.getUser()
+        }
+    }
+
     fun loadAppointments(date: String, userId: String) {
         viewModelScope.launch {
             _appointments.value = appointmentRepository.loadAppointments(date, userId).toMutableList()
@@ -44,33 +50,10 @@ class AppointmentViewModel @Inject constructor(
         }
     }
 
-    fun loadUser() {
-        viewModelScope.launch {
-            _user.value = userRepository.getUser()
-        }
-    }
-
     fun deleteAppointment(appointmentId: String, onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
             val success = appointmentRepository.deleteAppointment(appointmentId)
-            onComplete(success)  // Apelează callback-ul pentru a semnala succesul sau eșecul
+            onComplete(success)
         }
     }
-
-//
-//    fun loadAppointmentDetails(appointmentId: String) {
-//        viewModelScope.launch {
-//            _appointmentDetails.value = appointmentRepository.loadAppointmentDetails(appointmentId)
-//        }
-//    }
-//
-//    suspend fun saveAppointmentDetails(appointment: Appointment): Boolean {
-//        _isSaving.value = true
-//        return try {
-//            val success = appointmentRepository.saveAppointmentDetails(appointment)
-//            success
-//        } finally {
-//            _isSaving.value = false
-//        }
-//    }
 }

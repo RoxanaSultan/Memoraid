@@ -18,8 +18,7 @@ class MedicineRepository @Inject constructor(
         return auth.currentUser?.uid ?: throw SecurityException("User not authenticated")
     }
 
-    suspend fun loadMedicine(date: String): List<Medicine> {
-        val userId = requireUserId()
+    suspend fun loadMedicine(date: String, userId: String): List<Medicine> {
         return firestoreCollection
             .whereEqualTo("userId", userId)
             .whereEqualTo("date", date)
@@ -30,5 +29,49 @@ class MedicineRepository @Inject constructor(
                 val medicine = doc.toObject(Medicine::class.java)?.copy(id = doc.id)
                 medicine?.copy(isTaken = doc.getBoolean("isTaken") ?: false)
             }
+    }
+
+    suspend fun addMedicine(medicine: Medicine): String? {
+        val userId = requireUserId()
+
+        val patientId = firestore.collection("users")
+            .document(userId)
+            .get()
+            .await()
+            .getString("selectedPatient")
+
+        medicine.isTaken = false
+        if (patientId != null) {
+            medicine.userId = patientId
+        }
+
+        return try {
+            val docRef = firestoreCollection.add(medicine).await()
+            docRef.id
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun updateMedicine(medicine: Medicine): Boolean {
+        return try {
+            if (medicine.id != null) {
+                firestoreCollection.document(medicine.id!!).set(medicine).await()
+                true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun deleteMedicine(medicineId: String): Boolean {
+        return try {
+            firestoreCollection.document(medicineId).delete().await()
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 }
