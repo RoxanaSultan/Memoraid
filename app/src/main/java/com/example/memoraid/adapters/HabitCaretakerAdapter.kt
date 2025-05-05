@@ -39,11 +39,9 @@ class HabitCaretakerAdapter(
 
             binding.habitName.text = habit.name
 
-            // Important: dezactivezi listenerul
             binding.habitCheckBox.setOnCheckedChangeListener(null)
             binding.habitCheckBox.isChecked = isDateChecked
 
-            // Reactivezi listenerul după ce ai setat corect starea
             binding.habitCheckBox.setOnCheckedChangeListener { _, isChecked ->
                 onCheckClick(habit)
                 updateLayout(isChecked, binding)

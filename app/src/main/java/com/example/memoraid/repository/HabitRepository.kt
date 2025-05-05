@@ -41,6 +41,7 @@ class HabitRepository @Inject constructor(
         if (patientId != null) {
             habit.userId = patientId
         }
+        habit.checkedDates = arrayListOf()
 
         return try {
             val docRef = habitsCollection.add(habit).await()

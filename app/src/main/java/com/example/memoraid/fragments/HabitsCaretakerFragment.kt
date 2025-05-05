@@ -24,6 +24,7 @@ import com.example.memoraid.utils.VerticalSpaceItemDecoration
 import com.example.memoraid.viewmodel.HabitViewModel
 import kotlinx.coroutines.launch
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.emptyArray
 
 @AndroidEntryPoint
 class HabitsCaretakerFragment : Fragment() {
@@ -45,7 +46,7 @@ class HabitsCaretakerFragment : Fragment() {
         _binding = FragmentHabitsCaretakerBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        sharedViewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)  // Initializare sharedViewModel
+        sharedViewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
 
         val date = sharedViewModel.selectedDate.value ?: return root
 
@@ -90,7 +91,7 @@ class HabitsCaretakerFragment : Fragment() {
     }
 
     private fun showAddHabitDialog(habit: Habit? = null) {
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_medicine, null)
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_habit, null)
         val dialog = AlertDialog.Builder(requireContext())
             .setTitle(if (habit == null) "Add New Habit" else "Edit Habit")
             .setView(dialogView)
@@ -111,9 +112,12 @@ class HabitsCaretakerFragment : Fragment() {
                 val newHabit = habit?.copy(
                     id = habit.id,
                     name = name,
-                    userId = habit.userId,
+                    userId = habitViewModel.user.value?.selectedPatient ?: "",
                     checkedDates = habit.checkedDates
-                ) ?: Habit(name)
+                ) ?: Habit(
+                    name = name,
+                    userId = habitViewModel.user.value?.selectedPatient ?: "",
+                    checkedDates = arrayListOf())
 
                 saveHabit(newHabit)
                 dialog.dismiss()
@@ -187,7 +191,7 @@ class HabitsCaretakerFragment : Fragment() {
             habitViewModel.deleteHabit(habit.id) { result ->
                 if (result) {
                     Toast.makeText(requireContext(), "Habit deleted successfully", Toast.LENGTH_SHORT).show()
-                    loadHabits(habitViewModel.user.value?.id ?: "")
+                    loadHabits(habitViewModel.user.value?.selectedPatient ?: "")
                 } else {
                     Toast.makeText(requireContext(), "Error deleting habit", Toast.LENGTH_SHORT).show()
                 }
@@ -202,7 +206,7 @@ class HabitsCaretakerFragment : Fragment() {
                     habit,
                     onSuccess = {
                         Toast.makeText(requireContext(), "Habit updated successfully", Toast.LENGTH_SHORT).show()
-                        loadHabits(habitViewModel.user.value?.id ?: "")
+                        loadHabits(habitViewModel.user.value?.selectedPatient ?: "")
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error updating habit", Toast.LENGTH_SHORT).show()
@@ -213,7 +217,7 @@ class HabitsCaretakerFragment : Fragment() {
                     habit,
                     onSuccess = { id ->
                         Toast.makeText(requireContext(), "Habit added successfully", Toast.LENGTH_SHORT).show()
-                        loadHabits(habitViewModel.user.value?.id ?: "")
+                        loadHabits(habitViewModel.user.value?.selectedPatient ?: "")
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error saving habit", Toast.LENGTH_SHORT).show()
