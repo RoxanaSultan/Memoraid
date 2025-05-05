@@ -248,6 +248,7 @@ class AppointmentsCaretakerFragment : Fragment() {
                     appointment,
                     onSuccess = {
                         Toast.makeText(requireContext(), "Appointment updated successfully", Toast.LENGTH_SHORT).show()
+                        loadAppointments(sharedViewModel.selectedDate.value ?: "", appointmentViewModel.user.value?.selectedPatient ?: "")
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error updating appointment", Toast.LENGTH_SHORT).show()
@@ -258,6 +259,7 @@ class AppointmentsCaretakerFragment : Fragment() {
                     appointment,
                     onSuccess = { id ->
                         Toast.makeText(requireContext(), "Appointment added successfully", Toast.LENGTH_SHORT).show()
+                        loadAppointments(sharedViewModel.selectedDate.value ?: "", appointmentViewModel.user.value?.selectedPatient ?: "")
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error saving appointment", Toast.LENGTH_SHORT).show()

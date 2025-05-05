@@ -212,6 +212,7 @@ class MedicineCaretakerFragment : Fragment() {
                     medicine,
                     onSuccess = {
                         Toast.makeText(requireContext(), "Medicine updated successfully", Toast.LENGTH_SHORT).show()
+                        loadMedicine(sharedViewModel.selectedDate.value ?: "", medicineViewModel.user.value?.selectedPatient ?: "")
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error updating Medicine", Toast.LENGTH_SHORT).show()
@@ -222,6 +223,7 @@ class MedicineCaretakerFragment : Fragment() {
                     medicine,
                     onSuccess = { id ->
                         Toast.makeText(requireContext(), "Medicine added successfully", Toast.LENGTH_SHORT).show()
+                        loadMedicine(sharedViewModel.selectedDate.value ?: "", medicineViewModel.user.value?.selectedPatient ?: "")
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error saving medicine", Toast.LENGTH_SHORT).show()

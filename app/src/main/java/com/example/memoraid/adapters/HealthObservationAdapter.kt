@@ -2,7 +2,7 @@ package com.example.memoraid.adapters
 
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.example.memoraid.fragments.HabitsFragment
+import com.example.memoraid.fragments.HabitsCaretakerFragment
 import com.example.memoraid.fragments.AppointmentsCaretakerFragment
 import com.example.memoraid.fragments.MedicineCaretakerFragment
 
@@ -13,7 +13,7 @@ class HealthObservationAdapter(fragment: Fragment) : FragmentStateAdapter(fragme
         return when (position) {
             0 -> AppointmentsCaretakerFragment()
             1 -> MedicineCaretakerFragment()
-            2 -> HabitsFragment()
+            2 -> HabitsCaretakerFragment()
             else -> throw IllegalArgumentException("Invalid tab position")
         }
     }

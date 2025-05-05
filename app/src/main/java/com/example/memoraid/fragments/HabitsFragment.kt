@@ -37,6 +37,8 @@ class HabitsFragment : Fragment() {
         _binding = FragmentHabitsBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
+        habitViewModel.loadUser()
+
         binding.habitsRecyclerView.layoutManager = LinearLayoutManager(context)
         binding.habitsRecyclerView.adapter = habitAdapter
 
@@ -51,7 +53,7 @@ class HabitsFragment : Fragment() {
     }
 
     private fun loadHabits(date: String) {
-        habitViewModel.loadHabits()
+        habitViewModel.loadHabits(habitViewModel.user.value?.id ?: "")
 
         lifecycleScope.launchWhenStarted {
             habitViewModel.habits.collect { loadedHabits ->

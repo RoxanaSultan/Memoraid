@@ -2,9 +2,9 @@ package com.example.memoraid.models
 
 import com.google.firebase.firestore.DocumentId
 
-data class Habit (
+data class Habit(
     @DocumentId val id: String = "",
     val name: String = "",
-    val userId: String = "",
+    var userId: String = "",
     val checkedDates: ArrayList<String> = arrayListOf(),
 )
