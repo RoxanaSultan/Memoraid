@@ -2,6 +2,7 @@ package com.example.memoraid.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.memoraid.models.CardGame
 import com.example.memoraid.models.User
 import com.example.memoraid.repository.CardGameRepository
 import com.example.memoraid.repository.UserRepository
@@ -17,12 +18,21 @@ class CardGamesViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
+    private val _weeklyActivity = MutableStateFlow<List<CardGame>>(emptyList())
+    val weeklyActivity: StateFlow<List<CardGame>> = _weeklyActivity
+
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
 
     fun loadUser() {
         viewModelScope.launch {
             _user.value = userRepository.getUser()
+        }
+    }
+
+    fun loadLastPlayedGames(userId: String) {
+        viewModelScope.launch {
+            _weeklyActivity.value = cardGameRepository.loadLastPlayedGames(userId)
         }
     }
 

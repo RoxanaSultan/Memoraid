@@ -30,6 +30,7 @@ class AppointmentCaretakerAdapter(
     }
 
     override fun getItemCount(): Int = appointments.size
+
     fun sortAppointmentsByTime() {
         appointments.sortWith(compareBy { it.time })
         notifyDataSetChanged()

@@ -5,17 +5,18 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.Spinner
 import android.widget.TableRow
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.memoraid.R
+import com.example.memoraid.adapters.CardGameAdapter
 import com.example.memoraid.databinding.FragmentCardGameCaretakerBinding
+import com.example.memoraid.models.CardGame
+import com.example.memoraid.utils.VerticalSpaceItemDecoration
 import com.example.memoraid.viewmodel.CardGamesViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -25,6 +26,8 @@ class CardGameCaretakerFragment : Fragment() {
     private var _binding: FragmentCardGameCaretakerBinding? = null
     private val binding get() = _binding!!
     private val cardGamesViewModel: CardGamesViewModel by viewModels()
+    private val activity = mutableListOf<CardGame>()
+    private var activityAdapter = CardGameAdapter(activity)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,9 +37,12 @@ class CardGameCaretakerFragment : Fragment() {
 
         cardGamesViewModel.loadUser()
 
+        setupRecyclerView()
+
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             cardGamesViewModel.user.collect { user ->
                 if (user != null && !user.selectedPatient.isNullOrEmpty()) {
+                    loadActivity(user.selectedPatient)
                     loadLevelsFromFirebase()
                 }
             }
@@ -45,23 +51,29 @@ class CardGameCaretakerFragment : Fragment() {
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    private fun loadActivity(selectedPatient: String) {
+        cardGamesViewModel.loadLastPlayedGames(selectedPatient)
+
+        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+            cardGamesViewModel.weeklyActivity.collect { games ->
+                activity.clear()
+                activity.addAll(games)
+                activityAdapter.sortGamesByDateAndTime()
+                activityAdapter.notifyDataSetChanged()
+            }
+        }
+    }
+
+    private fun setupRecyclerView() {
+        binding.weeklyActivityRecyclerView.layoutManager = LinearLayoutManager(context)
+        binding.weeklyActivityRecyclerView.adapter = activityAdapter
+        binding.weeklyActivityRecyclerView.addItemDecoration(VerticalSpaceItemDecoration(16))
     }
 
     private fun loadLevelsFromFirebase() {
         cardGamesViewModel.loadCardGameLevels(cardGamesViewModel.user.value?.selectedPatient ?: "",
             onSuccess = { levels ->
                 updateLevelsUI(levels)
-
-                cardGamesViewModel.getTotalGameScore(cardGamesViewModel.user.value?.selectedPatient ?: "",
-                    onSuccess = { score ->
-//                        binding.totalScoreTextView.text = "Total Score: $score"
-                    },
-                    onFailure = { exception ->
-                        Toast.makeText(requireContext(), "Error loading total score: ${exception.message}", Toast.LENGTH_SHORT).show()
-                    }
-                )
             },
             onFailure = { exception ->
                 Toast.makeText(requireContext(), "Error loading levels: ${exception.message}", Toast.LENGTH_SHORT).show()

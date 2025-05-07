@@ -35,32 +35,6 @@
         android:padding="10dp"
         android:textAlignment="center"/>
 
-    <!-- Total Games Played -->
-    <TextView
-        android:id="@+id/totalGames"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Total games played: "
-        android:textSize="20sp"
-        android:layout_marginTop="20dp"
-        app:layout_constraintTop_toBottomOf="@id/gameRules"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:textColor="@drawable/foreground_color"
-        android:textStyle="bold"/>
-
-    <TextView
-        android:id="@+id/totalGamesValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0"
-        android:textSize="20sp"
-        android:layout_marginTop="20dp"
-        app:layout_constraintTop_toBottomOf="@id/gameRules"
-        app:layout_constraintStart_toEndOf="@id/totalGames"
-        android:textColor="@drawable/foreground_color"
-        android:textStyle="bold"/>
-
     <!-- Levels Table Title -->
     <TextView
         android:id="@+id/levelsTitle"
@@ -69,7 +43,7 @@
         android:text="Statistics per level"
         android:textSize="20sp"
         android:layout_marginTop="30dp"
-        app:layout_constraintTop_toBottomOf="@id/totalGames"
+        app:layout_constraintTop_toBottomOf="@id/gameRules"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:textColor="@drawable/foreground_color"
@@ -157,17 +131,30 @@
 
     </TableLayout>
 
-    <!-- Weekly Activity Button -->
-    <Button
-        android:id="@+id/weeklyActivityButton"
+    <!-- Weekly Activity Title -->
+    <TextView
+        android:id="@+id/weeklyActivityTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Weekly Activity"
+        android:textSize="20sp"
+        android:textStyle="bold"
         android:layout_marginTop="30dp"
         app:layout_constraintTop_toBottomOf="@id/levelsTableLayout"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:textColor="@drawable/foreground_color"
-        android:background="@drawable/button_selector"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        android:textColor="@drawable/foreground_color" />
+
+    <!-- RecyclerView for Weekly Activity -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/weeklyActivityRecyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintTop_toBottomOf="@id/weeklyActivityTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
