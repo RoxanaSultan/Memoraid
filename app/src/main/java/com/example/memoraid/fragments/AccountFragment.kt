@@ -9,7 +9,6 @@ import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -22,7 +21,6 @@ import com.example.memoraid.activities.AuthenticationActivity
 import com.example.memoraid.R
 import com.example.memoraid.databinding.FragmentAccountBinding
 import com.example.memoraid.viewmodel.AccountViewModel
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch

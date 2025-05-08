@@ -87,6 +87,10 @@ class AccountPatientFragment : Fragment() {
             }
         }
 
+        binding.locationButton.setOnClickListener {
+            findNavController().navigate(R.id.action_accountPatientFragment_to_patientLocationFragment)
+        }
+
         binding.logoutButton.setOnClickListener {
             showLogoutConfirmationDialog()
         }

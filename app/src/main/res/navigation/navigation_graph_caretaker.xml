@@ -34,6 +34,17 @@
         <action
             android:id="@+id/action_accountPatientFragment_to_fullScreenImageFragment"
             app:destination="@id/navigation_full_screen_image" />
+        <action
+            android:id="@+id/action_accountPatientFragment_to_patientLocationFragment"
+            app:destination="@id/navigation_patient_location" />
+    </fragment>
+
+    <!-- Patient Location Fragment -->
+    <fragment
+        android:id="@+id/navigation_patient_location"
+        android:name="com.example.memoraid.fragments.PatientLocationFragment"
+        android:label="PatientLocationFragment"
+        tools:layout="@layout/fragment_patient_location">
     </fragment>
 
     <!-- Journal Fragment -->

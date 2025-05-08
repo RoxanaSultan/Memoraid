@@ -245,6 +245,15 @@
             android:padding="13dp"
             android:background="@drawable/button_selector"
             android:textColor="@drawable/foreground_color"/>
+
+        <android.widget.Button
+            android:id="@+id/location_button"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="Patient's Location"
+            android:padding="13dp"
+            android:background="@drawable/button_selector"
+            android:textColor="@drawable/foreground_color"/>
     </LinearLayout>
 
 
