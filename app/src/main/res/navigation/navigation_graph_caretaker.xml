@@ -17,6 +17,9 @@
         <action
             android:id="@+id/action_accountCaretakerFragment_to_editPatientsFragment"
             app:destination="@id/fragment_edit_patients" />
+        <action
+            android:id="@+id/action_accountCaretakerFragment_to_fullScreenImageFragment"
+            app:destination="@id/navigation_full_screen_image" />
     </fragment>
 
     <!-- Account Patient Fragment -->
@@ -28,6 +31,9 @@
         <action
             android:id="@+id/action_accountPatientFragment_to_changePasswordFragment"
             app:destination="@id/fragment_change_password" />
+        <action
+            android:id="@+id/action_accountPatientFragment_to_fullScreenImageFragment"
+            app:destination="@id/navigation_full_screen_image" />
     </fragment>
 
     <!-- Journal Fragment -->

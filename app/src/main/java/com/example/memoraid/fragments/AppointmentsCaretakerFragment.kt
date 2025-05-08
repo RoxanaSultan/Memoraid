@@ -102,7 +102,6 @@ class AppointmentsCaretakerFragment : Fragment() {
 
         setupAppointmentTypeSpinner(spinnerType)
 
-        // Fill the fields if editing
         appointment?.let {
             etTitle.setText(it.name)
             etDoctor.setText(it.doctor)

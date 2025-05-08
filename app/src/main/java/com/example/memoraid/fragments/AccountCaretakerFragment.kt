@@ -68,7 +68,7 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
                     Glide.with(this@AccountCaretakerFragment)
                         .load(it.profilePictureUrl)
                         .placeholder(R.drawable.default_profile_picture)
-                        .circleCrop()
+//                        .circleCrop()
                         .into(binding.profilePicture)
                 }
             }
@@ -93,6 +93,16 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
 
         binding.editPatients.setOnClickListener {
             findNavController().navigate(R.id.action_accountCaretakerFragment_to_editPatientsFragment)
+        }
+
+        binding.profilePicture.setOnClickListener {
+            val imageUrl = accountViewModel.user.value?.profilePictureUrl
+            if (!imageUrl.isNullOrEmpty()) {
+                val bundle = Bundle().apply {
+                    putString("image", imageUrl)
+                }
+                findNavController().navigate(R.id.action_accountCaretakerFragment_to_fullScreenImageFragment, bundle)
+            }
         }
 
         binding.logoutButton.setOnClickListener {
@@ -124,7 +134,7 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
     }
 
     private fun logout() {
-        FirebaseAuth.getInstance().signOut()
+        accountViewModel.logout()
         val intent = Intent(requireContext(), AuthenticationActivity::class.java)
         startActivity(intent)
         requireActivity().finish()
@@ -138,7 +148,7 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
             Glide.with(this)
                 .load(it)
                 .placeholder(R.drawable.default_profile_picture)
-                .circleCrop()
+//                .circleCrop()
                 .into(binding.profilePicture)
         }
     }
@@ -151,7 +161,7 @@ class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
             Glide.with(this)
                 .load(selectedImageUri)
                 .placeholder(R.drawable.default_profile_picture)
-                .circleCrop()
+//                .circleCrop()
                 .into(binding.profilePicture)
         }
     }

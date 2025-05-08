@@ -103,7 +103,6 @@ class AlbumDetailsFragment : Fragment(R.layout.fragment_album_details) {
 
     private fun loadAlbumDetails(albumId: String) {
         binding.progressBar.visibility = View.VISIBLE
-//        binding.blockingView.visibility = View.VISIBLE
         binding.root.alpha = 0.5f
         binding.root.setEnabledRecursively(false)
 
@@ -120,7 +119,6 @@ class AlbumDetailsFragment : Fragment(R.layout.fragment_album_details) {
                     imageAdapter.notifyDataSetChanged()
                 }
                 binding.progressBar.visibility = View.GONE
-//                binding.blockingView.visibility = View.GONE
                 binding.root.alpha = 1f
                 binding.root.setEnabledRecursively(true)
             }
@@ -129,7 +127,6 @@ class AlbumDetailsFragment : Fragment(R.layout.fragment_album_details) {
 
     private fun saveAlbumDetails() {
         binding.progressBar.visibility = View.VISIBLE
-//        binding.blockingView.visibility = View.VISIBLE
         binding.root.alpha = 0.5f
         binding.root.setEnabledRecursively(false)
 
@@ -194,7 +191,6 @@ class AlbumDetailsFragment : Fragment(R.layout.fragment_album_details) {
                                     Toast.LENGTH_SHORT
                                 ).show()
                                 binding.progressBar.visibility = View.GONE
-//                                binding.blockingView.visibility = View.GONE
                                 binding.root.alpha = 1f
                                 binding.root.setEnabledRecursively(true)
                             }

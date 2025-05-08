@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AccountViewModel @Inject constructor(
-    private val repository: UserRepository
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
@@ -30,18 +30,40 @@ class AccountViewModel @Inject constructor(
     }
 
     private fun setupUserListener() {
-        val userId = repository.getCurrentUser()?.uid ?: return
+        val userId = userRepository.getCurrentUser()?.uid ?: return
         snapshotListener?.remove()
 
-        snapshotListener = repository.observeUser(userId) { user ->
+        snapshotListener = userRepository.observeUser(userId) { user ->
             _user.value = user
         }
     }
 
     fun loadUser() {
-        val userId = repository.getCurrentUser()?.uid
+        val userId = userRepository.getCurrentUser()?.uid
         viewModelScope.launch {
-            _user.value = repository.getUser(userId!!)
+            _user.value = userRepository.getUser(userId!!)
+        }
+    }
+
+    fun logout() {
+        userRepository.logout()
+    }
+
+    fun uploadAndSaveProfilePicture(uri: Uri, userId: String) {
+        viewModelScope.launch {
+            userRepository.uploadAndSaveProfilePicture(uri, userId)
+        }
+    }
+
+    fun removeProfilePicture(userId: String) {
+        viewModelScope.launch {
+            userRepository.removeProfilePicture(userId)
+        }
+    }
+
+    fun deleteImageFromStorage(image: String) {
+        viewModelScope.launch {
+            userRepository.deleteImageFromStorage(image)
         }
     }
 

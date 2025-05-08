@@ -43,6 +43,10 @@ class UserRepository @Inject constructor(
         }
     }
 
+    fun logout() {
+        FirebaseAuth.getInstance().signOut()
+    }
+
     suspend fun getPatient(caretakerId: String): User? {
         return try {
             val caretakerDocument = firebaseCollection.document(caretakerId).get().await()

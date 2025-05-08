@@ -11,7 +11,11 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.example.memoraid.databinding.ItemHabitBinding
 import com.example.memoraid.R
 
-class HabitAdapter(private val habits: MutableList<Habit>, internal var date: String) :
+class HabitAdapter(
+    private val habits: MutableList<Habit>,
+    internal var date: String,
+    private val onCheckClick: (Habit) -> Unit
+) :
     RecyclerView.Adapter<HabitAdapter.HabitViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HabitViewHolder {

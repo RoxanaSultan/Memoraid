@@ -53,6 +53,10 @@ class AccountCaretakerViewModel @Inject constructor(
         }
     }
 
+    fun logout() {
+        repository.logout()
+    }
+
     fun loadPatient() {
         val userId = repository.getCurrentUser()?.uid
         viewModelScope.launch {

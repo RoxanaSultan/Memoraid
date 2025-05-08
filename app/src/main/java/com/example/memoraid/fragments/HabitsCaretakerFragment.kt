@@ -24,7 +24,6 @@ import com.example.memoraid.utils.VerticalSpaceItemDecoration
 import com.example.memoraid.viewmodel.HabitViewModel
 import kotlinx.coroutines.launch
 import dagger.hilt.android.AndroidEntryPoint
-import kotlin.emptyArray
 
 @AndroidEntryPoint
 class HabitsCaretakerFragment : Fragment() {

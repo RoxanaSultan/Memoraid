@@ -32,6 +32,7 @@ import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import com.example.memoraid.viewmodel.AccountCaretakerViewModel
 import java.text.ParseException
 
@@ -76,6 +77,16 @@ class AccountPatientFragment : Fragment() {
             }
         }
 
+        binding.profilePicture.setOnClickListener {
+            val imageUrl = accountViewModel.selectedPatient.value?.profilePictureUrl
+            if (!imageUrl.isNullOrEmpty()) {
+                val bundle = Bundle().apply {
+                    putString("image", imageUrl)
+                }
+                findNavController().navigate(R.id.action_accountPatientFragment_to_fullScreenImageFragment, bundle)
+            }
+        }
+
         binding.logoutButton.setOnClickListener {
             showLogoutConfirmationDialog()
         }
@@ -98,7 +109,7 @@ class AccountPatientFragment : Fragment() {
                         Glide.with(this@AccountPatientFragment)
                             .load(it.profilePictureUrl)
                             .placeholder(R.drawable.default_profile_picture)
-                            .circleCrop()
+//                            .circleCrop()
                             .into(binding.profilePicture)
                     }
                 }
@@ -155,7 +166,7 @@ class AccountPatientFragment : Fragment() {
     }
 
     private fun logout() {
-        FirebaseAuth.getInstance().signOut()
+        accountViewModel.logout()
         val intent = Intent(requireContext(), AuthenticationActivity::class.java)
         startActivity(intent)
         requireActivity().finish()
@@ -169,7 +180,7 @@ class AccountPatientFragment : Fragment() {
             Glide.with(this)
                 .load(it)
                 .placeholder(R.drawable.default_profile_picture)
-                .circleCrop()
+//                .circleCrop()
                 .into(binding.profilePicture)
         }
     }
@@ -182,7 +193,7 @@ class AccountPatientFragment : Fragment() {
             Glide.with(this)
                 .load(selectedImageUri)
                 .placeholder(R.drawable.default_profile_picture)
-                .circleCrop()
+//                .circleCrop()
                 .into(binding.profilePicture)
         }
     }

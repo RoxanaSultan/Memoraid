@@ -7,8 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.memoraid.adapters.MedicineAdapter
 import com.example.memoraid.databinding.FragmentMedicineBinding
@@ -17,6 +19,8 @@ import com.example.memoraid.utils.VerticalSpaceItemDecoration
 import com.example.memoraid.viewmodel.MedicineViewModel
 import com.example.memoraid.R
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import org.checkerframework.checker.units.qual.m
 
 @AndroidEntryPoint
 class MedicineFragment : Fragment(R.layout.fragment_medicine) {
@@ -37,38 +41,47 @@ class MedicineFragment : Fragment(R.layout.fragment_medicine) {
         _binding = FragmentMedicineBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        binding.medicineRecyclerView.layoutManager = LinearLayoutManager(context)
-        binding.medicineRecyclerView.adapter = medicineAdapter
-
         sharedViewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
-        sharedViewModel.selectedDate.observe(viewLifecycleOwner) { date ->
-            loadMedicine(date, medicineViewModel.user.value?.id ?: "")
-        }
-
-        binding.medicineRecyclerView.addItemDecoration(VerticalSpaceItemDecoration(16)) // 16px spațiu între iteme
+        setupRecyclerView()
+        loadUserData()
 
         return root
+    }
+
+    private fun setupRecyclerView() {
+        binding.medicineRecyclerView.layoutManager = LinearLayoutManager(context)
+        binding.medicineRecyclerView.adapter = medicineAdapter
+        binding.medicineRecyclerView.addItemDecoration(VerticalSpaceItemDecoration(16))
+    }
+
+    private fun loadUserData() {
+        medicineViewModel.loadUser()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                medicineViewModel.user.collect { user ->
+                    user?.let {
+                        sharedViewModel.selectedDate.observe(viewLifecycleOwner) { date ->
+                            it.id?.let { userId ->
+                                loadMedicine(date, userId)
+                                medicineAdapter.notifyDataSetChanged()
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun loadMedicine(date: String, userId: String) {
         medicineViewModel.loadMedicine(date, userId)
 
-        lifecycleScope.launchWhenStarted {
-            medicineViewModel.medicine.collect { loadedMedicine ->
-                medicine.clear()
-                loadedMedicine.forEach { loaded_medicine ->
-                    medicine.add(loaded_medicine)
-                }
-
-                medicineAdapter = MedicineAdapter(medicine)
-                medicineAdapter.sortMedicineByTime()
-                binding.medicineRecyclerView.adapter = medicineAdapter
-                medicineAdapter.notifyDataSetChanged()
-
-                if (medicine.isEmpty()) {
-                    binding.noMedicineTextView.visibility = View.VISIBLE
-                } else {
-                    binding.noMedicineTextView.visibility = View.GONE
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                medicineViewModel.medicine.collect {  uploadedMedicine->
+                    medicine.clear()
+                    medicine.addAll(uploadedMedicine)
+                    medicineAdapter.notifyDataSetChanged()
                 }
             }
         }
