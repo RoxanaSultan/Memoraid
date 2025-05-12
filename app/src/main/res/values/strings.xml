@@ -25,6 +25,7 @@
     <string name="card_match_description">Match pairs of cards by flipping them. Try to complete the game in the shortest time and with the fewest moves.</string>
     <string name="card_match_description_caretaker">The player has to match pairs of cards by flipping them. Faster times and fewer moves earn higher scores.</string>
     <string name="card_match_title">Welcome to Card Match!</string>
+    <string name="apiKey">AIzaSyC5aJdQfZVWc1XMmKc1BffgSvFnc5WJ5dY</string>
 
     <array name="appointment_types">
         <item>Consultation</item>

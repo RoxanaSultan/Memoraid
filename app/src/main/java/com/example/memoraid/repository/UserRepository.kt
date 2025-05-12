@@ -11,6 +11,7 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -303,6 +304,24 @@ class UserRepository @Inject constructor(
             }
             .addOnFailureListener {
                 onComplete(false)
+            }
+    }
+
+    fun updateUserLocation(userId: String, latitude: Double, longitude: Double) {
+        val db = FirebaseFirestore.getInstance()
+
+        val locationData = mapOf(
+            "location" to GeoPoint(latitude, longitude),
+            "timestamp" to System.currentTimeMillis()
+        )
+
+        db.collection("users").document(userId)
+            .update(locationData)
+            .addOnSuccessListener {
+                Log.d("LocationUpdate", "Locația a fost salvată.")
+            }
+            .addOnFailureListener { e ->
+                Log.e("LocationUpdate", "Eroare la salvarea locației", e)
             }
     }
 }
