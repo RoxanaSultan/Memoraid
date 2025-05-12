@@ -2,12 +2,15 @@ package com.example.memoraid.fragments
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.os.Looper
+import android.telephony.SmsManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,6 +32,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.util.Log
+import android.widget.Toast
 
 @AndroidEntryPoint
 class AccountFragment : Fragment(R.layout.fragment_account) {
@@ -78,11 +82,44 @@ class AccountFragment : Fragment(R.layout.fragment_account) {
             }
         }
 
+//        binding.emergencyButton.setOnClickListener {
+//            val emergencyNumber = accountViewModel.user.value?.emergencyNumber
+//            getLocationAndSendSms(requireContext(), emergencyNumber.toString())
+//        }
+
         binding.logoutButton.setOnClickListener {
             showLogoutConfirmationDialog()
         }
 
         return binding.root
+    }
+
+    private fun getLocationAndSendSms(context: Context, emergencyNumber: String) {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1002)
+            return
+        }
+
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            location?.let {
+                val locationUrl = "https://maps.google.com/?q=${it.latitude},${it.longitude}"
+                val message = "ALERTĂ DE URGENȚĂ!\nAm nevoie de ajutor! Locația mea: $locationUrl"
+                sendEmergencySms(context, emergencyNumber, message)
+            } ?: Toast.makeText(context, "Locația nu este disponibilă", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun sendEmergencySms(context: Context, phoneNumber: String, message: String) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.SEND_SMS), 1001)
+            return
+        }
+
+        val smsManager = SmsManager.getDefault()
+        smsManager.sendTextMessage(phoneNumber, null, message, null, null)
+        Toast.makeText(context, "Mesaj de urgență trimis", Toast.LENGTH_SHORT).show()
     }
 
     private fun hasLocationPermission(): Boolean {

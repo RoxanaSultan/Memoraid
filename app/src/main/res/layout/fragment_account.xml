@@ -10,7 +10,7 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:src="@drawable/default_profile_picture"
-        app:layout_constraintBottom_toTopOf="@id/data_layout"
+        app:layout_constraintBottom_toTopOf="@id/edit_picture_button"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
@@ -33,8 +33,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/profile_picture"
-        app:layout_constraintBottom_toTopOf="@id/logout_button"
+        app:layout_constraintTop_toBottomOf="@id/edit_picture_button"
+        app:layout_constraintBottom_toTopOf="@id/change_password_button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:background="@drawable/layout_background"
@@ -219,6 +219,19 @@
         android:background="@drawable/button_selector"
         android:textColor="@drawable/foreground_color"
         app:layout_constraintTop_toBottomOf="@id/data_layout"
+        app:layout_constraintBottom_toTopOf="@id/emergencyButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <android.widget.Button
+        android:id="@+id/emergencyButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SOS Button"
+        android:padding="13dp"
+        android:background="@drawable/button_selector"
+        android:textColor="@drawable/foreground_color"
+        app:layout_constraintTop_toBottomOf="@id/change_password_button"
         app:layout_constraintBottom_toTopOf="@id/logout_button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
@@ -231,7 +244,7 @@
         android:padding="13dp"
         android:background="@drawable/button_selector"
         android:textColor="@drawable/foreground_color"
-        app:layout_constraintTop_toBottomOf="@id/data_layout"
+        app:layout_constraintTop_toBottomOf="@id/emergencyButton"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
