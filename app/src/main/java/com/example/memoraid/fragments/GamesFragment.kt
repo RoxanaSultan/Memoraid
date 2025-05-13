@@ -25,9 +25,9 @@ class GamesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.btnPuzzle.setOnClickListener {
-            findNavController().navigate(R.id.action_gamesFragment_to_puzzlesFragment)
-        }
+//        binding.btnPuzzle.setOnClickListener {
+//            findNavController().navigate(R.id.action_gamesFragment_to_puzzlesFragment)
+//        }
 
         binding.btnCards.setOnClickListener {
             findNavController().navigate(R.id.action_gamesFragment_to_cardGamesFragment)

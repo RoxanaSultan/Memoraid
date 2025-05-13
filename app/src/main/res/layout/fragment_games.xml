@@ -21,17 +21,17 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <!-- Row 1 -->
-        <android.widget.Button
-            android:id="@+id/btnPuzzle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="fill"
-            android:layout_margin="8dp"
-            android:enabled="false"
-            android:minWidth="120dp"
-            android:text="Puzzles"
-            android:textColor="@drawable/foreground_color"
-            android:textSize="18sp" />
+<!--        <android.widget.Button-->
+<!--            android:id="@+id/btnPuzzle"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="fill"-->
+<!--            android:layout_margin="8dp"-->
+<!--            android:enabled="false"-->
+<!--            android:minWidth="120dp"-->
+<!--            android:text="Puzzles"-->
+<!--            android:textColor="@drawable/foreground_color"-->
+<!--            android:textSize="18sp" />-->
 
         <android.widget.Button
             android:id="@+id/btnCards"
@@ -46,29 +46,29 @@
             android:text="Card Match"
             android:textSize="18sp" />
 
-        <!-- Row 2 -->
-        <android.widget.Button
-            android:id="@+id/btnWordSearch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="fill"
-            android:layout_margin="8dp"
-            android:enabled="false"
-            android:minWidth="120dp"
-            android:text="Word Search"
-            android:textColor="@drawable/foreground_color"
-            android:textSize="18sp" />
+<!--        &lt;!&ndash; Row 2 &ndash;&gt;-->
+<!--        <android.widget.Button-->
+<!--            android:id="@+id/btnWordSearch"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="fill"-->
+<!--            android:layout_margin="8dp"-->
+<!--            android:enabled="false"-->
+<!--            android:minWidth="120dp"-->
+<!--            android:text="Word Search"-->
+<!--            android:textColor="@drawable/foreground_color"-->
+<!--            android:textSize="18sp" />-->
 
-        <android.widget.Button
-            android:id="@+id/btnSudoku"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="fill"
-            android:layout_margin="8dp"
-            android:enabled="false"
-            android:minWidth="120dp"
-            android:text="Sudoku"
-            android:textColor="@drawable/foreground_color"
-            android:textSize="18sp" />
+<!--        <android.widget.Button-->
+<!--            android:id="@+id/btnSudoku"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="fill"-->
+<!--            android:layout_margin="8dp"-->
+<!--            android:enabled="false"-->
+<!--            android:minWidth="120dp"-->
+<!--            android:text="Sudoku"-->
+<!--            android:textColor="@drawable/foreground_color"-->
+<!--            android:textSize="18sp" />-->
     </android.widget.GridLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
