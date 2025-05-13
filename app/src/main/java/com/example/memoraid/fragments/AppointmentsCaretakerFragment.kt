@@ -141,7 +141,8 @@ class AppointmentsCaretakerFragment : Fragment() {
                     location,
                     type,
                     appointmentViewModel.user.value?.selectedPatient ?: "",
-                    false)
+                    false
+                )
 
                 saveAppointment(newAppointment)
                 dialog.dismiss()

@@ -81,7 +81,9 @@ class MedicineFragment : Fragment(R.layout.fragment_medicine) {
                 medicineViewModel.medicine.collect {  uploadedMedicine->
                     medicine.clear()
                     medicine.addAll(uploadedMedicine)
+                    medicineAdapter.sortMedicineByTime()
                     medicineAdapter.notifyDataSetChanged()
+                    binding.noMedicineTextView.visibility = if (medicine.isEmpty()) View.VISIBLE else View.GONE
                 }
             }
         }

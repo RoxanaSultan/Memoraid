@@ -134,7 +134,16 @@ class MedicineCaretakerFragment : Fragment() {
                     note = note,
                     userId = medicine.userId,
                     taken = medicine.taken
-                ) ?: Medicine(name, date, time, dose, note)
+                ) ?: Medicine(
+                    medicine?.id ?: "",
+                    name,
+                    date,
+                    time,
+                    dose,
+                    note,
+                    medicineViewModel.user.value?.selectedPatient ?: "",
+                    false
+                )
 
                 saveMedicine(newMedicine)
                 dialog.dismiss()

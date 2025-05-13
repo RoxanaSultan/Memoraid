@@ -100,7 +100,7 @@
             android:id="@+id/btnSave"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Save Appointment"
+            android:text="Save Medicine"
             android:backgroundTint="@color/blue"
             android:textColor="@color/white"/>
 
