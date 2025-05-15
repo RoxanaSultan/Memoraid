@@ -131,9 +131,7 @@ class AccountCaretakerViewModel @Inject constructor(
     fun addPatientToCaretaker(patient: User) {
         viewModelScope.launch {
             repository.addPatientToCurrentCaretaker(patient)
-            // Reîncarcă lista de pacienți asignați
             loadAssignedPatients()
-            // Actualizează rezultatele căutării
             _searchResults.value = searchResults.value.filterNot { it.id == patient.id }
         }
     }

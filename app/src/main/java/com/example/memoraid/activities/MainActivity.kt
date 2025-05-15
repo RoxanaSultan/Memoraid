@@ -1,9 +1,16 @@
 package com.example.memoraid.activities
 
+import android.Manifest
+import android.app.AlertDialog
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.memoraid.R
@@ -17,9 +24,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
     private val userViewModel: UserViewModel by viewModels()
 
+    private val REQUEST_LOCATION_PERMISSION_CODE = 1001
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        createNotificationChannel()
 
         bottomNavigationView = findViewById(R.id.bottom_navigation)
 
@@ -30,7 +41,6 @@ class MainActivity : AppCompatActivity() {
         userViewModel.userRole.observe(this) { role ->
             bottomNavigationView.menu.clear()
 
-            val navController = navHostFragment.navController
             val navInflater = navController.navInflater
 
             when (role) {
@@ -55,34 +65,75 @@ class MainActivity : AppCompatActivity() {
         }
 
         userViewModel.fetchUserRole()
+
+        requestLocationPermissions()
     }
 
-    override fun onStart() {
-        super.onStart()
-        "onStart".logErrorMessage()
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channelId = "location_service_channel"
+            val channelName = "Location Service"
+            val channelDescription = "Notifications for location foreground service"
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel(channelId, channelName, importance).apply {
+                description = channelDescription
+            }
+
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
-    override fun onResume() {
-        super.onResume()
-        "onResume".logErrorMessage()
+    private fun requestLocationPermissions() {
+        val fineLocationPermission = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+
+        if (fineLocationPermission != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    ),
+                    REQUEST_LOCATION_PERMISSION_CODE
+                )
+            } else {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    REQUEST_LOCATION_PERMISSION_CODE
+                )
+            }
+        }
     }
 
-    override fun onPause() {
-        super.onPause()
-        "onPause".logErrorMessage()
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == REQUEST_LOCATION_PERMISSION_CODE) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                Log.e("MainActivity", "All permissions for the location have been granted!")
+            } else {
+                Log.e("MainActivity", "Location permissions have not been granted!")
+                showLocationPermissionExplanationDialog()
+            }
+        }
     }
 
-    override fun onStop() {
-        super.onStop()
-        "onStop".logErrorMessage()
+    private fun showLocationPermissionExplanationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Location Permission Required")
+            .setMessage("The app needs location permission to function properly, including for important functions such as emergency location.")
+            .setPositiveButton("Try again") { dialog, _ ->
+                dialog.dismiss()
+                requestLocationPermissions()
+            }
+            .setNegativeButton("Give up") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setCancelable(false)
+            .show()
     }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        "onDestroy".logErrorMessage()
-    }
-}
-
-fun String.logErrorMessage() {
-    Log.e("Lifecycle", this)
 }

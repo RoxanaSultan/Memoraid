@@ -81,6 +81,8 @@ class AppointmentsFragment : Fragment(R.layout.fragment_appointments) {
                     appointments.clear()
                     appointments.addAll(uploadedAppointments)
                     appointmentAdapter.notifyDataSetChanged()
+
+                    binding.noAppointmentsTextView.visibility = if (appointments.isEmpty()) View.VISIBLE else View.GONE
                 }
             }
         }
