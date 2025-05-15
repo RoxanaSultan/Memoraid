@@ -126,11 +126,11 @@ class MainActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Location Permission Required")
             .setMessage("The app needs location permission to function properly, including for important functions such as emergency location.")
-            .setPositiveButton("Try again") { dialog, _ ->
+            .setPositiveButton("Accept") { dialog, _ ->
                 dialog.dismiss()
                 requestLocationPermissions()
             }
-            .setNegativeButton("Give up") { dialog, _ ->
+            .setNegativeButton("Decline") { dialog, _ ->
                 dialog.dismiss()
             }
             .setCancelable(false)

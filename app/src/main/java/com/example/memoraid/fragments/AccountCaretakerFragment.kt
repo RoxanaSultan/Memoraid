@@ -30,11 +30,10 @@ import android.util.Patterns
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.example.memoraid.viewmodel.AccountCaretakerViewModel
-import com.google.firebase.auth.FirebaseAuth
 import java.text.ParseException
 
 @AndroidEntryPoint
-class AccountCaretakerFragment : Fragment(R.layout.fragment_account_caretaker) {
+class AccountCaretakerFragment : Fragment() {
 
     private var _binding: FragmentAccountCaretakerBinding? = null
     private val binding get() = _binding!!
