@@ -29,7 +29,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        setShowWhenLocked(true)
+        setTurnScreenOn(true)
         createNotificationChannel()
 
         bottomNavigationView = findViewById(R.id.bottom_navigation)

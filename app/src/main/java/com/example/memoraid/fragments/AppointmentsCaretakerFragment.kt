@@ -26,6 +26,7 @@ import com.example.memoraid.adapters.AppointmentCaretakerAdapter
 import com.example.memoraid.viewmodel.AppointmentViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import com.example.memoraid.notifications.ReminderScheduler
 
 @AndroidEntryPoint
 class AppointmentsCaretakerFragment : Fragment() {
@@ -240,6 +241,33 @@ class AppointmentsCaretakerFragment : Fragment() {
         }
     }
 
+//    private fun saveAppointment(appointment: Appointment) {
+//        lifecycleScope.launch {
+//            if (appointment.id != null && appointment.id.isNotEmpty()) {
+//                appointmentViewModel.updateAppointment(
+//                    appointment,
+//                    onSuccess = {
+//                        Toast.makeText(requireContext(), "Appointment updated successfully", Toast.LENGTH_SHORT).show()
+//                        loadAppointments(sharedViewModel.selectedDate.value ?: "", appointmentViewModel.user.value?.selectedPatient ?: "")
+//                    },
+//                    onFailure = {
+//                        Toast.makeText(requireContext(), "Error updating appointment", Toast.LENGTH_SHORT).show()
+//                    }
+//                )
+//            } else {
+//                appointmentViewModel.createAppointment(
+//                    appointment,
+//                    onSuccess = { id ->
+//                        Toast.makeText(requireContext(), "Appointment added successfully", Toast.LENGTH_SHORT).show()
+//                        loadAppointments(sharedViewModel.selectedDate.value ?: "", appointmentViewModel.user.value?.selectedPatient ?: "")
+//                    },
+//                    onFailure = {
+//                        Toast.makeText(requireContext(), "Error saving appointment", Toast.LENGTH_SHORT).show()
+//                    }
+//                )
+//            }
+//        }
+//    }
 
     private fun saveAppointment(appointment: Appointment) {
         lifecycleScope.launch {
@@ -249,6 +277,8 @@ class AppointmentsCaretakerFragment : Fragment() {
                     onSuccess = {
                         Toast.makeText(requireContext(), "Appointment updated successfully", Toast.LENGTH_SHORT).show()
                         loadAppointments(sharedViewModel.selectedDate.value ?: "", appointmentViewModel.user.value?.selectedPatient ?: "")
+
+                        ReminderScheduler.scheduleReminder(requireContext(), appointment)
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error updating appointment", Toast.LENGTH_SHORT).show()
@@ -260,6 +290,8 @@ class AppointmentsCaretakerFragment : Fragment() {
                     onSuccess = { id ->
                         Toast.makeText(requireContext(), "Appointment added successfully", Toast.LENGTH_SHORT).show()
                         loadAppointments(sharedViewModel.selectedDate.value ?: "", appointmentViewModel.user.value?.selectedPatient ?: "")
+
+                        ReminderScheduler.scheduleReminder(requireContext(), appointment.copy(id = id))
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error saving appointment", Toast.LENGTH_SHORT).show()
