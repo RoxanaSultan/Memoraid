@@ -23,6 +23,25 @@
           "other_platform_oauth_client": []
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:214547328037:android:0de0e8831dbb8ca4f2e3cc",
+        "android_client_info": {
+          "package_name": "com.roxanasultan.memoraid"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZV4Er9oO_8h-YGDdSS6xsb9TBt5pFeGc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
     }
   ],
   "configuration_version": "1"

@@ -22,6 +22,7 @@
     <uses-permission android:name="android.permission.SEND_SMS"/>
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <application
         android:name=".MemoraidApplication"
@@ -63,14 +64,18 @@
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:launchMode="singleTop" />
-<!--        <activity-->
-<!--            android:name=".activities.PillReminderActivity"-->
-<!--            android:showWhenLocked="true"-->
-<!--            android:turnScreenOn="true"-->
-<!--            android:exported="true" />-->
+        <activity
+            android:name=".activities.MedicineReminderActivity"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        </activity>
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.example.memoraid.fileprovider"
+            android:authorities="com.roxanasultan.memoraid.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
@@ -84,7 +89,14 @@
             android:name=".services.LocationForegroundService"
             android:exported="false"
             android:foregroundServiceType="location" />
-
+        <service
+            android:name=".services.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
         <receiver android:name=".notifications.AppointmentReminderReceiver" />
+        <receiver android:name=".receivers.AlarmReceiver" android:exported="false"/>
     </application>
 </manifest>

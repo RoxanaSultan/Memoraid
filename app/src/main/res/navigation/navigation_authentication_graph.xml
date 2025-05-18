@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/fragment_login"
-        android:name="com.example.memoraid.fragments.LoginFragment"
+        android:name="com.roxanasultan.memoraid.fragments.LoginFragment"
         android:label="Login"
         tools:layout="@layout/fragment_login">
         <action
@@ -24,7 +24,7 @@
 
     <fragment
         android:id="@+id/fragment_reset_password"
-        android:name="com.example.memoraid.ResetPasswordFragment"
+        android:name="com.roxanasultan.memoraid.ResetPasswordFragment"
         android:label="ResetPasswordFragment"
         tools:layout="@layout/fragment_reset_password">
         <action
@@ -35,7 +35,7 @@
 
     <fragment
         android:id="@+id/fragment_register_account_info"
-        android:name="com.example.memoraid.fragments.RegisterAccountInformationFragment"
+        android:name="com.roxanasultan.memoraid.fragments.RegisterAccountInformationFragment"
         android:label="RegisterAccountInformationFragment"
         tools:layout="@layout/fragment_register_account_information">
         <action
@@ -45,7 +45,7 @@
 
     <fragment
         android:id="@+id/fragment_register_optional_account_info"
-        android:name="com.example.memoraid.fragments.RegisterOptionalAccountInformationFragment"
+        android:name="com.roxanasultan.memoraid.fragments.RegisterOptionalAccountInformationFragment"
         android:label="RegisterOptionalAccountInformationFragment"
         tools:layout="@layout/fragment_register_account_information">
         <action
@@ -55,7 +55,7 @@
 
     <fragment
         android:id="@+id/fragment_register_patients"
-        android:name="com.example.memoraid.fragments.RegisterPatientsFragment"
+        android:name="com.roxanasultan.memoraid.fragments.RegisterPatientsFragment"
         android:label="RegisterPatientsFragment"
         tools:layout="@layout/fragment_register_account_information">
     <action
@@ -65,7 +65,7 @@
 
     <fragment
         android:id="@+id/fragment_account"
-        android:name="com.example.memoraid.fragments.AccountFragment"
+        android:name="com.roxanasultan.memoraid.fragments.AccountFragment"
         android:label="Account"
         tools:layout="@layout/fragment_account">
         <action
@@ -78,7 +78,7 @@
 
     <fragment
         android:id="@+id/fragment_change_password"
-        android:name="com.example.memoraid.fragments.ChangePasswordFragment"
+        android:name="com.roxanasultan.memoraid.fragments.ChangePasswordFragment"
         android:label="ChangePasswordFragment"
         tools:layout="@layout/fragment_change_password">
         <action

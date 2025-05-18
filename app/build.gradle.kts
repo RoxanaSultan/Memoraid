@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.memoraid"
+    namespace = "com.roxanasultan.memoraid"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.memoraid"
+        applicationId = "com.roxanasultan.memoraid"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -92,6 +92,7 @@ dependencies {
 
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
+    implementation("com.google.firebase:firebase-messaging-ktx")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth:21.5.0")
 
@@ -125,7 +126,4 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:18.1.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.google.android.libraries.places:places:3.4.0")
-
-    // Firebase Messaging
-//    implementation("com.google.firebase:firebase-messaging-ktx:24.8.0")
 }

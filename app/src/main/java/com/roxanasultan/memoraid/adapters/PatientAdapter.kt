@@ -1,0 +1,53 @@
+package com.roxanasultan.memoraid.adapters
+
+import android.content.Context
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
+import com.roxanasultan.memoraid.R
+import com.roxanasultan.memoraid.databinding.ItemPatientBinding
+import com.roxanasultan.memoraid.models.Patient
+import com.squareup.picasso.Picasso
+
+class PatientAdapter(
+    private val context: Context,
+    private val patientsList: List<Patient>,
+    private val onCheckboxChanged: (Patient, Boolean) -> Unit
+) : RecyclerView.Adapter<PatientAdapter.PatientViewHolder>() {
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PatientViewHolder {
+        val binding = ItemPatientBinding.inflate(LayoutInflater.from(context), parent, false)
+        return PatientViewHolder(binding)
+    }
+
+    override fun onBindViewHolder(holder: PatientViewHolder, position: Int) {
+        val patient = patientsList[position]
+        holder.bind(patient)
+    }
+
+    override fun getItemCount(): Int {
+        return patientsList.size
+    }
+
+    inner class PatientViewHolder(private val binding: ItemPatientBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(patient: Patient) {
+            if (!patient.profilePicture.isNullOrEmpty()) {
+                Picasso.get()
+                    .load(patient.profilePicture)
+                    .into(binding.patientProfilePicture)
+            }
+            else
+            {
+                binding.patientProfilePicture.setImageResource(R.drawable.default_profile_picture)
+            }
+            binding.patientUsername.text = patient.username
+            binding.patientEmail.text = patient.email
+            binding.checkboxPatientSelect.setOnCheckedChangeListener { _, isChecked ->
+                onCheckboxChanged(patient, isChecked)
+            }
+        }
+
+    }
+}
