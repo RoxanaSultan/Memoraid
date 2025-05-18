@@ -101,19 +101,39 @@ class MedicineCaretakerFragment : Fragment() {
         }
     }
 
-    private fun scheduleMedicineReminder(hour: Int, minute: Int) {
+    private fun scheduleMedicineReminder(date: String, time: String, patientId: String) {
         val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(requireContext(), AlarmReceiver::class.java)
 
+        intent.putExtra("USER_ID", patientId)
+
+        // Parse date "dd-MM-yyyy"
+        val dateParts = date.split("-")
+        val day = dateParts[0].toInt()
+        val month = dateParts[1].toInt() - 1 // Calendar months sunt 0-based
+        val year = dateParts[2].toInt()
+
+        // Parse time "hh:mm"
+        val timeParts = time.split(":")
+        val hour = timeParts[0].toInt()
+        val minute = timeParts[1].toInt()
+
+        // Folosește un requestCode unic pentru PendingIntent, să nu suprascrii alarmele altor useri
+        val requestCode = (patientId.hashCode() + hour * 60 + minute)
+
         val pendingIntent = PendingIntent.getBroadcast(
-            requireContext(), 0, intent,
+            requireContext(), requestCode, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val calendar = Calendar.getInstance().apply {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month)
+            set(Calendar.DAY_OF_MONTH, day)
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
+
             if (before(Calendar.getInstance())) {
                 add(Calendar.DATE, 1)
             }
@@ -254,9 +274,11 @@ class MedicineCaretakerFragment : Fragment() {
                     onSuccess = {
                         Toast.makeText(requireContext(), "Medicine updated successfully", Toast.LENGTH_SHORT).show()
                         loadMedicine(sharedViewModel.selectedDate.value ?: "", medicineViewModel.user.value?.selectedPatient ?: "")
-                        val hour = medicine.time.split(":")[0].toInt()
-                        val minute = medicine.time.split(":")[1].toInt()
-                        scheduleMedicineReminder(hour, minute)
+                        scheduleMedicineReminder(
+                            medicine.date,
+                            medicine.time,
+                            medicineViewModel.user.value?.selectedPatient ?: ""
+                        )
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error updating Medicine", Toast.LENGTH_SHORT).show()
@@ -268,9 +290,11 @@ class MedicineCaretakerFragment : Fragment() {
                     onSuccess = { id ->
                         Toast.makeText(requireContext(), "Medicine added successfully", Toast.LENGTH_SHORT).show()
                         loadMedicine(sharedViewModel.selectedDate.value ?: "", medicineViewModel.user.value?.selectedPatient ?: "")
-                        val hour = medicine.time.split(":")[0].toInt()
-                        val minute = medicine.time.split(":")[1].toInt()
-                        scheduleMedicineReminder(hour, minute)
+                        scheduleMedicineReminder(
+                            medicine.date,
+                            medicine.time,
+                            medicineViewModel.user.value?.selectedPatient ?: ""
+                        )
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error saving medicine", Toast.LENGTH_SHORT).show()
