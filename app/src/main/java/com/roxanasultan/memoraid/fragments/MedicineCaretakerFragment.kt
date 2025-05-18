@@ -115,7 +115,7 @@ class MedicineCaretakerFragment : Fragment() {
             set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
             if (before(Calendar.getInstance())) {
-                add(Calendar.DATE, 1) // setează pe ziua următoare dacă ora a trecut deja
+                add(Calendar.DATE, 1)
             }
         }
 
