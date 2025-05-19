@@ -12,7 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.roxanasultan.memoraid.R
 import com.roxanasultan.memoraid.databinding.FragmentChangePasswordBinding
-import com.roxanasultan.memoraid.viewmodel.ChangePasswordViewModel
+import com.roxanasultan.memoraid.viewmodels.ChangePasswordViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

@@ -65,7 +65,7 @@
 
     <fragment
         android:id="@+id/fragment_account"
-        android:name="com.roxanasultan.memoraid.fragments.AccountFragment"
+        android:name="com.roxanasultan.memoraid.patient.fragments.AccountFragment"
         android:label="Account"
         tools:layout="@layout/fragment_account">
         <action

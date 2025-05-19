@@ -14,11 +14,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.roxanasultan.memoraid.R
-import com.roxanasultan.memoraid.adapters.PatientAdapter
+import com.roxanasultan.memoraid.patient.adapters.PatientAdapter
 import com.roxanasultan.memoraid.databinding.FragmentRegisterPatientsBinding
 import com.roxanasultan.memoraid.models.Patient
-import com.roxanasultan.memoraid.viewmodel.RegisterSharedViewModel
-import com.roxanasultan.memoraid.viewmodel.RegisterViewModel
+import com.roxanasultan.memoraid.viewmodels.RegisterSharedViewModel
+import com.roxanasultan.memoraid.viewmodels.RegisterViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 

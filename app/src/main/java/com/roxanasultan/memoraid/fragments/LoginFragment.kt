@@ -13,7 +13,7 @@ import androidx.navigation.fragment.findNavController
 import com.roxanasultan.memoraid.R
 import com.roxanasultan.memoraid.activities.MainActivity
 import com.roxanasultan.memoraid.databinding.FragmentLoginBinding
-import com.roxanasultan.memoraid.viewmodel.LoginViewModel
+import com.roxanasultan.memoraid.viewmodels.LoginViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

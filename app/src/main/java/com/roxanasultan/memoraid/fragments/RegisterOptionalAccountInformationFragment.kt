@@ -19,7 +19,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.roxanasultan.memoraid.R
 import com.roxanasultan.memoraid.databinding.FragmentRegisterOptionalAccountInformationBinding
-import com.roxanasultan.memoraid.viewmodel.RegisterSharedViewModel
+import com.roxanasultan.memoraid.viewmodels.RegisterSharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import java.text.SimpleDateFormat

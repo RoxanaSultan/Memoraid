@@ -1,7 +1,6 @@
 package com.roxanasultan.memoraid.activities
 
 import android.Manifest
-import android.app.AlertDialog
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -17,7 +16,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.roxanasultan.memoraid.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
-import com.roxanasultan.memoraid.viewmodel.UserViewModel
+import com.roxanasultan.memoraid.viewmodels.UserViewModel
 import com.google.firebase.messaging.FirebaseMessaging
 
 @AndroidEntryPoint

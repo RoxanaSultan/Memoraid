@@ -8,7 +8,7 @@
     <!-- Account Fragment -->
     <fragment
         android:id="@+id/navigation_account"
-        android:name="com.roxanasultan.memoraid.fragments.AccountFragment"
+        android:name="com.roxanasultan.memoraid.patient.fragments.AccountFragment"
         android:label="Account"
         tools:layout="@layout/fragment_account">
         <action
@@ -22,7 +22,7 @@
     <!-- Journal Fragment -->
     <fragment
         android:id="@+id/navigation_journal"
-        android:name="com.roxanasultan.memoraid.fragments.JournalsFragment"
+        android:name="com.roxanasultan.memoraid.patient.fragments.JournalsFragment"
         android:label="Journal"
         tools:layout="@layout/fragment_journal">
         <action
@@ -36,7 +36,7 @@
     <!-- Games Fragment -->
     <fragment
         android:id="@+id/navigation_games"
-        android:name="com.roxanasultan.memoraid.fragments.GamesFragment"
+        android:name="com.roxanasultan.memoraid.patient.fragments.GamesFragment"
         android:label="Games"
         tools:layout="@layout/fragment_games" >
         <action
@@ -80,7 +80,7 @@
 
     <fragment
         android:id="@+id/navigation_card_game"
-        android:name="com.roxanasultan.memoraid.fragments.CardGameFragment"
+        android:name="com.roxanasultan.memoraid.patient.fragments.CardGameFragment"
         android:label="CardGame"
         tools:layout="@layout/fragment_card_game">
         <action
@@ -94,7 +94,7 @@
     <!-- Memories Fragment -->
     <fragment
         android:id="@+id/navigation_memories"
-        android:name="com.roxanasultan.memoraid.fragments.MemoriesFragment"
+        android:name="com.roxanasultan.memoraid.patient.fragments.MemoriesFragment"
         android:label="Memories"
         tools:layout="@layout/fragment_memories">
         <action
@@ -108,7 +108,7 @@
     <!-- Albums Fragment -->
     <fragment
         android:id="@+id/navigation_album"
-        android:name="com.roxanasultan.memoraid.fragments.AlbumsFragment"
+        android:name="com.roxanasultan.memoraid.patient.fragments.AlbumsFragment"
         android:label="Album"
         tools:layout="@layout/fragment_album">
         <action
@@ -122,7 +122,7 @@
     <!-- Album Details Fragment -->
     <fragment
         android:id="@+id/fragment_album_details"
-        android:name="com.roxanasultan.memoraid.fragments.AlbumDetailsFragment"
+        android:name="com.roxanasultan.memoraid.patient.fragments.AlbumDetailsFragment"
         android:label="AlbumDetailsFragment"
         tools:layout="@layout/fragment_album_details">
         <action
@@ -133,7 +133,7 @@
     <!-- Health Fragment -->
     <fragment
         android:id="@+id/navigation_health"
-        android:name="com.roxanasultan.memoraid.fragments.HealthFragment"
+        android:name="com.roxanasultan.memoraid.patient.fragments.HealthFragment"
         android:label="Health"
         tools:layout="@layout/fragment_health">
     </fragment>
@@ -141,7 +141,7 @@
     <!-- Journal Details Fragment -->
     <fragment
         android:id="@+id/fragment_journal_details"
-        android:name="com.roxanasultan.memoraid.fragments.JournalDetailsFragment"
+        android:name="com.roxanasultan.memoraid.patient.fragments.JournalDetailsFragment"
         android:label="JournalDetailsFragment"
         tools:layout="@layout/fragment_journal_details">
         <action

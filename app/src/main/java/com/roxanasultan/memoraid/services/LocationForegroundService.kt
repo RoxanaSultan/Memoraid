@@ -13,7 +13,7 @@ import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import com.roxanasultan.memoraid.R
-import com.roxanasultan.memoraid.repository.UserRepository
+import com.roxanasultan.memoraid.repositories.UserRepository
 import com.google.android.gms.location.*
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint

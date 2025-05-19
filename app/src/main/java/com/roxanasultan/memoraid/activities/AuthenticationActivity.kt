@@ -9,7 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.roxanasultan.memoraid.R
-import com.roxanasultan.memoraid.viewmodel.AuthenticationViewModel
+import com.roxanasultan.memoraid.viewmodels.AuthenticationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch

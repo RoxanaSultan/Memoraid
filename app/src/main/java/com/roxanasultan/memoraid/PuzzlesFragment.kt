@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.roxanasultan.memoraid.adapters.PuzzleAdapter
+import com.roxanasultan.memoraid.patient.adapters.PuzzleAdapter
 import com.roxanasultan.memoraid.databinding.FragmentPuzzlesBinding
 
 class PuzzlesFragment : Fragment() {

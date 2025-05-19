@@ -16,7 +16,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.roxanasultan.memoraid.R
 import com.roxanasultan.memoraid.databinding.FragmentCardGamesBinding
-import com.roxanasultan.memoraid.viewmodel.CardGamesViewModel
+import com.roxanasultan.memoraid.viewmodels.CardGamesViewModel
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 
