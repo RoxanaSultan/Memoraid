@@ -6,6 +6,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import com.google.firebase.firestore.ListenerRegistration
 
 @Singleton
 class MedicineRepository @Inject constructor(
@@ -73,5 +77,27 @@ class MedicineRepository @Inject constructor(
         } catch (e: Exception) {
             false
         }
+    }
+
+    fun getMedicineFlow(date: String, userId: String): Flow<List<Medicine>> = callbackFlow {
+        val listenerRegistration = firestoreCollection
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("date", date)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val medicines = snapshot.documents.mapNotNull { doc ->
+                        val medicine = doc.toObject(Medicine::class.java)?.copy(id = doc.id)
+                        medicine?.copy(taken = doc.getBoolean("taken") ?: false)
+                    }
+                    trySend(medicines).isSuccess
+                }
+            }
+
+        awaitClose { listenerRegistration.remove() }
     }
 }

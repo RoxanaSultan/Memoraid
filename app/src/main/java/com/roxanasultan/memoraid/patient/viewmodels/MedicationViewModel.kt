@@ -16,7 +16,6 @@ import javax.inject.Inject
 class MedicationViewModel @Inject constructor(
     private val medicineRepository: MedicineRepository,
     private val userRepository: UserRepository
-
 ) : ViewModel() {
     private val _medicine = MutableStateFlow<MutableList<Medicine>>(mutableListOf())
     val medicine: StateFlow<MutableList<Medicine>> get() = _medicine

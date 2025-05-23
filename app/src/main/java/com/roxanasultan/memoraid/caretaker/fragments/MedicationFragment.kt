@@ -101,50 +101,50 @@ class MedicationFragment : Fragment() {
         }
     }
 
-    private fun scheduleMedicineReminder(date: String, time: String, patientId: String) {
-        val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(requireContext(), AlarmReceiver::class.java)
-
-        intent.putExtra("USER_ID", patientId)
-
-        // Parse date "dd-MM-yyyy"
-        val dateParts = date.split("-")
-        val day = dateParts[0].toInt()
-        val month = dateParts[1].toInt() - 1 // Calendar months sunt 0-based
-        val year = dateParts[2].toInt()
-
-        // Parse time "hh:mm"
-        val timeParts = time.split(":")
-        val hour = timeParts[0].toInt()
-        val minute = timeParts[1].toInt()
-
-        // Folosește un requestCode unic pentru PendingIntent, să nu suprascrii alarmele altor useri
-        val requestCode = (patientId.hashCode() + hour * 60 + minute)
-
-        val pendingIntent = PendingIntent.getBroadcast(
-            requireContext(), requestCode, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val calendar = Calendar.getInstance().apply {
-            set(Calendar.YEAR, year)
-            set(Calendar.MONTH, month)
-            set(Calendar.DAY_OF_MONTH, day)
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-            set(Calendar.SECOND, 0)
-
-            if (before(Calendar.getInstance())) {
-                add(Calendar.DATE, 1)
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
-        } else {
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
-        }
-    }
+//    private fun scheduleMedicineReminder(date: String, time: String, patientId: String) {
+//        val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+//        val intent = Intent(requireContext(), AlarmReceiver::class.java)
+//
+//        intent.putExtra("USER_ID", patientId)
+//
+//        // Parse date "dd-MM-yyyy"
+//        val dateParts = date.split("-")
+//        val day = dateParts[0].toInt()
+//        val month = dateParts[1].toInt() - 1 // Calendar months sunt 0-based
+//        val year = dateParts[2].toInt()
+//
+//        // Parse time "hh:mm"
+//        val timeParts = time.split(":")
+//        val hour = timeParts[0].toInt()
+//        val minute = timeParts[1].toInt()
+//
+//        // Folosește un requestCode unic pentru PendingIntent, să nu suprascrii alarmele altor useri
+//        val requestCode = (patientId.hashCode() + hour * 60 + minute)
+//
+//        val pendingIntent = PendingIntent.getBroadcast(
+//            requireContext(), requestCode, intent,
+//            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+//        )
+//
+//        val calendar = Calendar.getInstance().apply {
+//            set(Calendar.YEAR, year)
+//            set(Calendar.MONTH, month)
+//            set(Calendar.DAY_OF_MONTH, day)
+//            set(Calendar.HOUR_OF_DAY, hour)
+//            set(Calendar.MINUTE, minute)
+//            set(Calendar.SECOND, 0)
+//
+//            if (before(Calendar.getInstance())) {
+//                add(Calendar.DATE, 1)
+//            }
+//        }
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+//        } else {
+//            alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+//        }
+//    }
 
     private fun showAddMedicineDialog(medicine: Medicine? = null) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_medicine, null)
@@ -274,11 +274,11 @@ class MedicationFragment : Fragment() {
                     onSuccess = {
                         Toast.makeText(requireContext(), "Medicine updated successfully", Toast.LENGTH_SHORT).show()
                         loadMedicine(sharedViewModel.selectedDate.value ?: "", medicationViewModel.user.value?.selectedPatient ?: "")
-                        scheduleMedicineReminder(
-                            medicine.date,
-                            medicine.time,
-                            medicationViewModel.user.value?.selectedPatient ?: ""
-                        )
+//                        scheduleMedicineReminder(
+//                            medicine.date,
+//                            medicine.time,
+//                            medicationViewModel.user.value?.selectedPatient ?: ""
+//                        )
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error updating Medicine", Toast.LENGTH_SHORT).show()
@@ -290,11 +290,11 @@ class MedicationFragment : Fragment() {
                     onSuccess = { id ->
                         Toast.makeText(requireContext(), "Medicine added successfully", Toast.LENGTH_SHORT).show()
                         loadMedicine(sharedViewModel.selectedDate.value ?: "", medicationViewModel.user.value?.selectedPatient ?: "")
-                        scheduleMedicineReminder(
-                            medicine.date,
-                            medicine.time,
-                            medicationViewModel.user.value?.selectedPatient ?: ""
-                        )
+//                        scheduleMedicineReminder(
+//                            medicine.date,
+//                            medicine.time,
+//                            medicationViewModel.user.value?.selectedPatient ?: ""
+//                        )
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error saving medicine", Toast.LENGTH_SHORT).show()

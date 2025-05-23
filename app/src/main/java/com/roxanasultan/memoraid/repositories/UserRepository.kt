@@ -324,4 +324,14 @@ class UserRepository @Inject constructor(
                 Log.e("LocationUpdate", "Eroare la salvarea locației", e)
             }
     }
+
+    suspend fun getFcmToken(userId: String): String? {
+        return try {
+            val userDoc = firebaseCollection.document(userId).get().await()
+            userDoc.getString("fcmToken")
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error getting FCM token: ${e.message}", e)
+            null
+        }
+    }
 }

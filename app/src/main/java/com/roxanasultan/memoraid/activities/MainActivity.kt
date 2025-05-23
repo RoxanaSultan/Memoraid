@@ -17,6 +17,8 @@ import com.roxanasultan.memoraid.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import com.roxanasultan.memoraid.viewmodels.UserViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
 
 @AndroidEntryPoint
@@ -79,7 +81,6 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = getSystemService(NotificationManager::class.java)
 
-            // 1. Canal pentru location service
             val locationChannel = NotificationChannel(
                 "location_service_channel",
                 "Location Service",
@@ -107,7 +108,6 @@ class MainActivity : AppCompatActivity() {
             }
 
             notificationManager.createNotificationChannel(medicineReminderChannel)
-
             notificationManager.createNotificationChannel(locationChannel)
             notificationManager.createNotificationChannel(alertsChannel)
         }
@@ -158,8 +158,38 @@ class MainActivity : AppCompatActivity() {
 
             val token = task.result
             Log.d("MainActivity", "FCM Token: $token")
-            // TODO: trimite token-ul către serverul tău dacă ai backend
+            if (token != null) {
+                saveTokenToFirestore(token)
+            }
         }
+    }
+
+    private fun saveTokenToFirestore(token: String) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId == null) {
+            Log.e("MainActivity", "User ID is null, can't save token")
+            return
+        }
+
+        val firestore = FirebaseFirestore.getInstance()
+        val userDocRef = firestore.collection("users").document(userId)
+
+        userDocRef.update("fcmToken", token)
+            .addOnSuccessListener {
+                Log.d("MainActivity", "FCM token saved successfully")
+                Log.d("MainActivity", "Token: $token")
+            }
+            .addOnFailureListener { e ->
+                // Dacă câmpul nu există încă (ex: documentul nu are câmp fcmToken), update poate da eroare,
+                // atunci facem set cu merge true:
+                userDocRef.set(mapOf("fcmToken" to token), com.google.firebase.firestore.SetOptions.merge())
+                    .addOnSuccessListener {
+                        Log.d("MainActivity", "FCM token set successfully with merge")
+                    }
+                    .addOnFailureListener { ex ->
+                        Log.e("MainActivity", "Failed to save FCM token", ex)
+                    }
+            }
     }
 
     override fun onRequestPermissionsResult(
