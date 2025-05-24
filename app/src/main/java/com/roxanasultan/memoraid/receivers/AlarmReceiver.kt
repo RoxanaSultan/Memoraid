@@ -1,38 +1,23 @@
 package com.roxanasultan.memoraid.receivers
 
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import com.roxanasultan.memoraid.R
+import android.util.Log
 import com.roxanasultan.memoraid.activities.MedicineReminderActivity
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val patientId = intent.getStringExtra("USER_ID") ?: "Unknown"
+        Log.d("AlarmReceiver", "Alarm received!")
+        val dose = intent.getStringExtra("dose") ?: "medicamentul"
 
-        val activityIntent = Intent(context, MedicineReminderActivity::class.java).apply {
-            putExtra("USER_ID", patientId)
+        // Pornește MedicineReminderActivity în loc de notificare simplă
+        val reminderIntent = Intent(context, MedicineReminderActivity::class.java).apply {
+            putExtra("dose", dose)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
 
-        val pendingIntent = PendingIntent.getActivity(
-            context, 0, activityIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val builder = NotificationCompat.Builder(context, "medicine_reminder_channel")
-            .setSmallIcon(R.drawable.notification)
-            .setContentTitle("Medicine Reminder")
-            .setContentText("It's time for patient $patientId to take their medicine!")
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setFullScreenIntent(pendingIntent, true)
-            .setAutoCancel(true)
-
-        with(NotificationManagerCompat.from(context)) {
-            notify(patientId.hashCode(), builder.build())
-        }
+        context.startActivity(reminderIntent)
+        Log.d("AlarmReceiver", "MedicineReminderActivity started with dose: $dose")
     }
 }
