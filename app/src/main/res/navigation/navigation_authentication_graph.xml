@@ -19,7 +19,9 @@
         <action
             android:id="@+id/action_loginFragment_to_resetPasswordFragment"
             app:destination="@id/fragment_reset_password" />
-
+        <action
+            android:id="@+id/action_loginFragment_to_registerDetailsFragment"
+            app:destination="@id/fragment_register_details" />
     </fragment>
 
     <fragment
@@ -44,6 +46,16 @@
     </fragment>
 
     <fragment
+        android:id="@+id/fragment_register_details"
+        android:name="com.roxanasultan.memoraid.fragments.RegisterDetailsFragment"
+        android:label="RegisterDetailsFragment"
+        tools:layout="@layout/fragment_register_details">
+        <action
+            android:id="@+id/action_registerDetailsFragment_to_registerPatientsFragment"
+            app:destination="@id/fragment_register_patients" />
+    </fragment>
+
+    <fragment
         android:id="@+id/fragment_register_optional_account_info"
         android:name="com.roxanasultan.memoraid.fragments.RegisterOptionalAccountInformationFragment"
         android:label="RegisterOptionalAccountInformationFragment"
@@ -58,9 +70,12 @@
         android:name="com.roxanasultan.memoraid.fragments.RegisterPatientsFragment"
         android:label="RegisterPatientsFragment"
         tools:layout="@layout/fragment_register_account_information">
-    <action
-        android:id="@+id/action_registerPatientsFragment_to_loginFragment"
-        app:destination="@id/fragment_login" />
+        <action
+            android:id="@+id/action_registerPatientsFragment_to_loginFragment"
+            app:destination="@id/fragment_login"/>
+        <action
+            android:id="@+id/action_registerPatientsFragment_to_accountFragment"
+            app:destination="@id/fragment_account"/>
     </fragment>
 
     <fragment

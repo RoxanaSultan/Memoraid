@@ -35,6 +35,9 @@ class RegisterSharedViewModel : ViewModel() {
     private val _profilePictureUrl = MutableLiveData<String?>()
     val profilePictureUrl: LiveData<String?> get() = _profilePictureUrl
 
+    private val _selectedPatient = MutableLiveData<String?>()
+    val selectedPatient: LiveData<String?> get() = _selectedPatient
+
     fun setPassword(password: String) {
         _password.value = password
     }
@@ -75,6 +78,10 @@ class RegisterSharedViewModel : ViewModel() {
         _profilePictureUrl.value = value
     }
 
+    fun setSelectedPatient(patientId: String?) {
+        _selectedPatient.value = patientId
+    }
+
     fun clearData() {
         _username.value = ""
         _password.value = ""
@@ -86,5 +93,6 @@ class RegisterSharedViewModel : ViewModel() {
         _phoneNumber.value = ""
         _birthdate.value = ""
         _profilePictureUrl.value = ""
+        _selectedPatient.value = null
     }
 }

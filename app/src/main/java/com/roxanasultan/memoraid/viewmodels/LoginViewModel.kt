@@ -51,6 +51,17 @@ class LoginViewModel @Inject constructor(
         }
     }
 
+    suspend fun doesProfileExist(email: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val exists = repository.doesProfileExist(email)
+                onResult(exists)
+            } catch (e: Exception) {
+                onResult(false)  // în caz de eroare, presupunem că nu există
+            }
+        }
+    }
+
     fun clearState() {
         _loginState.value = null
     }

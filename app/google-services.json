@@ -12,7 +12,20 @@
           "package_name": "com.example.memoraid"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "214547328037-gavju1udr9sdgcig9ma57to45r4r43nf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.memoraid",
+            "certificate_hash": "4b912cded4153ebb117a92a9be57b4bf23c4ef08"
+          }
+        },
+        {
+          "client_id": "214547328037-mcao55h2dtfmkfatf2fe28j9hj8ie5me.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDZV4Er9oO_8h-YGDdSS6xsb9TBt5pFeGc"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "214547328037-mcao55h2dtfmkfatf2fe28j9hj8ie5me.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     },
@@ -31,7 +49,20 @@
           "package_name": "com.roxanasultan.memoraid"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "214547328037-1i6ej1v2tlikkpe64fr1j4bq88cac9nn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.roxanasultan.memoraid",
+            "certificate_hash": "1fc21dbc9a0e744f5bc1051182524fcd11bc0208"
+          }
+        },
+        {
+          "client_id": "214547328037-mcao55h2dtfmkfatf2fe28j9hj8ie5me.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDZV4Er9oO_8h-YGDdSS6xsb9TBt5pFeGc"
@@ -39,7 +70,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "214547328037-mcao55h2dtfmkfatf2fe28j9hj8ie5me.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

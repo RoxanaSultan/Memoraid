@@ -39,4 +39,13 @@ class LoginRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    suspend fun doesProfileExist(email: String): Boolean {
+        val snapshot = firestore.collection("users")
+            .whereEqualTo("email", email)
+            .get()
+            .await()
+
+        return !snapshot.isEmpty
+    }
 }

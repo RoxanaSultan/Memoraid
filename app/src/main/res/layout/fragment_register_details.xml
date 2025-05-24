@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout
+        android:id="@+id/profile_picture_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/register_username"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/profile_picture"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/default_profile_picture"
+            android:scaleType="centerCrop" />
+
+        <ImageButton
+            android:id="@+id/edit_picture_button"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/edit"
+            android:contentDescription="Edit picture"
+            android:scaleType="centerCrop"
+            android:background="@null"
+            android:padding="4dp"
+            android:layout_alignBottom="@id/profile_picture"
+            android:layout_alignEnd="@id/profile_picture"/>
+    </RelativeLayout>
+
+    <EditText
+        android:id="@+id/register_username"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColorHint="@color/blue"
+        android:textColor="@color/blue"
+        android:hint="@string/username"
+        app:layout_constraintBottom_toTopOf="@id/register_firstname"
+        app:layout_constraintTop_toBottomOf="@id/profile_picture_layout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintWidth_percent="0.7"
+        android:background="@drawable/edit_text_box"
+        android:inputType="text"/>
+
+    <EditText
+        android:id="@+id/register_firstname"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColorHint="@color/blue"
+        android:textColor="@color/blue"
+        android:hint="@string/firstname"
+        app:layout_constraintBottom_toTopOf="@id/register_lastname"
+        app:layout_constraintTop_toBottomOf="@id/register_username"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintWidth_percent="0.7"
+        android:background="@drawable/edit_text_box"
+        android:inputType="textPersonName"/>
+
+    <EditText
+        android:id="@+id/register_lastname"
+        android:textColorHint="@color/blue"
+        android:textColor="@color/blue"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/register_firstname"
+        app:layout_constraintBottom_toTopOf="@id/register_phone_number"
+        app:layout_constraintWidth_percent="0.7"
+        android:hint="@string/lastname"
+        android:background="@drawable/edit_text_box"
+        android:inputType="textPersonName"/>
+
+    <EditText
+        android:id="@+id/register_phone_number"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textColorHint="@color/blue"
+        android:textColor="@color/blue"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/register_lastname"
+        app:layout_constraintBottom_toTopOf="@id/register_birthdate"
+        app:layout_constraintWidth_percent="0.7"
+        android:inputType="phone"
+        android:hint="@string/phonenumber"
+        android:background="@drawable/edit_text_box"/>
+
+    <TextView
+        android:id="@+id/register_birthdate_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select birthdate"
+        app:layout_constraintTop_toBottomOf="@id/register_phone_number"
+        app:layout_constraintBottom_toTopOf="@id/register_birthdate"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="20dp"
+        android:textColor="@color/blue"
+        android:textSize="16sp" />
+
+
+    <LinearLayout
+        android:id="@+id/register_birthdate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintWidth_percent="0.5"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/register_birthdate_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@drawable/layout_background"
+        android:padding="10dp"
+        android:gravity="center">
+
+        <NumberPicker
+            android:id="@+id/day_picker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"/>
+
+        <NumberPicker
+            android:id="@+id/month_picker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"/>
+
+        <NumberPicker
+            android:id="@+id/year_picker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <android.widget.Button
+        android:id="@+id/second_register_continue_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/Continue"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/register_birthdate"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="50dp"
+        android:layout_marginTop="20dp"
+        android:padding="13dp"
+        android:background="@drawable/button_selector"
+        android:textColor="@drawable/foreground_color"
+        />
+</androidx.constraintlayout.widget.ConstraintLayout>

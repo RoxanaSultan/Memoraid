@@ -42,6 +42,8 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         val navController = navHostFragment.navController
 
+        userViewModel.fetchUserRole()
+
         userViewModel.userRole.observe(this) { role ->
             bottomNavigationView.menu.clear()
 
@@ -69,8 +71,6 @@ class MainActivity : AppCompatActivity() {
                 bottomNavigationView.selectedItemId = R.id.navigation_account
             }
         }
-
-        userViewModel.fetchUserRole()
 
         requestLocationPermissions()
         requestNotificationPermission()

@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.roxanasultan.memoraid.R
+import com.roxanasultan.memoraid.activities.MainActivity
 import com.roxanasultan.memoraid.patient.adapters.PatientAdapter
 import com.roxanasultan.memoraid.databinding.FragmentRegisterPatientsBinding
 import com.roxanasultan.memoraid.models.Patient
@@ -74,16 +75,32 @@ class RegisterPatientsFragment : Fragment() {
             val emailValue = sharedViewModel.email.value
             val passwordValue = sharedViewModel.password.value
 
-            registerUser(emailValue!!, passwordValue!!)
+            if (isGoogleSignIn()) {
+                lifecycleScope.launch {
+                    saveUserDetails()
+                    Toast.makeText(requireContext(), "Registration completed via Google", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(requireContext(), MainActivity::class.java)
+                    startActivity(intent)
+                    requireActivity().finish()
+                }
+            } else {
+                if (emailValue.isNullOrEmpty() || passwordValue.isNullOrEmpty()) {
+                    Toast.makeText(requireContext(), "Please enter email and password", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
 
-            findNavController().navigate(R.id.action_registerPatientsFragment_to_loginFragment)
+                registerUser(emailValue, passwordValue)
+            }
         }
 
         binding.linkTermsConditions.setOnClickListener {
-            val intent =
-                Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.terms_conditions_url)))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.terms_conditions_url)))
             startActivity(intent)
         }
+    }
+
+    private fun isGoogleSignIn(): Boolean {
+        return sharedViewModel.password.value.isNullOrEmpty()
     }
 
     private fun setupRecyclerView(patientsList: List<Patient>) {
@@ -104,6 +121,7 @@ class RegisterPatientsFragment : Fragment() {
             if (isSuccess) {
                 lifecycleScope.launch {
                     saveUserDetails()
+                    findNavController().navigate(R.id.action_registerPatientsFragment_to_loginFragment)
                 }
             } else {
                 Toast.makeText(requireContext(), "Error: $errorMessage", Toast.LENGTH_LONG).show()
@@ -122,6 +140,8 @@ class RegisterPatientsFragment : Fragment() {
         val birthdate = sharedViewModel.birthdate.value
         val profilePictureUrl = sharedViewModel.profilePictureUrl.value
         val selectedPatientsList = selectedPatients
+
+        sharedViewModel.setSelectedPatient(selectedPatients[0])
         sharedViewModel.setRole(role)
 
         val userInfo = hashMapOf(
@@ -133,8 +153,9 @@ class RegisterPatientsFragment : Fragment() {
             "birthdate" to birthdate,
             "profilePictureUrl" to profilePictureUrl,
             "role" to role,
+            "selectedPatient" to selectedPatientsList.firstOrNull(),
             "caretakers" to emptyList<String>(),
-            "patients" to emptyList<String>(),
+            "patients" to emptyList<String>()
         )
 
         if (role == "patient") {
