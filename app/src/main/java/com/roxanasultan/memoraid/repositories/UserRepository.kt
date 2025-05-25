@@ -15,6 +15,9 @@ import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.Flow
 
 class UserRepository @Inject constructor(
     private val database: FirebaseFirestore,
@@ -332,6 +335,21 @@ class UserRepository @Inject constructor(
         } catch (e: Exception) {
             Log.e("UserRepository", "Error getting FCM token: ${e.message}", e)
             null
+        }
+    }
+
+    fun observePatientLocation(patientId: String): Flow<GeoPoint?> = callbackFlow {
+        val listenerRegistration = firebaseCollection.document(patientId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val location = snapshot?.getGeoPoint("location")
+                trySend(location).isSuccess
+            }
+        awaitClose {
+            listenerRegistration.remove()
         }
     }
 }

@@ -3,7 +3,7 @@ package com.roxanasultan.memoraid.caretaker.fragments
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
+import android.graphics.BitmapFactory
 import android.location.Geocoder
 import android.os.Bundle
 import android.util.Log
@@ -15,19 +15,13 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.roxanasultan.memoraid.R
 import com.roxanasultan.memoraid.viewmodels.UserViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -39,6 +33,8 @@ class PatientLocationFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
     private var lastTappedMarker: Marker? = null
+    private var patientMarker: Marker? = null
+    private var patientIcon: BitmapDescriptor? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,8 +42,8 @@ class PatientLocationFragment : Fragment(), OnMapReadyCallback {
     ): View {
         val view = inflater.inflate(R.layout.fragment_patient_location, container, false)
 
-        val mapFragment =
-            childFragmentManager.findFragmentById(R.id.map_fragment) as SupportMapFragment
+        val mapFragment = childFragmentManager
+            .findFragmentById(R.id.map_fragment) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
         userViewModel.loadUser()
@@ -61,8 +57,17 @@ class PatientLocationFragment : Fragment(), OnMapReadyCallback {
 
         lifecycleScope.launch {
             userViewModel.patient.collectLatest { patient ->
-                if (::map.isInitialized && patient != null) {
+                if (patient != null && patient.id.isNotEmpty()) {
+                    userViewModel.observePatientLocation(patient.id)
                     loadPatientLocation()
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            userViewModel.patientLocation.collectLatest { location ->
+                if (::map.isInitialized && location != null) {
+                    updatePatientMarker(location.latitude, location.longitude)
                 }
             }
         }
@@ -72,7 +77,7 @@ class PatientLocationFragment : Fragment(), OnMapReadyCallback {
         map = googleMap
 
         if (
-            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
             ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
@@ -96,8 +101,10 @@ class PatientLocationFragment : Fragment(), OnMapReadyCallback {
                     "Patient is here: ${getAddressFromLocation(location)}",
                     Toast.LENGTH_LONG
                 ).show()
+                true
+            } else {
+                false
             }
-            true
         }
 
         map.setOnMapClickListener { latLng ->
@@ -120,7 +127,9 @@ class PatientLocationFragment : Fragment(), OnMapReadyCallback {
             ).show()
         }
 
-        loadPatientLocation()
+        if (userViewModel.patient.value != null) {
+            loadPatientLocation()
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -149,9 +158,8 @@ class PatientLocationFragment : Fragment(), OnMapReadyCallback {
         return try {
             val geocoder = Geocoder(requireContext())
             val addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
-            if (addresses != null && addresses.isNotEmpty()) {
-                val address = addresses[0]
-                address.getAddressLine(0)
+            if (!addresses.isNullOrEmpty()) {
+                addresses[0].getAddressLine(0)
             } else null
         } catch (e: Exception) {
             Log.e("Geocoder", "Error getting address", e)
@@ -162,40 +170,46 @@ class PatientLocationFragment : Fragment(), OnMapReadyCallback {
     private fun loadPatientLocation() {
         val patient = userViewModel.patient.value
         val location = patient?.location
-        val photoUrl = patient?.profilePictureUrl
 
-        if (location != null && !photoUrl.isNullOrEmpty()) {
+        if (location != null) {
             val latLng = LatLng(location.latitude, location.longitude)
 
-            Glide.with(this)
-                .asBitmap()
-                .load(photoUrl)
-                .circleCrop()
-                .into(object : CustomTarget<Bitmap>() {
-                    override fun onResourceReady(
-                        resource: Bitmap,
-                        transition: Transition<in Bitmap>?
-                    ) {
-                        val resizedBitmap = Bitmap.createScaledBitmap(resource, 115, 115, false)
-                        val descriptor =
-                            BitmapDescriptorFactory.fromBitmap(
-                                resizedBitmap
-                            )
+            patientIcon = getResizedPatientIcon(R.drawable.patient_icon, 80, 80)
 
-                        map.clear()
-                        map.addMarker(
-                            MarkerOptions()
-                                .position(latLng)
-                                .title("Patient's Location")
-                                .icon(descriptor)
-                        )
-                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
-                    }
+            patientMarker?.remove()
+            patientMarker = map.addMarker(
+                MarkerOptions()
+                    .position(latLng)
+                    .title("Patient's Location")
+                    .icon(patientIcon)
+            )
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
 
-                    override fun onLoadCleared(placeholder: Drawable?) {}
-                })
         } else {
-            Log.d("PatientLocation", "The patient does not have a location or profile picture.")
+            Log.d("PatientLocation", "The patient does not have a location.")
         }
+    }
+
+    private fun updatePatientMarker(lat: Double, lng: Double) {
+        val latLng = LatLng(lat, lng)
+
+        if (patientMarker == null) {
+            patientMarker = map.addMarker(
+                MarkerOptions()
+                    .position(latLng)
+                    .title("Patient's Location")
+                    .icon(patientIcon ?: getResizedPatientIcon(R.drawable.patient_icon, 80, 80))
+            )
+        } else {
+            patientMarker?.position = latLng
+        }
+
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
+    }
+
+    private fun getResizedPatientIcon(resourceId: Int, width: Int, height: Int): BitmapDescriptor {
+        val bitmap = BitmapFactory.decodeResource(resources, resourceId)
+        val resizedBitmap = Bitmap.createScaledBitmap(bitmap, width, height, false)
+        return BitmapDescriptorFactory.fromBitmap(resizedBitmap)
     }
 }
