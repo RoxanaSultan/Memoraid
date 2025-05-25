@@ -46,7 +46,6 @@ class MainActivity : AppCompatActivity() {
 
         userViewModel.userRole.observe(this) { role ->
             bottomNavigationView.menu.clear()
-
             val navInflater = navController.navInflater
 
             when (role) {
@@ -54,6 +53,8 @@ class MainActivity : AppCompatActivity() {
                     bottomNavigationView.inflateMenu(R.menu.bottom_navigator_patient)
                     val graph = navInflater.inflate(R.navigation.navigation_graph_patient)
                     navController.graph = graph
+
+                    requestLocationPermissions()
                 }
 
                 "caretaker" -> {
@@ -72,7 +73,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        requestLocationPermissions()
         requestNotificationPermission()
         getFcmToken()
     }
