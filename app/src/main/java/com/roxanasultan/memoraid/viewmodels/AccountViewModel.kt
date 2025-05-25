@@ -67,10 +67,10 @@ class AccountViewModel @Inject constructor(
         }
     }
 
-    fun updateLocation(latitude: Double, longitude: Double) {
-        val userId = user.value?.id ?: return
-        userRepository.updateUserLocation(userId, latitude, longitude)
-    }
+//    fun updateLocation(latitude: Double, longitude: Double) {
+//        val userId = user.value?.id ?: return
+//        userRepository.updateUserLocation(userId, latitude, longitude)
+//    }
 
     override fun onCleared() {
         snapshotListener?.remove()

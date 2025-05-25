@@ -12,7 +12,6 @@ import android.os.Build
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
-import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.*
@@ -36,6 +35,10 @@ class LocationForegroundService : Service() {
     private lateinit var activityRecognitionClient: ActivityRecognitionClient
     private lateinit var activityRecognitionPendingIntent: PendingIntent
 
+    private var lastLatitude: Double? = null
+    private var lastLongitude: Double? = null
+    private var arrivalTime: Long = 0L
+
     override fun onCreate() {
         super.onCreate()
 
@@ -49,12 +52,51 @@ class LocationForegroundService : Service() {
                 val location = result.lastLocation ?: return
                 val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
-                userRepository.updateUserLocation(userId, location.latitude, location.longitude)
+                val currentTime = System.currentTimeMillis()
+
+                if (lastLatitude == null || lastLongitude == null) {
+                    // Prima locație primită
+                    lastLatitude = location.latitude
+                    lastLongitude = location.longitude
+                    arrivalTime = currentTime
+                    userRepository.appendLocationToCurrentRoute(
+                        userId,
+                        location.latitude,
+                        location.longitude,
+                        arrivalTime,
+                        0L
+                    )
+                } else {
+                    val distance = FloatArray(1)
+                    android.location.Location.distanceBetween(
+                        lastLatitude!!, lastLongitude!!,
+                        location.latitude, location.longitude,
+                        distance
+                    )
+                    val threshold = 10f // metri
+
+                    if (distance[0] < threshold) {
+                        // Persoana stă pe loc, actualizează durata
+                        val duration = currentTime - arrivalTime
+                        userRepository.updateDurationForLastLocation(userId, duration)
+                    } else {
+                        // Persoana s-a mutat, începe un nou punct
+                        lastLatitude = location.latitude
+                        lastLongitude = location.longitude
+                        arrivalTime = currentTime
+                        userRepository.appendLocationToCurrentRoute(
+                            userId,
+                            location.latitude,
+                            location.longitude,
+                            arrivalTime,
+                            0L
+                        )
+                    }
+                }
             }
         }
 
         setupLocationRequest(intervalMillis = 10_000L)
-
         requestActivityUpdates()
     }
 
@@ -64,13 +106,19 @@ class LocationForegroundService : Service() {
             fastestInterval = intervalMillis / 2
             priority = Priority.PRIORITY_HIGH_ACCURACY
         }
-        // Dacă updatezi intervalul, trebuie să reîncepi cererea location updates
         startLocationUpdates()
     }
 
     private fun startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             Log.e("LocationService", "Location permission not granted")
             stopSelf()
             return
@@ -84,16 +132,23 @@ class LocationForegroundService : Service() {
     }
 
     private fun requestActivityUpdates() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACTIVITY_RECOGNITION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             Log.e("LocationService", "Activity Recognition permission not granted")
             return
         }
 
         val intent = Intent(this, ActivityRecognitionReceiver::class.java)
-        activityRecognitionPendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
+        activityRecognitionPendingIntent = PendingIntent.getBroadcast(
+            this, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+        )
 
         activityRecognitionClient.requestActivityUpdates(
-            5_000L, // verifică activitatea la fiecare 5 secunde
+            5_000L,
             activityRecognitionPendingIntent
         )
     }
@@ -110,7 +165,6 @@ class LocationForegroundService : Service() {
         }
     }
 
-    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
 
@@ -136,7 +190,11 @@ class LocationForegroundService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         fusedLocationClient.removeLocationUpdates(locationCallback)
-        if (checkSelfPermission(Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACTIVITY_RECOGNITION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             activityRecognitionClient.removeActivityUpdates(activityRecognitionPendingIntent)
         }
     }

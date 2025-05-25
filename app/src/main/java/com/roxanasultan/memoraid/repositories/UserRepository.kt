@@ -310,22 +310,76 @@ class UserRepository @Inject constructor(
             }
     }
 
-    fun updateUserLocation(userId: String, latitude: Double, longitude: Double) {
-        val db = FirebaseFirestore.getInstance()
+//    fun updateUserLocation(userId: String, latitude: Double, longitude: Double) {
+//        val db = FirebaseFirestore.getInstance()
+//
+//        val locationData = mapOf(
+//            "location" to GeoPoint(latitude, longitude),
+//            "timestamp" to System.currentTimeMillis()
+//        )
+//
+//        db.collection("users").document(userId)
+//            .update(locationData)
+//            .addOnSuccessListener {
+//                Log.d("LocationUpdate", "Locația a fost salvată.")
+//            }
+//            .addOnFailureListener { e ->
+//                Log.e("LocationUpdate", "Eroare la salvarea locației", e)
+//            }
+//    }
 
-        val locationData = mapOf(
+    fun appendLocationToCurrentRoute(userId: String, latitude: Double, longitude: Double, arrivalTime: Long, duration: Long) {
+        val userDoc = FirebaseFirestore.getInstance().collection("users").document(userId)
+
+        // Creează un nou punct cu toate datele
+        val newPoint = mapOf(
             "location" to GeoPoint(latitude, longitude),
-            "timestamp" to System.currentTimeMillis()
+            "arrivalTime" to arrivalTime,
+            "duration" to duration
         )
 
-        db.collection("users").document(userId)
-            .update(locationData)
-            .addOnSuccessListener {
-                Log.d("LocationUpdate", "Locația a fost salvată.")
+        FirebaseFirestore.getInstance().runTransaction { transaction ->
+            val snapshot = transaction.get(userDoc)
+            val currentRouteRaw = snapshot.get("currentRoute") as? List<Map<String, Any>>
+
+            val updatedRoute = currentRouteRaw?.toMutableList() ?: mutableListOf()
+
+            updatedRoute.add(newPoint)
+
+            transaction.update(userDoc, "currentRoute", updatedRoute)
+        }.addOnFailureListener { e ->
+            Log.e("UserRepository", "Failed to update currentRoute: ${e.message}")
+        }
+    }
+
+    fun updateDurationForLastLocation(userId: String, duration: Long) {
+        val userDocRef = database.collection("users").document(userId)
+
+        database.runTransaction { transaction ->
+            val snapshot = transaction.get(userDocRef)
+            val currentRouteRaw = snapshot.get("currentRoute") as? List<Map<String, Any>>
+
+            if (currentRouteRaw != null && currentRouteRaw.isNotEmpty()) {
+                // Convertim lista la MutableList pentru modificare
+                val currentRoute = currentRouteRaw.toMutableList()
+
+                // Ultimul punct — copiem map-ul ca mutable
+                val lastPoint = currentRoute.last().toMutableMap()
+
+                // Actualizăm durata
+                lastPoint["duration"] = duration
+
+                // Înlocuim ultimul punct cu cel modificat
+                currentRoute[currentRoute.size - 1] = lastPoint
+
+                // Scriem înapoi lista actualizată
+                transaction.update(userDocRef, "currentRoute", currentRoute)
             }
-            .addOnFailureListener { e ->
-                Log.e("LocationUpdate", "Eroare la salvarea locației", e)
-            }
+        }.addOnSuccessListener {
+            Log.d("UserRepository", "Duration updated successfully")
+        }.addOnFailureListener { e ->
+            Log.e("UserRepository", "Failed to update duration", e)
+        }
     }
 
     suspend fun getFcmToken(userId: String): String? {
@@ -339,17 +393,26 @@ class UserRepository @Inject constructor(
     }
 
     fun observePatientLocation(patientId: String): Flow<GeoPoint?> = callbackFlow {
-        val listenerRegistration = firebaseCollection.document(patientId)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                val location = snapshot?.getGeoPoint("location")
-                trySend(location).isSuccess
+        val docRef = FirebaseFirestore.getInstance().collection("users").document(patientId)
+        val registration = docRef.addSnapshotListener { snapshot, error ->
+            if (error != null || snapshot == null || !snapshot.exists()) {
+                trySend(null)
+                return@addSnapshotListener
             }
-        awaitClose {
-            listenerRegistration.remove()
+
+            val currentRouteRaw = snapshot.get("currentRoute") as? List<*>
+            val currentRoute = currentRouteRaw?.mapNotNull { point ->
+                if (point is Map<*, *>) {
+                    val lat = point["latitude"] as? Double
+                    val lng = point["longitude"] as? Double
+                    if (lat != null && lng != null) GeoPoint(lat, lng) else null
+                } else null
+            }
+
+            val lastPoint = currentRoute?.lastOrNull()
+            trySend(lastPoint)
         }
+
+        awaitClose { registration.remove() }
     }
 }
