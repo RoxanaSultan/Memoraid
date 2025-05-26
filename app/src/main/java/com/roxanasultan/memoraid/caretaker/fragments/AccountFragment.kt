@@ -20,6 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.app.AlertDialog
+import android.content.Context.MODE_PRIVATE
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -48,6 +49,18 @@ class AccountFragment : Fragment() {
     private var isEmailChanged = false
     private var isImageRemoved = false
 
+    private val prefs by lazy {
+        requireContext().getSharedPreferences("memoraid_prefs", MODE_PRIVATE)
+    }
+
+    private fun isBiometricEnabledForUser(userId: String): Boolean {
+        return prefs.getBoolean("biometric_enabled_for_$userId", false)
+    }
+
+    private fun setBiometricEnabledForUser(userId: String, enabled: Boolean) {
+        prefs.edit().putBoolean("biometric_enabled_for_$userId", enabled).apply()
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -75,6 +88,13 @@ class AccountFragment : Fragment() {
                             .into(binding.profilePicture)
                     }
                 }
+            }
+        }
+
+        binding.checkboxBiometricLogin.setOnCheckedChangeListener { _, isChecked ->
+            val userId = accountViewModel.user.value?.email
+            if (userId != null) {
+                setBiometricEnabledForUser(userId, isChecked)
             }
         }
 

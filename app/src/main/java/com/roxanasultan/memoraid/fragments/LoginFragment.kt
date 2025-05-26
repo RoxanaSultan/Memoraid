@@ -36,7 +36,9 @@ class LoginFragment : Fragment() {
     private lateinit var googleSignInClient: GoogleSignInClient
     private val firebaseAuth = FirebaseAuth.getInstance()
     private val RC_SIGN_IN = 9001
-    private val prefs by lazy { requireContext().getSharedPreferences("memoraid_prefs", MODE_PRIVATE) }
+    private val prefs by lazy {
+        requireContext().getSharedPreferences("memoraid_prefs", MODE_PRIVATE)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
@@ -174,8 +176,8 @@ class LoginFragment : Fragment() {
         return prefs.getBoolean("biometric_enabled_for_$userId", false)
     }
 
-    private fun saveBiometricEnabled(userId: String) {
-        prefs.edit().putBoolean("biometric_enabled_for_$userId", true).apply()
+    private fun saveBiometricEnabled(userId: String, enabled: Boolean) {
+        prefs.edit().putBoolean("biometric_enabled_for_$userId", enabled).apply()
     }
 
     private fun showEnableBiometricDialog(userId: String) {
@@ -183,10 +185,11 @@ class LoginFragment : Fragment() {
             .setTitle("Enable biometric authentication?")
             .setMessage("Would you like to use fingerprint or face unlock for this account?")
             .setPositiveButton("Yes") { _, _ ->
-                saveBiometricEnabled(userId)
+                saveBiometricEnabled(userId, true)
                 navigateToMain()
             }
             .setNegativeButton("No") { _, _ ->
+                saveBiometricEnabled(userId, false)
                 navigateToMain()
             }
             .show()
