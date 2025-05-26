@@ -17,10 +17,24 @@ class LoginViewModel @Inject constructor(
     private val _loginState = MutableStateFlow<Result<Unit>?>(null)
     val loginState: StateFlow<Result<Unit>?> = _loginState
 
-    fun login(username: String, password: String) {
+    fun login(credential: String, password: String) {
         viewModelScope.launch {
             try {
-                val email = repository.getEmailByUsername(username)
+                val email = when {
+                    android.util.Patterns.EMAIL_ADDRESS.matcher(credential).matches() -> {
+                        // Credential este email deja
+                        credential
+                    }
+                    credential.all { it.isDigit() } && credential.length in 7..15 -> {
+                        // E numar de telefon (simplu check)
+                        repository.getEmailByPhoneNumber(credential)
+                    }
+                    else -> {
+                        // Presupunem username
+                        repository.getEmailByUsername(credential)
+                    }
+                }
+
                 if (email == null) {
                     _loginState.value = Result.failure(Exception("User not found"))
                     return@launch
@@ -28,6 +42,7 @@ class LoginViewModel @Inject constructor(
 
                 val loginResult = repository.loginWithEmail(email, password)
                 _loginState.value = loginResult
+
             } catch (e: Exception) {
                 _loginState.value = Result.failure(e)
             }

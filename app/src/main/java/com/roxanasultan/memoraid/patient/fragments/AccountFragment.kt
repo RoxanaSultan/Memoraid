@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.telephony.SmsManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,14 +18,17 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.Glide
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
 import com.roxanasultan.memoraid.R
 import com.roxanasultan.memoraid.activities.AuthenticationActivity
 import com.roxanasultan.memoraid.databinding.FragmentAccountBinding
 import com.roxanasultan.memoraid.services.LocationForegroundService
 import com.roxanasultan.memoraid.patient.viewmodels.AccountViewModel
-import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -73,10 +77,20 @@ class AccountFragment : Fragment() {
         }
 
         binding.emergencyButton.setOnClickListener {
-            val emergencyNumber = accountViewModel.user.value?.emergencyNumber
-            emergencyNumber?.let {
-                getLocationAndSendSms(it)
-            } ?: Toast.makeText(requireContext(), "Emergency number unavailable!", Toast.LENGTH_SHORT).show()
+            val emergencyNumbers = accountViewModel.user.value?.emergencyNumbers
+            if (!emergencyNumbers.isNullOrEmpty()) {
+                // Dialog confirmare
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Confirm Emergency Alert")
+                    .setMessage("Are you sure you want to send emergency messages to your contacts?")
+                    .setPositiveButton("Yes") { _, _ ->
+                        getLocationAndSendSms(emergencyNumbers)
+                    }
+                    .setNegativeButton("No", null)
+                    .show()
+            } else {
+                Toast.makeText(requireContext(), "Emergency numbers unavailable!", Toast.LENGTH_SHORT).show()
+            }
         }
 
         binding.logoutButton.setOnClickListener {
@@ -113,7 +127,7 @@ class AccountFragment : Fragment() {
         requestPermissions(arrayOf(Manifest.permission.SEND_SMS), SEND_SMS_PERMISSION_REQUEST_CODE)
     }
 
-    private fun getLocationAndSendSms(emergencyNumber: String) {
+    private fun getLocationAndSendSms(emergencyNumbers: List<String>) {
         if (!hasLocationPermission()) {
             requestLocationPermission()
             return
@@ -123,18 +137,27 @@ class AccountFragment : Fragment() {
             return
         }
 
-        try {
-            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                location?.let {
-                    val patient = accountViewModel.user.value?.username
-                    val locationUrl = "https://maps.google.com/?q=${it.latitude},${it.longitude}"
+        val userId = accountViewModel.user.value?.id
+        if (userId == null) {
+            Toast.makeText(requireContext(), "User not found", Toast.LENGTH_SHORT).show()
+            return
+        }
+        accountViewModel.fetchLastRouteLocation(userId)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            accountViewModel.lastRouteLocation
+                .filter { it != null }
+                .first()
+                .let { geoPoint ->
+                    val patient = accountViewModel.user.value?.username ?: "Unknown"
+                    val locationUrl = "https://maps.google.com/?q=${geoPoint!!.latitude},${geoPoint.longitude}"
                     val message = "EMERGENCY ALERT!\nYour patient: $patient needs help! Location: $locationUrl"
-                    sendEmergencySms(emergencyNumber, message)
-                } ?: Toast.makeText(requireContext(), "Location is not available.", Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: SecurityException) {
-            Toast.makeText(requireContext(), "Location access denied!", Toast.LENGTH_SHORT).show()
+
+                    emergencyNumbers.forEach { number ->
+                        sendEmergencySms(number, message)
+                        Log.d("AccountFragment", "Sent SMS to $number: $message")
+                    }
+                }
         }
     }
 
@@ -146,7 +169,7 @@ class AccountFragment : Fragment() {
 
         val smsManager = SmsManager.getDefault()
         smsManager.sendTextMessage(phoneNumber, null, message, null, null)
-        Toast.makeText(requireContext(), "Emergency message sent", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "Emergency message sent to $phoneNumber", Toast.LENGTH_SHORT).show()
     }
 
     override fun onRequestPermissionsResult(

@@ -22,6 +22,17 @@ class LoginRepository @Inject constructor(
         } else null
     }
 
+    suspend fun getEmailByPhoneNumber(phoneNumber: String): String? {
+        val snapshot = firestore.collection("users")
+            .whereEqualTo("phoneNumber", phoneNumber)
+            .get()
+            .await()
+
+        return if (!snapshot.isEmpty) {
+            snapshot.documents[0].getString("email")
+        } else null
+    }
+
     suspend fun loginWithEmail(email: String, password: String): Result<Unit> {
         return try {
             auth.signInWithEmailAndPassword(email, password).await()

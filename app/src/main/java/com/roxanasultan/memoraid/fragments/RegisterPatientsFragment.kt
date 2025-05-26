@@ -154,6 +154,7 @@ class RegisterPatientsFragment : Fragment() {
             "profilePictureUrl" to profilePictureUrl,
             "role" to role,
             "selectedPatient" to selectedPatientsList.firstOrNull(),
+            "emergencyNumbers" to emptyList<String>(),
             "caretakers" to emptyList<String>(),
             "patients" to emptyList<String>()
         )
@@ -171,6 +172,7 @@ class RegisterPatientsFragment : Fragment() {
                     val updatedCaretakers = patient.caretakers?.toMutableList()
                     updatedCaretakers?.add(registerViewModel.getCurrentUser()?.uid!!)
                     registerViewModel.updatePatientCaretakers(patientId, updatedCaretakers)
+                    registerViewModel.updateEmergencyNumbers(patientId, updatedCaretakers)
                 }
             }
         }

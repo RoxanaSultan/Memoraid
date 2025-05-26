@@ -35,6 +35,14 @@ class RegisterRepository @Inject constructor(
         return result.isEmpty
     }
 
+    suspend fun isPhoneNumberUnique(phoneNumber: String): Boolean {
+        val result = firestoreCollection
+            .whereEqualTo("phoneNumber", phoneNumber)
+            .get()
+            .await()
+        return result.isEmpty
+    }
+
     suspend fun getPatients(): List<Patient> {
         return firestoreCollection
             .whereEqualTo("role", "patient")
@@ -94,6 +102,31 @@ class RegisterRepository @Inject constructor(
             patientRef.update("caretakers", updatedCaretakers).await()
         } catch (e: Exception) {
             Log.e("RegisterRepo", "Error updating patient caretakers", e)
+        }
+    }
+
+    suspend fun updateEmergencyNumbers(patientId: String, updatedCaretakers: MutableList<String>?) {
+        if (updatedCaretakers.isNullOrEmpty()) return
+
+        try {
+            val phoneNumbers = mutableListOf<String>()
+
+            updatedCaretakers.forEach { caretakerId ->
+                val userDoc = firestoreCollection.document(caretakerId).get().await()
+                if (userDoc.exists()) {
+                    val phoneNumber = userDoc.getString("phoneNumber")
+                    if (!phoneNumber.isNullOrEmpty()) {
+                        phoneNumbers.add(phoneNumber)
+                    }
+                }
+            }
+
+            val patientRef = firestoreCollection.document(patientId)
+            patientRef.update("emergencyNumbers", phoneNumbers).await()
+
+            Log.d("RegisterRepo", "Successfully updated emergency numbers: $phoneNumbers")
+        } catch (e: Exception) {
+            Log.e("RegisterRepo", "Error updating emergency numbers", e)
         }
     }
 }

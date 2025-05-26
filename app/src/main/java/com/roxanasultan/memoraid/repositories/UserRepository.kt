@@ -67,6 +67,27 @@ class UserRepository @Inject constructor(
         }
     }
 
+    fun getLastRouteLocation(userId: String, onResult: (GeoPoint?) -> Unit) {
+        firebaseCollection.document(userId).get()
+            .addOnSuccessListener { doc ->
+                if (doc.exists()) {
+                    val currentRoute = doc.get("currentRoute") as? List<Map<String, Any>>
+                    if (!currentRoute.isNullOrEmpty()) {
+                        val lastEntry = currentRoute.last()
+                        val location = lastEntry["location"] as? GeoPoint
+                        onResult(location)
+                    } else {
+                        onResult(null)
+                    }
+                } else {
+                    onResult(null)
+                }
+            }
+            .addOnFailureListener {
+                onResult(null)
+            }
+    }
+
     suspend fun getOtherPatients(): List<User?> {
         val caretakerId = getCurrentUser()?.uid ?: return emptyList()
 
@@ -414,5 +435,17 @@ class UserRepository @Inject constructor(
         }
 
         awaitClose { registration.remove() }
+    }
+
+    fun resetCurrentRoute(userId: String) {
+        firebaseCollection
+            .document(userId)
+            .collection("currentRoute")
+            .get()
+            .addOnSuccessListener { snapshots ->
+                for (document in snapshots) {
+                    document.reference.delete()
+                }
+            }
     }
 }

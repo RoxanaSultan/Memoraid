@@ -13,10 +13,12 @@ import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.roxanasultan.memoraid.R
 import com.roxanasultan.memoraid.databinding.FragmentRegisterOptionalAccountInformationBinding
 import com.roxanasultan.memoraid.viewmodels.RegisterSharedViewModel
@@ -37,24 +39,6 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
 
     private var selectedImageUri: Uri? = null
     private var photoUri: Uri? = null
-
-    private val imagePickerLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            selectedImageUri = it
-            binding.profilePicture.setImageURI(it)
-        }
-    }
-
-    private val cameraLauncher = registerForActivityResult(
-        ActivityResultContracts.TakePicture()
-    ) { success: Boolean ->
-        if (success && photoUri != null) {
-            selectedImageUri = photoUri
-            binding.profilePicture.setImageURI(photoUri)
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -96,8 +80,8 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
             selectedYear = newVal
         }
 
-        binding.addPictureButton.setOnClickListener {
-            showImageSourceDialog()
+        binding.editPictureButton.setOnClickListener {
+            showModal()
         }
 
         binding.secondRegisterContinueButton.setOnClickListener {
@@ -112,21 +96,23 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         })
     }
 
-    private fun showImageSourceDialog() {
-        val options = arrayOf("Take a Picture", "Choose from Gallery")
+    private fun showModal() {
+        val options = arrayOf("Take a Picture", "Choose from Gallery", "Remove Picture")
         AlertDialog.Builder(requireContext())
+            .setTitle("Edit Picture")
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> checkAndRequestPermissions()
                     1 -> chooseImageFromGallery()
+                    2 -> removeProfilePicture()
                 }
-            }
-            .show()
+            }.show()
     }
 
     private fun checkAndRequestPermissions() {
         val cameraPermission = Manifest.permission.CAMERA
-        if (requireContext().checkSelfPermission(cameraPermission) != PackageManager.PERMISSION_GRANTED) {
+        val permissionCheck = ContextCompat.checkSelfPermission(requireContext(), cameraPermission)
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(cameraPermission), 1001)
         } else {
             takePicture()
@@ -135,12 +121,12 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
 
     private fun takePicture() {
         val photoFile = createImageFile()
-        photoUri = FileProvider.getUriForFile(requireContext(), "com.roxanasultan.memoraid.fileprovider", photoFile)
+        photoUri = FileProvider.getUriForFile(
+            requireContext(),
+            "com.roxanasultan.memoraid.fileprovider",
+            photoFile
+        )
         cameraLauncher.launch(photoUri)
-    }
-
-    private fun chooseImageFromGallery() {
-        imagePickerLauncher.launch("image/*")
     }
 
     private fun createImageFile(): File {
@@ -149,10 +135,33 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         return File.createTempFile("JPEG_${timestamp}_", ".jpg", storageDir)
     }
 
+    private fun chooseImageFromGallery() {
+        imagePickerLauncher.launch("image/*")
+    }
+
+    private fun removeProfilePicture() {
+        binding.profilePicture.setImageResource(R.drawable.default_profile_picture)
+        selectedImageUri = null
+    }
+
+    private val imagePickerLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            selectedImageUri = it
+            Glide.with(this).load(it).placeholder(R.drawable.default_profile_picture).into(binding.profilePicture)
+        }
+    }
+
+    private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success && photoUri != null) {
+            selectedImageUri = photoUri
+            Glide.with(this).load(photoUri).placeholder(R.drawable.default_profile_picture)
+                .into(binding.profilePicture)
+        }
+    }
+
     private fun handleContinue(year: Int, month: Int, dayOfMonth: Int) {
         val firstName = binding.registerFirstname.text.toString().trim()
         val lastName = binding.registerLastname.text.toString().trim()
-        val phoneNumber = binding.registerPhoneNumber.text.toString().trim()
 
         val calendar = Calendar.getInstance().apply { set(year, month - 1, dayOfMonth) }
         val birthdate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(calendar.time)
@@ -160,18 +169,16 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
         if (selectedImageUri != null) {
                 sharedViewModel.setProfilePicture(selectedImageUri.toString())
         }
-        proceedToNextStep(firstName, lastName, phoneNumber, birthdate)
+        proceedToNextStep(firstName, lastName, birthdate)
     }
 
     private fun proceedToNextStep(
         firstName: String,
         lastName: String,
-        phoneNumber: String,
         birthdate: String
     ) {
         sharedViewModel.setFirstName(if (firstName.isEmpty()) "No first name" else firstName)
         sharedViewModel.setLastName(if (lastName.isEmpty()) "No last name" else lastName)
-        sharedViewModel.setPhoneNumber(if (phoneNumber.isEmpty()) "No phone number" else phoneNumber)
         sharedViewModel.setBirthdate(if (birthdate.isEmpty()) "No birthdate" else birthdate)
 
         findNavController().navigate(R.id.action_registerOptionalAccountInfoFragment_to_registerPatientsFragment)

@@ -29,6 +29,10 @@ class RegisterViewModel @Inject constructor(
         return repository.isEmailUnique(email)
     }
 
+    suspend fun isPhoneNumberUnique(phoneNumber: String): Boolean {
+        return repository.isPhoneNumberUnique(phoneNumber)
+    }
+
     fun getPatients() {
         viewModelScope.launch {
             try {
@@ -77,6 +81,13 @@ class RegisterViewModel @Inject constructor(
         } catch (e: Exception) {
             Log.e("ViewModel", "Error updating patient caretakers", e)
         }
+    }
 
+    suspend fun updateEmergencyNumbers(patientId: String, updatedCaretakers: MutableList<String>?) {
+        try {
+            repository.updateEmergencyNumbers(patientId, updatedCaretakers)
+        } catch (e: Exception) {
+            Log.e("ViewModel", "Error updating patient caretakers", e)
+        }
     }
 }

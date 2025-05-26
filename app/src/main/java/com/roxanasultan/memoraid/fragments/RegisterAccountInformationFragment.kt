@@ -49,11 +49,12 @@ class RegisterAccountInformationFragment : Fragment() {
         binding.firstRegisterContinueButton.setOnClickListener {
             val username = binding.registerUsername.text.toString().trim()
             val email = binding.registerEmail.text.toString().trim()
+            val phoneNumber = binding.registerPhoneNumber.text.toString().trim()
             val password = binding.registerPassword.text.toString().trim()
             val confirmPassword = binding.registerConfirmPassword.text.toString().trim()
 
             lifecycleScope.launch {
-                if (validateInput(email, username, password, confirmPassword)) {
+                if (validateInput(email, username, phoneNumber, password, confirmPassword)) {
                     findNavController().navigate(R.id.action_registerAccountInfoFragment_to_registerOptionalAccountInfoFragment)
                 }
             }
@@ -63,10 +64,11 @@ class RegisterAccountInformationFragment : Fragment() {
     private suspend fun validateInput(
         email: String,
         username: String,
+        phoneNumber: String,
         password: String,
         confirmPassword: String
     ): Boolean {
-        if (email.isEmpty() || username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+        if (email.isEmpty() || username.isEmpty() || phoneNumber.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(requireContext(), "All fields are required.", Toast.LENGTH_SHORT).show()
             return false
         }
@@ -76,8 +78,13 @@ class RegisterAccountInformationFragment : Fragment() {
             return false
         }
 
-        if (username.trim().contains(" ")) {
+        if (username.contains(" ")) {
             Toast.makeText(requireContext(), "Username cannot contain spaces.", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        if (!Patterns.PHONE.matcher(phoneNumber).matches()) {
+            Toast.makeText(requireContext(), "Invalid phone number", Toast.LENGTH_SHORT).show()
             return false
         }
 
@@ -102,8 +109,14 @@ class RegisterAccountInformationFragment : Fragment() {
             return false
         }
 
+        if (!registerViewModel.isPhoneNumberUnique(phoneNumber)) {
+            Toast.makeText(requireContext(), "Phone number is already registered.", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
         sharedViewModel.setUsername(username)
         sharedViewModel.setEmail(email)
+        sharedViewModel.setPhoneNumber(phoneNumber)
         sharedViewModel.setPassword(password)
 
         return true

@@ -70,11 +70,11 @@ class LoginFragment : Fragment() {
         }
 
         binding.loginButton.setOnClickListener {
-            val username = binding.loginUsername.text.toString().trim()
+            val credential = binding.loginCredential.text.toString().trim()
             val password = binding.loginPassword.text.toString().trim()
 
-            if (validateInput(username, password)) {
-                loginUser(username, password)
+            if (validateInput(credential, password)) {
+                loginUser(credential, password)
             }
         }
 
@@ -89,23 +89,23 @@ class LoginFragment : Fragment() {
             findNavController().navigate(R.id.fragment_register_account_info)
         }
 
-        binding.forgotPasswordButton.setOnClickListener {
-            val username = binding.loginUsername.text.toString().trim()
-
-            if (username.isEmpty()) {
-                Toast.makeText(requireContext(), "Please enter your username.", Toast.LENGTH_SHORT)
-                    .show()
-                return@setOnClickListener
-            }
-
-            loginViewModel.sendResetEmail(username) { result ->
-                result.onSuccess {
-                    Toast.makeText(requireContext(), "Password reset email sent!", Toast.LENGTH_SHORT).show()
-                }.onFailure {
-                    Toast.makeText(requireContext(), "Error: ${it.message}", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
+//        binding.forgotPasswordButton.setOnClickListener {
+//            val username = binding.loginUsername.text.toString().trim()
+//
+//            if (username.isEmpty()) {
+//                Toast.makeText(requireContext(), "Please enter your username.", Toast.LENGTH_SHORT)
+//                    .show()
+//                return@setOnClickListener
+//            }
+//
+//            loginViewModel.sendResetEmail(username) { result ->
+//                result.onSuccess {
+//                    Toast.makeText(requireContext(), "Password reset email sent!", Toast.LENGTH_SHORT).show()
+//                }.onFailure {
+//                    Toast.makeText(requireContext(), "Error: ${it.message}", Toast.LENGTH_LONG).show()
+//                }
+//            }
+//        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -149,13 +149,13 @@ class LoginFragment : Fragment() {
         }
     }
 
-    private fun loginUser(username: String, password: String) {
-        loginViewModel.login(username, password)
+    private fun loginUser(credential: String, password: String) {
+        loginViewModel.login(credential, password)
     }
 
-    private fun validateInput(username: String, password: String): Boolean {
-        if (username.isEmpty()) {
-            Toast.makeText(requireContext(), "Username is required", Toast.LENGTH_SHORT).show()
+    private fun validateInput(credential: String, password: String): Boolean {
+        if (credential.isEmpty()) {
+            Toast.makeText(requireContext(), "Username, Email or Phone Number is required", Toast.LENGTH_SHORT).show()
             return false
         }
         if (password.isEmpty()) {

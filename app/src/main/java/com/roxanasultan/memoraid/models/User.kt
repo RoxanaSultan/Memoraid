@@ -19,5 +19,5 @@ data class User(
     val caretakers: List<String>? = null,
     val selectedPatient: String? = null,
     val location: GeoPoint? = null,
-    val emergencyNumber: String? = null
+    val emergencyNumbers: List<String>? = null
 )

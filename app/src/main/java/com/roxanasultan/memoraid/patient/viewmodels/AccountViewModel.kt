@@ -1,8 +1,8 @@
 package com.roxanasultan.memoraid.patient.viewmodels
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.GeoPoint
 import com.roxanasultan.memoraid.repositories.UserRepository
 import com.roxanasultan.memoraid.models.User
 import com.google.firebase.firestore.ListenerRegistration
@@ -19,6 +19,9 @@ class AccountViewModel @Inject constructor(
 
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
+
+    private val _lastRouteLocation = MutableStateFlow<GeoPoint?>(null)
+    val lastRouteLocation: StateFlow<GeoPoint?> = _lastRouteLocation
 
     private var snapshotListener: ListenerRegistration? = null
 
@@ -44,6 +47,12 @@ class AccountViewModel @Inject constructor(
 
     fun logout() {
         userRepository.logout()
+    }
+
+    fun fetchLastRouteLocation(userId: String) {
+        userRepository.getLastRouteLocation(userId) { location ->
+            _lastRouteLocation.value = location
+        }
     }
 
     override fun onCleared() {

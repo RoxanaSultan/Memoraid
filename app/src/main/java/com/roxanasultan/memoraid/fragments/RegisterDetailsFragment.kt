@@ -6,10 +6,10 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -68,7 +68,7 @@ class RegisterDetailsFragment : Fragment() {
             handleContinue(year, month, day)
         }
 
-        binding.profilePicture.setOnClickListener {
+        binding.editPictureButton.setOnClickListener {
             showModal()
         }
     }
@@ -120,13 +120,17 @@ class RegisterDetailsFragment : Fragment() {
         }
 
         lifecycleScope.launch {
-            if (validateUsername(username)) {
+            if (validateInput(username, phoneNumber)) {
                 findNavController().navigate(R.id.action_registerDetailsFragment_to_registerPatientsFragment)
             }
         }
     }
 
-    private suspend fun validateUsername(username: String): Boolean {
+    private suspend fun validateInput(username: String, phoneNumber: String): Boolean {
+        if (username.isEmpty() || phoneNumber.isEmpty()) {
+            Toast.makeText(requireContext(), "Username and Phone number cannot be empty.", Toast.LENGTH_SHORT).show()
+            return false
+        }
         if (username.trim().contains(" ")) {
             Toast.makeText(requireContext(), "Username cannot contain spaces.", Toast.LENGTH_SHORT).show()
             return false
@@ -135,7 +139,16 @@ class RegisterDetailsFragment : Fragment() {
             Toast.makeText(requireContext(), "Username is already taken.", Toast.LENGTH_SHORT).show()
             return false
         }
+        if (!Patterns.PHONE.matcher(phoneNumber).matches()) {
+            Toast.makeText(requireContext(), "Invalid phone number", Toast.LENGTH_SHORT).show()
+            return false
+        }
+        if (!registerViewModel.isPhoneNumberUnique(phoneNumber)) {
+            Toast.makeText(requireContext(), "Phone number is already registered.", Toast.LENGTH_SHORT).show()
+            return false
+        }
         sharedViewModel.setUsername(username)
+        sharedViewModel.setPhoneNumber(phoneNumber)
         return true
     }
 
