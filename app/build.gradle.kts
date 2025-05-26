@@ -126,4 +126,10 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:18.1.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.google.android.libraries.places:places:3.4.0")
+
+    // Biometric Authentication
+    implementation("androidx.biometric:biometric:1.1.0")
+
+    // Security
+    implementation("androidx.security:security-crypto:1.1.0-alpha03")
 }

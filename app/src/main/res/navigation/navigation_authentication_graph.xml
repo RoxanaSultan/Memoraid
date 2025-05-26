@@ -22,11 +22,24 @@
         <action
             android:id="@+id/action_loginFragment_to_registerDetailsFragment"
             app:destination="@id/fragment_register_details" />
+        <action
+            android:id="@+id/action_loginFragment_to_forgotPasswordFragment"
+            app:destination="@id/fragment_forgot_password" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/fragment_forgot_password"
+        android:name="com.roxanasultan.memoraid.fragments.ForgotPasswordFragment"
+        android:label="ForgotPasswordFragment"
+        tools:layout="@layout/fragment_forgot_password">
+        <action
+            android:id="@+id/action_forgotPasswordFragment_to_loginFragment"
+            app:destination="@id/fragment_login" />
     </fragment>
 
     <fragment
         android:id="@+id/fragment_reset_password"
-        android:name="com.roxanasultan.memoraid.ResetPasswordFragment"
+        android:name="com.roxanasultan.memoraid.fragments.ResetPasswordFragment"
         android:label="ResetPasswordFragment"
         tools:layout="@layout/fragment_reset_password">
         <action

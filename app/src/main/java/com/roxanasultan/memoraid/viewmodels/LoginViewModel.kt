@@ -22,15 +22,12 @@ class LoginViewModel @Inject constructor(
             try {
                 val email = when {
                     android.util.Patterns.EMAIL_ADDRESS.matcher(credential).matches() -> {
-                        // Credential este email deja
                         credential
                     }
                     credential.all { it.isDigit() } && credential.length in 7..15 -> {
-                        // E numar de telefon (simplu check)
                         repository.getEmailByPhoneNumber(credential)
                     }
                     else -> {
-                        // Presupunem username
                         repository.getEmailByUsername(credential)
                     }
                 }
@@ -49,10 +46,42 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun sendResetEmail(username: String, onResult: (Result<Unit>) -> Unit) {
+    fun getEmailByPhoneNumber(phoneNumber: String, onResult: (String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val email = repository.getEmailByPhoneNumber(phoneNumber)
+                onResult(email)
+            } catch (e: Exception) {
+                onResult(null)
+            }
+        }
+    }
+
+    fun getEmailByUsername(username: String, onResult: (String?) -> Unit) {
         viewModelScope.launch {
             try {
                 val email = repository.getEmailByUsername(username)
+                onResult(email)
+            } catch (e: Exception) {
+                onResult(null)
+            }
+        }
+    }
+
+    fun sendResetEmail(input: String, onResult: (Result<Unit>) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val email = when {
+                    android.util.Patterns.EMAIL_ADDRESS.matcher(input).matches() -> {
+                        input
+                    }
+                    input.all { it.isDigit() } && input.length in 7..15 -> {
+                        repository.getEmailByPhoneNumber(input)
+                    }
+                    else -> {
+                        repository.getEmailByUsername(input)
+                    }
+                }
                 if (email == null) {
                     onResult(Result.failure(Exception("Username not found")))
                     return@launch
@@ -66,18 +95,14 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    suspend fun doesProfileExist(email: String, onResult: (Boolean) -> Unit) {
+    fun doesProfileExist(email: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
             try {
                 val exists = repository.doesProfileExist(email)
                 onResult(exists)
             } catch (e: Exception) {
-                onResult(false)  // în caz de eroare, presupunem că nu există
+                onResult(false)
             }
         }
-    }
-
-    fun clearState() {
-        _loginState.value = null
     }
 }

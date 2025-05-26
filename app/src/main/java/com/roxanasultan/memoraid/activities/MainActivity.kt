@@ -8,9 +8,11 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.roxanasultan.memoraid.R
@@ -75,6 +77,50 @@ class MainActivity : AppCompatActivity() {
 
         requestNotificationPermission()
         getFcmToken()
+        handleDeepLink(navController)
+    }
+
+    private fun handleDeepLink(navController: NavController) {
+        intent?.data?.let { uri ->
+            when (uri.path) {
+                "/reset-password" -> {
+                    val userId = uri.getQueryParameter("user")
+                    val bundle = Bundle().apply { putString("user", userId) }
+                    navController.navigate(R.id.fragment_change_password, bundle)
+                }
+                "/auto-login" -> {
+                    val sessionToken = uri.getQueryParameter("token")
+                    autoLogin(sessionToken, navController)
+                }
+            }
+        }
+    }
+
+    private fun autoLogin(token: String?, navController: NavController) {
+        if (!token.isNullOrEmpty()) {
+            userViewModel.userRole.observe(this) { role ->
+                val navInflater = navController.navInflater
+
+                when (role) {
+                    "patient" -> {
+                        bottomNavigationView.menu.clear()
+                        bottomNavigationView.inflateMenu(R.menu.bottom_navigator_patient)
+                        val graph = navInflater.inflate(R.navigation.navigation_graph_patient)
+                        navController.graph = graph
+                        navController.navigate(R.id.fragment_account)
+                    }
+                    "caretaker" -> {
+                        bottomNavigationView.menu.clear()
+                        bottomNavigationView.inflateMenu(R.menu.bottom_navigator_caretaker)
+                        val graph = navInflater.inflate(R.navigation.navigation_graph_caretaker)
+                        navController.graph = graph
+                        navController.navigate(R.id.fragment_account)
+                    }
+                }
+            }
+        } else {
+            Toast.makeText(this, "Invalid session token!", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun createNotificationChannels() {

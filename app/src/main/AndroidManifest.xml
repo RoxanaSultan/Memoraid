@@ -59,6 +59,19 @@
             android:exported="true"
             android:launchMode="singleTop"
             android:screenOrientation="portrait">
+
+            <!-- Intent filters pentru deep linking -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <!-- Resetare parolă -->
+                <data android:scheme="https" android:host="example.com" android:pathPrefix="/reset-password"/>
+
+                <!-- Reconectare automată -->
+                <data android:scheme="https" android:host="example.com" android:pathPrefix="/auto-login"/>
+            </intent-filter>
         </activity>
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"

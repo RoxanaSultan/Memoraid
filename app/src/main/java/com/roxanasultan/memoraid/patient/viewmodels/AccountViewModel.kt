@@ -1,5 +1,6 @@
 package com.roxanasultan.memoraid.patient.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.GeoPoint
@@ -41,6 +42,7 @@ class AccountViewModel @Inject constructor(
     fun loadUser() {
         val userId = userRepository.getCurrentUser()?.uid
         viewModelScope.launch {
+            Log.d("AccountViewModel", "Loading user with ID: $userId")
             _user.value = userRepository.getUser(userId!!)
         }
     }
