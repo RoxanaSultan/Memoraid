@@ -1,61 +1,44 @@
 package com.roxanasultan.memoraid.services
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 import android.util.Log
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
+import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.roxanasultan.memoraid.helpers.AlarmScheduler
-import com.roxanasultan.memoraid.helpers.NotificationHelper
+import com.roxanasultan.memoraid.R
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
-    override fun onNewToken(token: String) {
-        super.onNewToken(token)
-        Log.d("MyFirebaseMessagingService", "New token: $token")
-        saveTokenToFirestore(token)
-    }
-
-    private fun saveTokenToFirestore(token: String) {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
-        if (userId == null) {
-            Log.e("MyFirebaseMessagingService", "User is not authenticated, token not saved")
-            return
-        }
-        val firestore = FirebaseFirestore.getInstance()
-        val userDocRef = firestore.collection("users").document(userId)
-        userDocRef.set(mapOf("fcmToken" to token), SetOptions.merge())
-            .addOnSuccessListener {
-                Log.d("MyFirebaseMessagingService", "Token updated successfully")
-            }
-            .addOnFailureListener { e ->
-                Log.e("MyFirebaseMessagingService", "Failed to update token", e)
-            }
-    }
-
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        Log.d("MyFirebaseMessagingService", "From: ${remoteMessage.from}")
-        val data = remoteMessage.data
-        val type = data["type"]
+        Log.d("MyFirebaseMessagingService", "Message received: ${remoteMessage.data}")
 
-        when (type) {
-            "newMedication" -> {
-                // Notificare pentru medicament nou creat
-                val medicationName = data["medicationName"] ?: "Medicament nou"
-                val time = data["time"] ?: ""
-                NotificationHelper.showNewMedicationNotification(
-                    applicationContext,
-                    "Medicament nou adăugat",
-                    "$medicationName - programat la $time"
-                )
+        val title = remoteMessage.notification?.title ?: "New medication added!"
+        val body = remoteMessage.notification?.body ?: "New medication has been added to your calendar."
+        val channelId = "medication_channel"
 
-                // Programează alarmele pentru acest medicament
-                val hour = data["hour"]?.toIntOrNull() ?: return
-                val minute = data["minute"]?.toIntOrNull() ?: return
-                val dose = data["dose"] ?: "medicamentul"
+        val notificationManager = getSystemService(NotificationManager::class.java)
 
-                AlarmScheduler.scheduleAlarm(applicationContext, hour, minute, dose)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            notificationManager.getNotificationChannel(channelId) == null
+        ) {
+            val channel = NotificationChannel(
+                channelId,
+                "Medication Notifications",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Channel for medication reminders"
             }
+            notificationManager.createNotificationChannel(channel)
         }
+
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setSmallIcon(R.drawable.medicine)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .build()
+
+        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
 }

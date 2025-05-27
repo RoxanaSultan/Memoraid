@@ -17,11 +17,13 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.roxanasultan.memoraid.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 import com.roxanasultan.memoraid.viewmodels.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.messaging
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -32,11 +34,14 @@ class MainActivity : AppCompatActivity() {
     private val REQUEST_LOCATION_PERMISSION_CODE = 1001
     private val REQUEST_NOTIFICATION_PERMISSION_CODE = 1002
 
+    private val CHANNEL_ID = "medication_channel"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        createNotificationChannels()
+        createNotificationChannel()
+        requestNotificationPermission()
 
         bottomNavigationView = findViewById(R.id.bottom_navigation)
 
@@ -44,6 +49,7 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         val navController = navHostFragment.navController
 
+        userViewModel.loadUser()
         userViewModel.fetchUserRole()
 
         userViewModel.userRole.observe(this) { role ->
@@ -73,89 +79,35 @@ class MainActivity : AppCompatActivity() {
             if (savedInstanceState == null) {
                 bottomNavigationView.selectedItemId = R.id.navigation_account
             }
+
+            val userId = userViewModel.user.value?.id
+            if (userId != null) {
+                Firebase.messaging.subscribeToTopic(userId)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Log.d("FirebaseTopic", "Subscribed to topic: $userId")
+                        } else {
+                            Log.e("FirebaseTopic", "Failed to subscribe", task.exception)
+                        }
+                    }
+            }
         }
 
-        requestNotificationPermission()
         getFcmToken()
-        handleDeepLink(navController)
     }
 
-    private fun handleDeepLink(navController: NavController) {
-        intent?.data?.let { uri ->
-            when (uri.path) {
-                "/reset-password" -> {
-                    val userId = uri.getQueryParameter("user")
-                    val bundle = Bundle().apply { putString("user", userId) }
-                    navController.navigate(R.id.fragment_change_password, bundle)
-                }
-                "/auto-login" -> {
-                    val sessionToken = uri.getQueryParameter("token")
-                    autoLogin(sessionToken, navController)
-                }
-            }
-        }
-    }
-
-    private fun autoLogin(token: String?, navController: NavController) {
-        if (!token.isNullOrEmpty()) {
-            userViewModel.userRole.observe(this) { role ->
-                val navInflater = navController.navInflater
-
-                when (role) {
-                    "patient" -> {
-                        bottomNavigationView.menu.clear()
-                        bottomNavigationView.inflateMenu(R.menu.bottom_navigator_patient)
-                        val graph = navInflater.inflate(R.navigation.navigation_graph_patient)
-                        navController.graph = graph
-                        navController.navigate(R.id.fragment_account)
-                    }
-                    "caretaker" -> {
-                        bottomNavigationView.menu.clear()
-                        bottomNavigationView.inflateMenu(R.menu.bottom_navigator_caretaker)
-                        val graph = navInflater.inflate(R.navigation.navigation_graph_caretaker)
-                        navController.graph = graph
-                        navController.navigate(R.id.fragment_account)
-                    }
-                }
-            }
-        } else {
-            Toast.makeText(this, "Invalid session token!", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun createNotificationChannels() {
+    private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager = getSystemService(NotificationManager::class.java)
-
-            val locationChannel = NotificationChannel(
-                "location_service_channel",
-                "Location Service",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Notifications for location foreground service"
-            }
-
-            val alertsChannel = NotificationChannel(
-                "alerts_channel",
-                "Memoraid Alerts",
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Medication Notifications",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Reminders and important alerts from Memoraid"
+                description = "Channel for medication reminders"
             }
 
-            val medicineReminderChannel = NotificationChannel(
-                "medicine_reminder_channel",
-                "Medicine Reminder",
-                NotificationManager.IMPORTANCE_MAX
-            ).apply {
-                description = "Channel for pill reminders"
-                enableVibration(true)
-                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-            }
-
-            notificationManager.createNotificationChannel(medicineReminderChannel)
-            notificationManager.createNotificationChannel(locationChannel)
-            notificationManager.createNotificationChannel(alertsChannel)
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(channel)
         }
     }
 

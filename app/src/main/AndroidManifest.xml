@@ -105,6 +105,9 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyC5aJdQfZVWc1XMmKc1BffgSvFnc5WJ5dY" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="medication_channel" />
         <service
             android:name=".services.LocationForegroundService"
             android:exported="false"
