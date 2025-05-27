@@ -138,6 +138,13 @@
         tools:layout="@layout/fragment_health">
     </fragment>
 
+    <fragment
+        android:id="@+id/fragment_medication"
+        android:name="com.roxanasultan.memoraid.patient.fragments.MedicationFragment"
+        android:label="Medication"
+        tools:layout="@layout/fragment_medicine">
+    </fragment>
+
     <!-- Journal Details Fragment -->
     <fragment
         android:id="@+id/fragment_journal_details"

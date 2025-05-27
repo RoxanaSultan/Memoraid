@@ -7,7 +7,6 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.roxanasultan.memoraid.R
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
@@ -27,7 +26,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 "Medication Notifications",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Channel for medication reminders"
+                description = "Channel for medication notifications"
             }
             notificationManager.createNotificationChannel(channel)
         }
@@ -35,7 +34,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle(title)
             .setContentText(body)
-            .setSmallIcon(R.drawable.medicine)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
 
