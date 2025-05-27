@@ -167,7 +167,7 @@ class MainActivity : AppCompatActivity() {
                 return@addOnCompleteListener
             }
 
-            val token = task.result
+            val token = task.result.trim()
             Log.d("MainActivity", "FCM Token: $token")
             if (token != null) {
                 saveTokenToFirestore(token)
