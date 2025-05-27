@@ -1,8 +1,8 @@
 package com.roxanasultan.memoraid.activities
 
 import android.Manifest
-import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -10,17 +10,16 @@ import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.roxanasultan.memoraid.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.Firebase
-import dagger.hilt.android.AndroidEntryPoint
-import com.roxanasultan.memoraid.viewmodels.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
-import com.google.firebase.messaging.messaging
+import dagger.hilt.android.AndroidEntryPoint
+import com.roxanasultan.memoraid.viewmodels.UserViewModel
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -32,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     private val REQUEST_NOTIFICATION_PERMISSION_CODE = 1002
 
     private val CHANNEL_ID = "medication_channel"
+    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
-        val navController = navHostFragment.navController
+        navController = navHostFragment.navController
 
         userViewModel.loadUser()
         userViewModel.fetchUserRole()
@@ -77,9 +77,11 @@ class MainActivity : AppCompatActivity() {
                 bottomNavigationView.selectedItemId = R.id.navigation_account
             }
 
+            handleIntent(intent)
+
             val userId = userViewModel.user.value?.id
             if (userId != null) {
-                Firebase.messaging.subscribeToTopic(userId)
+                FirebaseMessaging.getInstance().subscribeToTopic(userId)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             Log.d("FirebaseTopic", "Subscribed to topic: $userId")
@@ -93,9 +95,23 @@ class MainActivity : AppCompatActivity() {
         getFcmToken()
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent?.let { handleIntent(it) }
+    }
+
+    private fun handleIntent(intent: Intent) {
+        val navigateTo = intent.getStringExtra("navigate_to")
+        Log.d("MainActivity", "handleIntent navigate_to = $navigateTo")
+
+        when (navigateTo) {
+            "medication" -> navController.navigate(R.id.navigation_health)
+        }
+    }
+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+            val channel = android.app.NotificationChannel(
                 CHANNEL_ID,
                 "Medication Notifications",
                 NotificationManager.IMPORTANCE_HIGH
@@ -172,11 +188,8 @@ class MainActivity : AppCompatActivity() {
         userDocRef.update("fcmToken", token)
             .addOnSuccessListener {
                 Log.d("MainActivity", "FCM token saved successfully")
-                Log.d("MainActivity", "Token: $token")
             }
-            .addOnFailureListener { e ->
-                // Dacă câmpul nu există încă (ex: documentul nu are câmp fcmToken), update poate da eroare,
-                // atunci facem set cu merge true:
+            .addOnFailureListener {
                 userDocRef.set(mapOf("fcmToken" to token), com.google.firebase.firestore.SetOptions.merge())
                     .addOnSuccessListener {
                         Log.d("MainActivity", "FCM token set successfully with merge")

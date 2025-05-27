@@ -2,41 +2,64 @@ package com.roxanasultan.memoraid.services
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.roxanasultan.memoraid.R
+import com.roxanasultan.memoraid.activities.MainActivity
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
+
+    private val CHANNEL_ID = "medication_channel"
+
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d("MyFirebaseMessagingService", "Message received: ${remoteMessage.data}")
 
         val title = remoteMessage.notification?.title ?: "New medication added!"
         val body = remoteMessage.notification?.body ?: "New medication has been added to your calendar."
-        val channelId = "medication_channel"
+
+        createNotificationChannel()
+
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("navigate_to", remoteMessage.data["navigate_to"])
+        }
+
+        val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, pendingIntentFlags)
+
+        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.medicine)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
 
         val notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
+    }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-            notificationManager.getNotificationChannel(channelId) == null
-        ) {
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                channelId,
+                CHANNEL_ID,
                 "Medication Notifications",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Channel for medication notifications"
             }
-            notificationManager.createNotificationChannel(channel)
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(channel)
         }
-
-        val notification = NotificationCompat.Builder(this, channelId)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .build()
-
-        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
 }

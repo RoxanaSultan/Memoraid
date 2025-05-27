@@ -6,7 +6,13 @@ initializeApp();
 
 exports.notifyNewMedication = onDocumentCreated("medicine/{medId}", async (event) => {
   const medication = event.data.data();
-  const patientTopic = `${medication.userId}`;
+
+  if (!medication || !medication.userId || !medication.name) {
+    console.error("Missing medication data");
+    return;
+  }
+
+  const patientTopic = medication.userId;
 
   const message = {
     topic: patientTopic,
@@ -16,6 +22,9 @@ exports.notifyNewMedication = onDocumentCreated("medicine/{medId}", async (event
     },
     android: {
       priority: "high",
+      notification: {
+        channelId: "medication_channel",
+      },
     },
     data: {
       navigate_to: "medication",
