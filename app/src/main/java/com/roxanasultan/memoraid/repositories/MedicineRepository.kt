@@ -35,6 +35,18 @@ class MedicineRepository @Inject constructor(
             }
     }
 
+    suspend fun loadAllMedicationForUser(userId: String): List<Medicine> {
+        return firestoreCollection
+            .whereEqualTo("userId", userId)
+            .get()
+            .await()
+            .documents
+            .mapNotNull { doc ->
+                val medicine = doc.toObject(Medicine::class.java)?.copy(id = doc.id)
+                medicine?.copy(taken = doc.getBoolean("taken") ?: false)
+            }
+    }
+
     suspend fun addMedicine(medicine: Medicine): String? {
         val userId = requireUserId()
 
@@ -99,5 +111,14 @@ class MedicineRepository @Inject constructor(
             }
 
         awaitClose { listenerRegistration.remove() }
+    }
+
+    suspend fun setAlarm(medicationId: String, hasAlarm: Boolean): Boolean {
+        return try {
+            firestoreCollection.document(medicationId).update("hasAlarm", hasAlarm).await()
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 }

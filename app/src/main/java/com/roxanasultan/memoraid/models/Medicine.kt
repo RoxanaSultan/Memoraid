@@ -11,5 +11,6 @@ data class Medicine(
     val dose: String = "",
     val note: String = "",
     var userId: String = "",
-    var taken: Boolean = false
+    var taken: Boolean = false,
+    var hasAlarm: Boolean = false
 )

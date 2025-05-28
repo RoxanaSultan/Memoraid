@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
@@ -18,14 +19,21 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
+import com.roxanasultan.memoraid.helpers.AlarmScheduler
+import com.roxanasultan.memoraid.patient.viewmodels.MedicationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import com.roxanasultan.memoraid.viewmodels.UserViewModel
+import kotlinx.coroutines.launch
+import androidx.work.*
+import com.roxanasultan.memoraid.workers.RescheduleAlarmsWorker
+import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var bottomNavigationView: BottomNavigationView
     private val userViewModel: UserViewModel by viewModels()
+    private val medicationViewModel: MedicationViewModel by viewModels()
 
     private val REQUEST_LOCATION_PERMISSION_CODE = 1001
     private val REQUEST_NOTIFICATION_PERMISSION_CODE = 1002
@@ -60,6 +68,19 @@ class MainActivity : AppCompatActivity() {
                     navController.graph = graph
 
                     requestLocationPermissions()
+
+                    userViewModel.user.value?.id?.let { medicationViewModel.loadAllMedicationForUser(it) }
+                    scheduleAlarms()
+
+                    val periodicRequest = PeriodicWorkRequestBuilder<RescheduleAlarmsWorker>(
+                        12, TimeUnit.HOURS
+                    ).build()
+
+                    WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                        "rescheduleAlarms",
+                        ExistingPeriodicWorkPolicy.KEEP,
+                        periodicRequest
+                    )
                 }
 
                 "caretaker" -> {
@@ -222,5 +243,22 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun scheduleAlarms() {
+        lifecycleScope.launch {
+            medicationViewModel.allMedication.collect { medications ->
+                for (medication in medications) {
+                    if (!medication.hasAlarm) {
+                        AlarmScheduler.scheduleAlarmForMedication(this@MainActivity, medication)
+                        medicationViewModel.setAlarm(medication.id, true)
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
     }
 }

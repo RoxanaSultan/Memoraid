@@ -20,6 +20,9 @@ class MedicationViewModel @Inject constructor(
     private val _medicine = MutableStateFlow<MutableList<Medicine>>(mutableListOf())
     val medicine: StateFlow<MutableList<Medicine>> get() = _medicine
 
+    private val _allMedication = MutableStateFlow<MutableList<Medicine>>(mutableListOf())
+    val allMedication: StateFlow<MutableList<Medicine>> get() = _allMedication
+
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
 
@@ -32,6 +35,18 @@ class MedicationViewModel @Inject constructor(
     fun loadMedicine(date: String, userId: String) {
         viewModelScope.launch {
             _medicine.value = medicineRepository.loadMedicine(date, userId).toMutableList()
+        }
+    }
+
+    fun loadAllMedicationForUser(userId: String) {
+        viewModelScope.launch {
+            _allMedication.value = medicineRepository.loadAllMedicationForUser(userId).toMutableList()
+        }
+    }
+
+    fun setAlarm(medicationId: String, hasAlarm: Boolean) {
+        viewModelScope.launch {
+            medicineRepository.setAlarm(medicationId, hasAlarm)
         }
     }
 }
