@@ -10,25 +10,46 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.roxanasultan.memoraid.R
+import com.roxanasultan.memoraid.activities.MainActivity
 import com.roxanasultan.memoraid.activities.MedicineReminderActivity
+import android.os.PowerManager
 
 class AlarmReceiver : BroadcastReceiver() {
-
     override fun onReceive(context: Context, intent: Intent) {
         Log.d("AlarmReceiver", "Alarm received!")
 
-        val dose = intent.getStringExtra("dose") ?: "medicamentul"
+        val name = intent.getStringExtra("name") ?: ""
+        val dose = intent.getStringExtra("dose") ?: "0"
+        val date = intent.getStringExtra("date") ?: ""
+        val time = intent.getStringExtra("time") ?: ""
+        val note = intent.getStringExtra("note") ?: ""
+        val medicationId = intent.getStringExtra("medicationId") ?: ""
 
         val fullScreenIntent = Intent(context, MedicineReminderActivity::class.java).apply {
+            putExtra("name", name)
             putExtra("dose", dose)
+            putExtra("date", date)
+            putExtra("time", time)
+            putExtra("note", note)
+            putExtra("medicationId", medicationId)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
 
         val fullScreenPendingIntent = PendingIntent.getActivity(
             context,
-            0,
+            100,
             fullScreenIntent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val contentIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val contentPendingIntent = PendingIntent.getActivity(
+            context,
+            101,
+            contentIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val channelId = "medication_reminder_channel"
@@ -44,19 +65,26 @@ class AlarmReceiver : BroadcastReceiver() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Construim notificarea cu FULL SCREEN INTENT
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val wakeLock = powerManager.newWakeLock(
+            PowerManager.PARTIAL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE,
+            "memoraid:medicationReminderWakeLock"
+        )
+        wakeLock.acquire(5000L)
+
+        context.startActivity(fullScreenIntent)
+
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.medicine)
-            .setContentTitle("E timpul pentru pastile")
-            .setContentText("Trebuie să iei: $dose")
+            .setContentTitle("Medication to take!")
+            .setContentText("It's time to take your medication: $name")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setFullScreenIntent(fullScreenPendingIntent, true)  // cheia aici!
+            .setContentIntent(contentPendingIntent)
+            .setFullScreenIntent(fullScreenPendingIntent, true)
             .setAutoCancel(true)
             .build()
 
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)
-
-        Log.d("AlarmReceiver", "Notification with full screen intent sent for dose: $dose")
     }
 }

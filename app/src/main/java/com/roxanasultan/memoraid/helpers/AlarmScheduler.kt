@@ -14,17 +14,26 @@ import java.util.Calendar
 
 object AlarmScheduler {
     fun scheduleAlarmForMedication(context: Context, medication: Medicine) {
-        val time = medication.time.split(":")
-        val hour = time.getOrNull(0)?.toIntOrNull() ?: 0
-        val minute = time.getOrNull(1)?.toIntOrNull() ?: 0
-        val dose = medication.dose
+        val timeList = medication.time.split(":")
+        val hour = timeList.getOrNull(0)?.toIntOrNull() ?: 0
+        val minute = timeList.getOrNull(1)?.toIntOrNull() ?: 0
+        val name = medication.name ?: ""
         val medicationId = medication.id
+        val time = medication.time
+        val date = medication.date ?: ""
+        val dose = medication.dose ?: "0"
+        val note = medication.note ?: ""
 
         Log.d("AlarmScheduler", "Scheduling alarm for medication: $medicationId at $hour:$minute")
+        Log.d("AlarmScheduler", "Medication details: Name=$name, Dose=$dose, Time=$time, Date=$date, Note=$note")
 
         val intent = Intent(context, AlarmReceiver::class.java).apply {
-            putExtra("dose", dose)
             putExtra("medicationId", medicationId)
+            putExtra("name", name)
+            putExtra("dose", dose)
+            putExtra("time", time)
+            putExtra("date", date)
+            putExtra("note", note)
         }
 
         val alarmId = medicationId.hashCode()

@@ -1,20 +1,26 @@
 package com.roxanasultan.memoraid.activities
 
+import android.app.KeyguardManager
 import android.content.Context
 import android.media.MediaPlayer
 import android.media.RingtoneManager
+import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
-import android.os.Vibrator
 import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.Log
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.roxanasultan.memoraid.R
+import com.roxanasultan.memoraid.databinding.ActivityPillReminderBinding
 
 class MedicineReminderActivity : AppCompatActivity() {
+
+    private var _binding: ActivityPillReminderBinding? = null
+    private val binding get() = _binding!!
 
     private lateinit var mediaPlayer: MediaPlayer
     private lateinit var vibrator: Vibrator
@@ -22,37 +28,48 @@ class MedicineReminderActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_pill_reminder)
+        
+        _binding = ActivityPillReminderBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         Log.d("MedicineReminderActivity", "Activity launched")
 
-        // Obține doza din intent
-        val dose = intent.getStringExtra("dose") ?: "medicamentul"
+        val name = intent.getStringExtra("name") ?: "Unknown Medication"
+        val dose = intent.getStringExtra("dose") ?: "Unknown Dose"
+        val time = intent.getStringExtra("time") ?: "Unknown Time"
+        val date = intent.getStringExtra("date") ?: "Unknown Date"
+        val note = intent.getStringExtra("note") ?: "No additional notes"
 
-        // Setează textul în UI dacă ai TextView pentru afișarea dozei
-        findViewById<TextView>(R.id.tvReminderDesc)?.text = "Este ora să iei: $dose"
+        binding.medication.text = name
+        binding.dose.text = dose
+        binding.time.text = time
+        binding.date.text = date
+        binding.note.text = note
 
-        // Activează ecranul dacă este oprit (WakeLock)
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(
             PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
             "Memoraid:WakeLock"
         )
-        wakeLock.acquire(10 * 60 * 1000L) // Trezește telefonul pentru 10 minute
-        Log.d("MedicineReminderActivity", "WakeLock activated")
+        wakeLock.acquire(10 * 60 * 1000L)
 
-        // Asigură că ecranul rămâne aprins și activitatea vizibilă
-        window.addFlags(
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
-                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
-                    WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+            val keyguardManager = getSystemService(KeyguardManager::class.java)
+            keyguardManager?.requestDismissKeyguard(this, null)
+        } else {
+            window.addFlags(
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+                        WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                        WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
+                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+            )
+        }
 
-        // Pornire vibrații
         vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         val vibrationPattern = longArrayOf(0, 1000, 1000)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             vibrator.vibrate(VibrationEffect.createWaveform(vibrationPattern, 0))
         } else {
             @Suppress("DEPRECATION")
@@ -60,7 +77,6 @@ class MedicineReminderActivity : AppCompatActivity() {
         }
         Log.d("MedicineReminderActivity", "Vibration started")
 
-        // Pornire alarmă
         try {
             mediaPlayer = MediaPlayer().apply {
                 val alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
@@ -75,7 +91,6 @@ class MedicineReminderActivity : AppCompatActivity() {
             Log.e("MedicineReminderActivity", "Error starting alarm sound", e)
         }
 
-        // Buton pentru oprirea alarmei
         findViewById<Button>(R.id.btnDismiss).setOnClickListener {
             stopAlarm()
             finish()
@@ -107,5 +122,6 @@ class MedicineReminderActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         stopAlarm()
+        _binding = null
     }
 }
