@@ -10,6 +10,8 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import com.google.firebase.firestore.ListenerRegistration
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Singleton
 class MedicineRepository @Inject constructor(
@@ -23,16 +25,18 @@ class MedicineRepository @Inject constructor(
     }
 
     suspend fun loadMedicine(date: String, userId: String): List<Medicine> {
-        return firestoreCollection
+        val allMedicines = firestoreCollection
             .whereEqualTo("userId", userId)
-            .whereEqualTo("date", date)
             .get()
             .await()
             .documents
             .mapNotNull { doc ->
-                val medicine = doc.toObject(Medicine::class.java)?.copy(id = doc.id)
-                medicine?.copy(taken = doc.getBoolean("taken") ?: false)
+                val med = doc.toObject(Medicine::class.java)?.copy(id = doc.id)
+                med?.copy(taken = doc.getBoolean("taken") ?: false)
             }
+
+        val selectedDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).parse(date)
+        return allMedicines.filter { it.isActiveOnDate(selectedDate) }
     }
 
     suspend fun loadAllMedicationForUser(userId: String): List<Medicine> {

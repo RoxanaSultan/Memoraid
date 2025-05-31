@@ -33,11 +33,11 @@
 
         <ImageButton
             android:id="@+id/previousDateButton"
-            android:layout_width="20dp"
+            android:layout_width="24dp"
             android:layout_height="20dp"
-            android:src="@drawable/arrow_left"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:scaleType="fitCenter"
-            android:background="?attr/selectableItemBackgroundBorderless"/>
+            android:src="@drawable/arrow_left" />
 
         <TextView
             android:id="@+id/currentDateText"

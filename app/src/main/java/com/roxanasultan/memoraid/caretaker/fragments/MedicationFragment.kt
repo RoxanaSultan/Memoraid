@@ -1,11 +1,7 @@
 package com.roxanasultan.memoraid.caretaker.fragments
 
 import SharedViewModel
-import android.app.AlarmManager
 import android.app.AlertDialog
-import android.app.PendingIntent
-import android.content.Context
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -23,12 +19,12 @@ import com.roxanasultan.memoraid.R
 import com.roxanasultan.memoraid.caretaker.adapters.MedicationAdapter
 import com.roxanasultan.memoraid.databinding.FragmentMedicineCaretakerBinding
 import com.roxanasultan.memoraid.models.Medicine
-import com.roxanasultan.memoraid.receivers.AlarmReceiver
 import com.roxanasultan.memoraid.utils.VerticalSpaceItemDecoration
 import com.roxanasultan.memoraid.caretaker.viewmodels.MedicationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.text.SimpleDateFormat
+import java.util.*
 
 @AndroidEntryPoint
 class MedicationFragment : Fragment() {
@@ -101,51 +97,6 @@ class MedicationFragment : Fragment() {
         }
     }
 
-//    private fun scheduleMedicineReminder(date: String, time: String, patientId: String) {
-//        val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-//        val intent = Intent(requireContext(), AlarmReceiver::class.java)
-//
-//        intent.putExtra("USER_ID", patientId)
-//
-//        // Parse date "dd-MM-yyyy"
-//        val dateParts = date.split("-")
-//        val day = dateParts[0].toInt()
-//        val month = dateParts[1].toInt() - 1 // Calendar months sunt 0-based
-//        val year = dateParts[2].toInt()
-//
-//        // Parse time "hh:mm"
-//        val timeParts = time.split(":")
-//        val hour = timeParts[0].toInt()
-//        val minute = timeParts[1].toInt()
-//
-//        // Folosește un requestCode unic pentru PendingIntent, să nu suprascrii alarmele altor useri
-//        val requestCode = (patientId.hashCode() + hour * 60 + minute)
-//
-//        val pendingIntent = PendingIntent.getBroadcast(
-//            requireContext(), requestCode, intent,
-//            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-//        )
-//
-//        val calendar = Calendar.getInstance().apply {
-//            set(Calendar.YEAR, year)
-//            set(Calendar.MONTH, month)
-//            set(Calendar.DAY_OF_MONTH, day)
-//            set(Calendar.HOUR_OF_DAY, hour)
-//            set(Calendar.MINUTE, minute)
-//            set(Calendar.SECOND, 0)
-//
-//            if (before(Calendar.getInstance())) {
-//                add(Calendar.DATE, 1)
-//            }
-//        }
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
-//        } else {
-//            alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
-//        }
-//    }
-
     private fun showAddMedicineDialog(medicine: Medicine? = null) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_medicine, null)
         val dialog = AlertDialog.Builder(requireContext())
@@ -155,46 +106,166 @@ class MedicationFragment : Fragment() {
             .create()
 
         val etName = dialogView.findViewById<EditText>(R.id.etName)
-        val etDate = dialogView.findViewById<EditText>(R.id.etDate)
-        val etTime = dialogView.findViewById<EditText>(R.id.etTime)
+        val datePicker = dialogView.findViewById<DatePicker>(R.id.datePicker)
+        val timePicker = dialogView.findViewById<TimePicker>(R.id.timePicker)
         val etDose = dialogView.findViewById<EditText>(R.id.etDose)
         val etNote = dialogView.findViewById<EditText>(R.id.etNote)
         val btnSave = dialogView.findViewById<Button>(R.id.btnSave)
+        val spinner = dialogView.findViewById<Spinner>(R.id.spinnerFrequency)
+        val layoutEveryXDays = dialogView.findViewById<LinearLayout>(R.id.layoutEveryXDays)
+        val layoutWeeklyDays = dialogView.findViewById<LinearLayout>(R.id.layoutWeeklyDays)
+        val layoutMonthlyDay = dialogView.findViewById<LinearLayout>(R.id.layoutMonthlyDay)
+        val numberPicker = dialogView.findViewById<NumberPicker>(R.id.numberPicker)
+        val etEveryXDays = dialogView.findViewById<EditText>(R.id.etEveryXDays)
+
+        val frequencyOptions = resources.getStringArray(R.array.frequency_options)
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, frequencyOptions)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner.adapter = adapter
 
         medicine?.let {
             etName.setText(it.name)
-            etDate.setText(it.date)
-            etTime.setText(it.time)
             etDose.setText(it.dose)
             etNote.setText(it.note)
+
+            it.date?.let { dateString ->
+                val parts = dateString.split("-")
+                if (parts.size == 3) {
+                    val day = parts[0].toIntOrNull() ?: 1
+                    val month = (parts[1].toIntOrNull() ?: 1) - 1
+                    val year = parts[2].toIntOrNull() ?: 2025
+                    datePicker.updateDate(year, month, day)
+                }
+            }
+
+            val timeParts = it.time.split(":")
+            if (timeParts.size == 2) {
+                val hour = timeParts[0].toIntOrNull() ?: 0
+                val minute = timeParts[1].toIntOrNull() ?: 0
+
+                if (Build.VERSION.SDK_INT >= 23) {
+                    timePicker.hour = hour
+                    timePicker.minute = minute
+                } else {
+                    timePicker.currentHour = hour
+                    timePicker.currentMinute = minute
+                }
+            }
+
+            when (it.frequency) {
+                "Once" -> datePicker.isEnabled = true
+                "Every X days" -> layoutEveryXDays.visibility = View.VISIBLE
+                "Weekly" -> layoutWeeklyDays.visibility = View.VISIBLE
+                "Monthly" -> {
+                    layoutMonthlyDay.visibility = View.VISIBLE
+                    numberPicker.minValue = 1
+                    numberPicker.maxValue = 31
+                }
+                else -> {
+                    datePicker.isEnabled = false
+                    layoutEveryXDays.visibility = View.GONE
+                    layoutWeeklyDays.visibility = View.GONE
+                    layoutMonthlyDay.visibility = View.GONE
+                }
+            }
+        }
+
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                val selected = parent.getItemAtPosition(position).toString()
+
+                datePicker.isEnabled = false
+                layoutEveryXDays.visibility = View.GONE
+                layoutWeeklyDays.visibility = View.GONE
+                layoutMonthlyDay.visibility = View.GONE
+
+                when (selected) {
+                    "Once" -> datePicker.isEnabled = true
+                    "Every X days" -> layoutEveryXDays.visibility = View.VISIBLE
+                    "Weekly" -> layoutWeeklyDays.visibility = View.VISIBLE
+                    "Monthly" -> {
+                        layoutMonthlyDay.visibility = View.VISIBLE
+                        numberPicker.minValue = 1
+                        numberPicker.maxValue = 31
+                    }
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
         btnSave.setOnClickListener {
             val name = etName.text.toString().trim()
-            val date = etDate.text.toString().trim()
-            val time = etTime.text.toString().trim()
             val dose = etDose.text.toString().trim()
             val note = etNote.text.toString().trim()
+            val frequency = spinner.selectedItem.toString()
 
-            if (validateMedicineInput(name, date, time, dose, note)) {
+            val day = datePicker.dayOfMonth
+            val month = datePicker.month + 1
+            val year = datePicker.year
+            val date = String.format("%02d-%02d-%04d", day, month, year)
+
+            val hour = if (Build.VERSION.SDK_INT >= 23) timePicker.hour else timePicker.currentHour
+            val minute = if (Build.VERSION.SDK_INT >= 23) timePicker.minute else timePicker.currentMinute
+            val time = String.format("%02d:%02d", hour, minute)
+
+            var everyXDays: Int? = null
+            var weeklyDays: List<String>? = null
+            var monthlyDay: Int? = null
+
+            when (frequency) {
+                "Every X days" -> {
+                    val daysText = etEveryXDays.text.toString()
+                    if (daysText.isNotEmpty()) everyXDays = daysText.toIntOrNull()
+                }
+                "Weekly" -> {
+                    val selectedDays = mutableListOf<String>()
+                    for (i in 0 until layoutWeeklyDays.childCount) {
+                        val child = layoutWeeklyDays.getChildAt(i)
+                        if (child is CheckBox && child.isChecked) {
+                            selectedDays.add(child.text.toString().uppercase())
+                        }
+                    }
+                    weeklyDays = selectedDays
+                }
+                "Monthly" -> {
+                    monthlyDay = numberPicker.value
+                }
+            }
+
+            if (frequency == "Every X days" && everyXDays == null) {
+                Toast.makeText(requireContext(), "Please enter a valid number of days", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            if (frequency == "Weekly" && (weeklyDays.isNullOrEmpty())) {
+                Toast.makeText(requireContext(), "Please select at least one day", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val isDateRequired = frequency == "Once"
+            val isValid = validateMedicineInput(name, if (isDateRequired) date else "dummy", time, dose, note, isDateRequired)
+
+            if (isValid) {
                 val newMedicine = medicine?.copy(
-                    id = medicine.id,
                     name = name,
                     date = date,
                     time = time,
                     dose = dose,
                     note = note,
-                    userId = medicine.userId,
-                    taken = medicine.taken
+                    frequency = frequency,
+                    everyXDays = everyXDays,
+                    weeklyDays = weeklyDays,
+                    monthlyDay = monthlyDay
                 ) ?: Medicine(
-                    medicine?.id ?: "",
-                    name,
-                    date,
-                    time,
-                    dose,
-                    note,
-                    medicationViewModel.user.value?.selectedPatient ?: "",
-                    false
+                    name = name,
+                    date = date,
+                    time = time,
+                    dose = dose,
+                    note = note,
+                    userId = medicationViewModel.user.value?.selectedPatient ?: "",
+                    frequency = frequency,
+                    everyXDays = everyXDays,
+                    weeklyDays = weeklyDays,
+                    monthlyDay = monthlyDay
                 )
 
                 saveMedicine(newMedicine)
@@ -205,17 +276,16 @@ class MedicationFragment : Fragment() {
         dialog.show()
     }
 
-    private fun validateMedicineInput(name: String, date: String, time: String, dose: String, note: String): Boolean {
+    private fun validateMedicineInput(
+        name: String,
+        date: String,
+        time: String,
+        dose: String,
+        note: String,
+        isDateRequired: Boolean = true
+    ): Boolean {
         if (name.isEmpty()) {
             Toast.makeText(requireContext(), "Please enter medicine name", Toast.LENGTH_SHORT).show()
-            return false
-        }
-        if (date.isEmpty()) {
-            Toast.makeText(requireContext(), "Please enter date", Toast.LENGTH_SHORT).show()
-            return false
-        }
-        if (time.isEmpty()) {
-            Toast.makeText(requireContext(), "Please enter time", Toast.LENGTH_SHORT).show()
             return false
         }
         if (dose.isEmpty()) {
@@ -226,31 +296,53 @@ class MedicationFragment : Fragment() {
             Toast.makeText(requireContext(), "Please enter note", Toast.LENGTH_SHORT).show()
             return false
         }
-
-        val datePattern = Regex("""^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[012])-(19|20)\d\d${'$'}""")
-        if (!datePattern.matches(date)) {
-            Toast.makeText(requireContext(), "Please enter a valid date (dd-mm-yyyy)", Toast.LENGTH_SHORT).show()
+        if (time.isEmpty()) {
+            Toast.makeText(requireContext(), "Please enter time", Toast.LENGTH_SHORT).show()
             return false
         }
-
         val timePattern = Regex("""^([01][0-9]|2[0-3]):([0-5][0-9])${'$'}""")
         if (!timePattern.matches(time)) {
             Toast.makeText(requireContext(), "Please enter valid time (hh:mm)", Toast.LENGTH_SHORT).show()
             return false
         }
-
+        if (isDateRequired) {
+            if (date.isEmpty()) {
+                Toast.makeText(requireContext(), "Please enter date", Toast.LENGTH_SHORT).show()
+                return false
+            }
+            val datePattern = Regex("""^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[012])-(19|20)\d\d${'$'}""")
+            if (!datePattern.matches(date)) {
+                Toast.makeText(requireContext(), "Please enter a valid date (dd-MM-yyyy)", Toast.LENGTH_SHORT).show()
+                return false
+            }
+            val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
+            val dateTimeString = "$date $time"
+            val selectedDateTime = try {
+                formatter.parse(dateTimeString)
+            } catch (e: Exception) {
+                null
+            }
+            if (selectedDateTime != null) {
+                val now = Calendar.getInstance().time
+                if (selectedDateTime.before(now)) {
+                    Toast.makeText(requireContext(), "Date and time must not be in the past", Toast.LENGTH_SHORT).show()
+                    return false
+                }
+            } else {
+                Toast.makeText(requireContext(), "Invalid date/time format", Toast.LENGTH_SHORT).show()
+                return false
+            }
+        }
         return true
     }
 
     private fun showDeleteConfirmationDialog(medicine: Medicine) {
-        val dialog = AlertDialog.Builder(requireContext())
+        AlertDialog.Builder(requireContext())
             .setTitle("Confirm Deletion")
             .setMessage("Are you sure you want to delete this medicine?")
             .setPositiveButton("Yes") { _, _ -> deleteMedicine(medicine) }
             .setNegativeButton("No") { d, _ -> d.dismiss() }
-            .create()
-
-        dialog.show()
+            .show()
     }
 
     private fun deleteMedicine(medicine: Medicine) {
@@ -268,17 +360,12 @@ class MedicationFragment : Fragment() {
 
     private fun saveMedicine(medicine: Medicine) {
         lifecycleScope.launch {
-            if (medicine.id != null && medicine.id.isNotEmpty()) {
+            if (medicine.id.isNotEmpty()) {
                 medicationViewModel.updateMedicine(
                     medicine,
                     onSuccess = {
                         Toast.makeText(requireContext(), "Medicine updated successfully", Toast.LENGTH_SHORT).show()
                         loadMedicine(sharedViewModel.selectedDate.value ?: "", medicationViewModel.user.value?.selectedPatient ?: "")
-//                        scheduleMedicineReminder(
-//                            medicine.date,
-//                            medicine.time,
-//                            medicationViewModel.user.value?.selectedPatient ?: ""
-//                        )
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error updating Medicine", Toast.LENGTH_SHORT).show()
@@ -287,14 +374,9 @@ class MedicationFragment : Fragment() {
             } else {
                 medicationViewModel.addMedicine(
                     medicine,
-                    onSuccess = { id ->
+                    onSuccess = {
                         Toast.makeText(requireContext(), "Medicine added successfully", Toast.LENGTH_SHORT).show()
                         loadMedicine(sharedViewModel.selectedDate.value ?: "", medicationViewModel.user.value?.selectedPatient ?: "")
-//                        scheduleMedicineReminder(
-//                            medicine.date,
-//                            medicine.time,
-//                            medicationViewModel.user.value?.selectedPatient ?: ""
-//                        )
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error saving medicine", Toast.LENGTH_SHORT).show()

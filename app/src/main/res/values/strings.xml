@@ -36,4 +36,12 @@
         <item>Follow-up</item>
         <item>Other</item>
     </array>
+
+    <array name="frequency_options">
+        <item>Once</item>
+        <item>Daily</item>
+        <item>Every X days</item>
+        <item>Weekly</item>
+        <item>Monthly</item>
+    </array>
 </resources>
