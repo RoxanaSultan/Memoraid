@@ -242,7 +242,14 @@ class MedicationFragment : Fragment() {
             }
 
             val isDateRequired = frequency == "Once"
-            val isValid = validateMedicineInput(name, if (isDateRequired) date else "dummy", time, dose, note, isDateRequired)
+            val isValid = validateMedicineInput(
+                name,
+                if (isDateRequired) date else "",
+                time,
+                dose,
+                note,
+                isDateRequired
+            )
 
             if (isValid) {
                 val newMedicine = medicine?.copy(
@@ -296,23 +303,9 @@ class MedicationFragment : Fragment() {
             Toast.makeText(requireContext(), "Please enter note", Toast.LENGTH_SHORT).show()
             return false
         }
-        if (time.isEmpty()) {
-            Toast.makeText(requireContext(), "Please enter time", Toast.LENGTH_SHORT).show()
-            return false
-        }
-        val timePattern = Regex("""^([01][0-9]|2[0-3]):([0-5][0-9])${'$'}""")
-        if (!timePattern.matches(time)) {
-            Toast.makeText(requireContext(), "Please enter valid time (hh:mm)", Toast.LENGTH_SHORT).show()
-            return false
-        }
         if (isDateRequired) {
             if (date.isEmpty()) {
                 Toast.makeText(requireContext(), "Please enter date", Toast.LENGTH_SHORT).show()
-                return false
-            }
-            val datePattern = Regex("""^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[012])-(19|20)\d\d${'$'}""")
-            if (!datePattern.matches(date)) {
-                Toast.makeText(requireContext(), "Please enter a valid date (dd-MM-yyyy)", Toast.LENGTH_SHORT).show()
                 return false
             }
             val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())

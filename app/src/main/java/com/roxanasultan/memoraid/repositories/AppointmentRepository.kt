@@ -4,6 +4,8 @@ import com.roxanasultan.memoraid.models.Appointment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,9 +21,8 @@ class AppointmentRepository @Inject constructor(
     }
 
     suspend fun loadAppointments(date: String, userId: String): List<Appointment> {
-        return firestoreCollection
+        val allAppointments = firestoreCollection
             .whereEqualTo("userId", userId)
-            .whereEqualTo("date", date)
             .get()
             .await()
             .documents
@@ -29,6 +30,8 @@ class AppointmentRepository @Inject constructor(
                 val appointment = doc.toObject(Appointment::class.java)?.copy(id = doc.id)
                 appointment?.copy(completed = doc.getBoolean("completed") ?: false)
             }
+        val selectedDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).parse(date)
+        return allAppointments.filter { it.isActiveOnDate(selectedDate) }
     }
 
     suspend fun createAppointment(appointment: Appointment): String? {

@@ -9,7 +9,7 @@ import java.util.Locale
 data class Medicine(
     @DocumentId val id: String = "",
     val name: String = "",
-    val date: String? = "",
+    val date: String = "",
     val time: String = "",
     val dose: String = "",
     val note: String = "",
@@ -19,7 +19,7 @@ data class Medicine(
     val frequency: String = "Once",
     val everyXDays: Int? = null,
     val weeklyDays: List<String>? = null,
-    val monthlyDay: Int? = null,
+    val monthlyDay: Int? = null
 ) {
     fun isActiveOnDate(targetDate: Date?): Boolean {
         if (targetDate == null) return false

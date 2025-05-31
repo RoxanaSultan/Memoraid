@@ -15,6 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Title"
+            android:gravity="center"
             android:textColor="@color/black"
             android:layout_marginBottom="4dp"/>
 
@@ -32,6 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Doctor"
+            android:gravity="center"
             android:textColor="@color/black"
             android:layout_marginBottom="4dp"/>
 
@@ -44,45 +46,28 @@
             android:hint="Doctor"
             android:padding="12dp"/>
 
-        <!-- Date -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Date"
+            android:text="Type"
+            android:gravity="center"
             android:textColor="@color/black"
             android:layout_marginBottom="4dp"/>
 
-        <EditText
-            android:id="@+id/etDate"
+        <Spinner
+            android:id="@+id/spinnerType"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="24dp"
             android:background="@drawable/edit_text_box"
-            android:hint="dd-mm-yyyy"
             android:padding="12dp"/>
-
-        <!-- Time -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Time"
-            android:textColor="@color/black"
-            android:layout_marginBottom="4dp"/>
-
-        <EditText
-            android:id="@+id/etTime"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/edit_text_box"
-            android:padding="12dp"
-            android:hint="hh:mm"/>
 
         <!-- Location -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Location"
+            android:gravity="center"
             android:textColor="@color/black"
             android:layout_marginBottom="4dp"/>
 
@@ -95,20 +80,171 @@
             android:hint="Location"
             android:padding="12dp"/>
 
+        <!-- Frequency -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Type"
+            android:text="Frequency"
+            android:gravity="center"
             android:textColor="@color/black"
             android:layout_marginBottom="4dp"/>
 
         <Spinner
-            android:id="@+id/spinnerType"
+            android:id="@+id/spinnerFrequency"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
             android:background="@drawable/edit_text_box"
-            android:padding="12dp"/>
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Extra: Every X Days -->
+        <LinearLayout
+            android:id="@+id/layoutEveryXDays"
+            android:visibility="gone"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Every"
+                android:layout_gravity="center_vertical"
+                android:paddingEnd="8dp"/>
+
+            <EditText
+                android:id="@+id/etEveryXDays"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:hint="X"
+                android:minEms="2"
+                android:layout_gravity="center"
+                android:background="@drawable/edit_text_box"
+                android:padding="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="days"
+                android:layout_gravity="center_vertical"
+                android:paddingStart="8dp"/>
+        </LinearLayout>
+
+        <!-- Extra: Weekly Days -->
+        <LinearLayout
+            android:id="@+id/layoutWeeklyDays"
+            android:visibility="gone"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select days of the week:"/>
+
+            <CheckBox
+                android:id="@+id/checkSunday"
+                android:text="Sunday"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                />
+            <CheckBox
+                android:id="@+id/checkMonday"
+                android:text="Monday"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                />
+            <CheckBox
+                android:id="@+id/checkTuesday"
+                android:text="Tuesday"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                />
+            <CheckBox
+                android:id="@+id/checkWednesday"
+                android:text="Wednesday"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                />
+            <CheckBox
+                android:id="@+id/checkThursday"
+                android:text="Thursday"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                />
+            <CheckBox
+                android:id="@+id/checkFriday"
+                android:text="Friday"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                />
+            <CheckBox
+                android:id="@+id/checkSaturday"
+                android:text="Saturday"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                />
+        </LinearLayout>
+
+        <!-- Extra: Monthly Day -->
+        <LinearLayout
+            android:id="@+id/layoutMonthlyDay"
+            android:visibility="gone"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Day of month:"
+                android:layout_gravity="center_vertical"
+                android:paddingEnd="8dp"/>
+
+            <NumberPicker
+                android:id="@+id/numberPicker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+        </LinearLayout>
+
+        <!-- Date -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Date"
+            android:gravity="center"
+            android:textColor="@color/black"
+            android:layout_marginBottom="4dp"/>
+
+        <DatePicker
+            android:id="@+id/datePicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:calendarViewShown="false"
+            android:datePickerMode="spinner"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Time -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Time"
+            android:gravity="center"
+            android:textColor="@color/black"
+            android:layout_marginBottom="4dp"/>
+
+        <TimePicker
+            android:id="@+id/timePicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:timePickerMode="spinner" />
 
         <!-- Save Button -->
         <Button
