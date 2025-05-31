@@ -20,7 +20,9 @@ data class Appointment(
     val frequency: String = "Once",
     val everyXDays: Int? = null,
     val weeklyDays: List<String>? = null,
-    val monthlyDay: Int? = null
+    val monthlyDay: Int? = null,
+    val skippedDates: List<String>? = null,
+    val endDate: String? = null
 ) {
     fun isActiveOnDate(targetDate: Date?): Boolean {
         if (targetDate == null) return false
@@ -30,18 +32,41 @@ data class Appointment(
         val dayOfWeek = calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault())?.uppercase()
         val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
 
+        val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        val formattedTargetDate = sdf.format(targetDate)
+
+        if (targetDate.before(sdf.parse(date))) return false
+
+        if (skippedDates?.contains(formattedTargetDate) == true) return false
+
+        endDate?.let { end ->
+            val endParsed = try {
+                sdf.parse(end)
+            } catch (e: Exception) {
+                null
+            }
+            if (endParsed != null && !targetDate.before(endParsed)) return false
+        }
+
         return when (frequency) {
             "Once" -> {
-                val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-                val medDate = date?.let { sdf.parse(it) }
+                val medDate = try {
+                    sdf.parse(date)
+                } catch (e: Exception) {
+                    null
+                }
                 medDate?.let { it == targetDate } ?: false
             }
 
             "Daily" -> true
 
             "Every X days" -> {
-                val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-                val startDate = date?.let { sdf.parse(it) } ?: return false
+                val startDate = try {
+                    sdf.parse(date)
+                } catch (e: Exception) {
+                    null
+                } ?: return false
+
                 if (everyXDays == null) return false
                 val diffDays = ((targetDate.time - startDate.time) / (1000 * 60 * 60 * 24)).toInt()
                 diffDays >= 0 && diffDays % everyXDays == 0

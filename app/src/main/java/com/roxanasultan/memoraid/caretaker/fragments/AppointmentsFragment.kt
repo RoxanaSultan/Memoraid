@@ -31,6 +31,7 @@ import com.roxanasultan.memoraid.models.Appointment
 import com.roxanasultan.memoraid.utils.VerticalSpaceItemDecoration
 import com.roxanasultan.memoraid.caretaker.adapters.AppointmentAdapter
 import com.roxanasultan.memoraid.caretaker.viewmodels.AppointmentsViewModel
+import com.roxanasultan.memoraid.models.Medicine
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import com.roxanasultan.memoraid.notifications.ReminderScheduler
@@ -50,7 +51,11 @@ class AppointmentsFragment : Fragment() {
     private val appointments = mutableListOf<Appointment>()
     private var appointmentAdapter = AppointmentAdapter(appointments,
         onEditClick = { appointment -> showAddAppointmentDialog(appointment) },
-        onDeleteClick = { appointment -> showDeleteConfirmationDialog(appointment) }
+        onDeleteClick = { appointment ->
+            sharedViewModel.selectedDate.value?.let { date ->
+                showDeleteOptionsDialog(appointment, date)
+            }
+        }
     )
 
     override fun onCreateView(
@@ -273,7 +278,9 @@ class AppointmentsFragment : Fragment() {
                     frequency = frequency,
                     everyXDays = everyXDays,
                     weeklyDays = weeklyDays,
-                    monthlyDay = monthlyDay
+                    monthlyDay = monthlyDay,
+                    skippedDates = emptyList(),
+                    endDate = null
                 ) ?: Appointment(
                     appointment?.id ?: "",
                     title,
@@ -287,7 +294,9 @@ class AppointmentsFragment : Fragment() {
                     frequency = frequency,
                     everyXDays = everyXDays,
                     weeklyDays = weeklyDays,
-                    monthlyDay = monthlyDay
+                    monthlyDay = monthlyDay,
+                    skippedDates = emptyList(),
+                    endDate = null
                 )
 
                 saveAppointment(newAppointment)
@@ -361,19 +370,54 @@ class AppointmentsFragment : Fragment() {
         return true
     }
 
-    private fun showDeleteConfirmationDialog(appointment: Appointment) {
-        val dialog = AlertDialog.Builder(requireContext())
+    private fun showDeleteConfirmation(onConfirmed: () -> Unit) {
+        AlertDialog.Builder(requireContext())
             .setTitle("Confirm Deletion")
             .setMessage("Are you sure you want to delete this appointment?")
-            .setPositiveButton("Yes") { _, _ ->
-                deleteAppointment(appointment)
-            }
-            .setNegativeButton("No") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .create()
+            .setPositiveButton("Yes") { _, _ -> onConfirmed() }
+            .setNegativeButton("No") { d, _ -> d.dismiss() }
+            .show()
+    }
 
-        dialog.show()
+    private fun showDeleteOptionsDialog(appointment: Appointment, targetDate: String) {
+        val options = arrayOf(
+            "Delete only this occurrence",
+            "Delete this and following",
+            "Delete all"
+        )
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete Medicine")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> showDeleteConfirmation {
+                        skipThisOccurrence(appointment, targetDate)
+                    }
+                    1 -> showDeleteConfirmation {
+                        endRepeatingAfter(appointment, targetDate)
+                    }
+                    2 -> showDeleteConfirmation {
+                        deleteEntireSeries(appointment)
+                    }
+                }
+            }
+            .setNegativeButton("Cancel") { d, _ -> d.dismiss() }
+            .show()
+    }
+
+    private fun skipThisOccurrence(appointment: Appointment, targetDate: String) {
+        val updated = appointment.copy(
+            skippedDates = (appointment.skippedDates ?: emptyList()) + targetDate
+        )
+        saveAppointment(updated)
+    }
+
+    private fun endRepeatingAfter(appointment: Appointment, targetDate: String) {
+        val updated = appointment.copy(endDate = targetDate)
+        saveAppointment(updated)
+    }
+
+    private fun deleteEntireSeries(appointment: Appointment) {
+        deleteAppointment(appointment)
     }
 
     private fun deleteAppointment(appointment: Appointment) {
