@@ -38,7 +38,12 @@ class MedicationFragment : Fragment() {
     private val medicationList = mutableListOf<Medicine>()
     private var medicationAdapter = MedicationAdapter(medicationList,
         onEditClick = { medication -> showAddMedicineDialog(medication) },
-        onDeleteClick = { medication -> showDeleteConfirmationDialog(medication) }
+        onDeleteClick = { medication ->
+            sharedViewModel.selectedDate.value?.let { date ->
+                showDeleteOptionsDialog(medication, date)
+            }
+        }
+
     )
 
     override fun onCreateView(
@@ -261,7 +266,9 @@ class MedicationFragment : Fragment() {
                     frequency = frequency,
                     everyXDays = everyXDays,
                     weeklyDays = weeklyDays,
-                    monthlyDay = monthlyDay
+                    monthlyDay = monthlyDay,
+                    skippedDates = emptyList(),
+                    endDate = null
                 ) ?: Medicine(
                     name = name,
                     date = date,
@@ -272,7 +279,9 @@ class MedicationFragment : Fragment() {
                     frequency = frequency,
                     everyXDays = everyXDays,
                     weeklyDays = weeklyDays,
-                    monthlyDay = monthlyDay
+                    monthlyDay = monthlyDay,
+                    skippedDates = emptyList(),
+                    endDate = null
                 )
 
                 saveMedicine(newMedicine)
@@ -329,13 +338,54 @@ class MedicationFragment : Fragment() {
         return true
     }
 
-    private fun showDeleteConfirmationDialog(medicine: Medicine) {
+    private fun showDeleteConfirmation(onConfirmed: () -> Unit) {
         AlertDialog.Builder(requireContext())
             .setTitle("Confirm Deletion")
-            .setMessage("Are you sure you want to delete this medicine?")
-            .setPositiveButton("Yes") { _, _ -> deleteMedicine(medicine) }
+            .setMessage("Are you sure you want to delete this medication?")
+            .setPositiveButton("Yes") { _, _ -> onConfirmed() }
             .setNegativeButton("No") { d, _ -> d.dismiss() }
             .show()
+    }
+
+    private fun showDeleteOptionsDialog(medicine: Medicine, targetDate: String) {
+        val options = arrayOf(
+            "Delete only this occurrence",
+            "Delete this and following",
+            "Delete all"
+        )
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete Medicine")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> showDeleteConfirmation {
+                        skipThisOccurrence(medicine, targetDate)
+                    }
+                    1 -> showDeleteConfirmation {
+                        endRepeatingAfter(medicine, targetDate)
+                    }
+                    2 -> showDeleteConfirmation {
+                        deleteEntireSeries(medicine)
+                    }
+                }
+            }
+            .setNegativeButton("Cancel") { d, _ -> d.dismiss() }
+            .show()
+    }
+
+    private fun skipThisOccurrence(medicine: Medicine, targetDate: String) {
+        val updated = medicine.copy(
+            skippedDates = (medicine.skippedDates ?: emptyList()) + targetDate
+        )
+        saveMedicine(updated)
+    }
+
+    private fun endRepeatingAfter(medicine: Medicine, targetDate: String) {
+        val updated = medicine.copy(endDate = targetDate)
+        saveMedicine(updated)
+    }
+
+    private fun deleteEntireSeries(medicine: Medicine) {
+        deleteMedicine(medicine)
     }
 
     private fun deleteMedicine(medicine: Medicine) {
