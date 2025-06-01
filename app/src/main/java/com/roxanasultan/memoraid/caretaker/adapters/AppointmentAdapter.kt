@@ -1,8 +1,11 @@
 package com.roxanasultan.memoraid.caretaker.adapters
 
+import android.content.Intent
 import android.graphics.Typeface
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.roxanasultan.memoraid.R
 import com.roxanasultan.memoraid.databinding.ItemAppointmentCaretakerBinding
@@ -51,12 +54,35 @@ class AppointmentAdapter(
                 updateLayout(isChecked, binding)
             }
 
+            binding.mapsApp.setOnClickListener {
+                openMaps(appointment.location, binding)
+            }
+
             binding.editButton.setOnClickListener {
                 onEditClick(appointment)
             }
 
             binding.deleteButton.setOnClickListener {
                 onDeleteClick(appointment)
+            }
+        }
+
+        private fun openMaps(location: String, binding: ItemAppointmentCaretakerBinding) {
+            if (location.isBlank()) {
+                Toast.makeText(binding.root.context, "Invalid location", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val context = binding.root.context
+            try {
+                val gmmIntentUri = Uri.parse("geo:0,0?q=${Uri.encode(location)}")
+                val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+
+                context.startActivity(mapIntent)
+            } catch (e: Exception) {
+                val webUri = Uri.parse("https://www.google.com/maps/search/?q=${Uri.encode(location)}")
+                val webIntent = Intent(Intent.ACTION_VIEW, webUri)
+                context.startActivity(webIntent)
             }
         }
 
