@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.DatePicker
@@ -31,13 +32,19 @@ import com.roxanasultan.memoraid.models.Appointment
 import com.roxanasultan.memoraid.utils.VerticalSpaceItemDecoration
 import com.roxanasultan.memoraid.caretaker.adapters.AppointmentAdapter
 import com.roxanasultan.memoraid.caretaker.viewmodels.AppointmentsViewModel
-import com.roxanasultan.memoraid.models.Medicine
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import com.roxanasultan.memoraid.notifications.ReminderScheduler
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
+import com.google.android.libraries.places.api.model.AutocompletePrediction
+import com.roxanasultan.memoraid.caretaker.adapters.PlaceAutocompleteAdapter
 
 @AndroidEntryPoint
 class AppointmentsFragment : Fragment() {
@@ -111,7 +118,6 @@ class AppointmentsFragment : Fragment() {
         val etTitle = dialogView.findViewById<EditText>(R.id.etTitle)
         val etDoctor = dialogView.findViewById<EditText>(R.id.etDoctor)
         val spinnerType = dialogView.findViewById<Spinner>(R.id.spinnerType)
-        val etLocation = dialogView.findViewById<EditText>(R.id.etLocation)
         val spinner = dialogView.findViewById<Spinner>(R.id.spinnerFrequency)
         val layoutEveryXDays = dialogView.findViewById<LinearLayout>(R.id.layoutEveryXDays)
         val layoutWeeklyDays = dialogView.findViewById<LinearLayout>(R.id.layoutWeeklyDays)
@@ -120,6 +126,34 @@ class AppointmentsFragment : Fragment() {
         val etEveryXDays = dialogView.findViewById<EditText>(R.id.etEveryXDays)
         val datePicker = dialogView.findViewById<DatePicker>(R.id.datePicker)
         val timePicker = dialogView.findViewById<TimePicker>(R.id.timePicker)
+
+        val autoCompleteLocation = dialogView.findViewById<AutoCompleteTextView>(R.id.autoCompleteLocation)
+
+        if (!Places.isInitialized()) {
+            Places.initialize(requireContext().applicationContext, getString(R.string.apiKey), Locale.getDefault())
+        }
+
+        val placesClient = Places.createClient(requireContext())
+        val placesAdapter = PlaceAutocompleteAdapter(requireContext(), placesClient)
+        autoCompleteLocation.setAdapter(placesAdapter)
+
+        autoCompleteLocation.setOnItemClickListener { _, _, position, _ ->
+            val item = placesAdapter.getItem(position)
+            item?.let {
+                val placeId = it.placeId
+                val placeFields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS)
+
+                val request = FetchPlaceRequest.newInstance(placeId, placeFields)
+                placesClient.fetchPlace(request)
+                    .addOnSuccessListener { response ->
+                        val place = response.place
+                        autoCompleteLocation.setText(place.address ?: place.name ?: "")
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(requireContext(), "Error fetching place: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    }
+            }
+        }
 
         val frequencyOptions = resources.getStringArray(R.array.frequency_options)
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, frequencyOptions)
@@ -133,7 +167,7 @@ class AppointmentsFragment : Fragment() {
         appointment?.let {
             etTitle.setText(it.name)
             etDoctor.setText(it.doctor)
-            etLocation.setText(it.location)
+            autoCompleteLocation.setText(it.location)
 
             val appointmentTypes = resources.getStringArray(R.array.appointment_types)
             val selectedTypeIndex = appointmentTypes.indexOf(it.type)
@@ -207,7 +241,7 @@ class AppointmentsFragment : Fragment() {
         btnSave.setOnClickListener {
             val title = etTitle.text.toString().trim()
             val doctor = etDoctor.text.toString().trim()
-            val location = etLocation.text.toString().trim()
+            val location = autoCompleteLocation.text.toString().trim()
             val type = spinnerType.selectedItem.toString()
             val frequency = spinner.selectedItem.toString()
 

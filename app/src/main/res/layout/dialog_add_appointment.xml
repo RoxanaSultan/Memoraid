@@ -71,14 +71,15 @@
             android:textColor="@color/black"
             android:layout_marginBottom="4dp"/>
 
-        <EditText
-            android:id="@+id/etLocation"
+        <AutoCompleteTextView
+            android:id="@+id/autoCompleteLocation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/edit_text_box"
-            android:hint="Location"
-            android:padding="12dp"/>
+            android:hint="Search for location"
+            android:inputType="text"
+            android:padding="12dp"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/edit_text_box" />
 
         <!-- Frequency -->
         <TextView
