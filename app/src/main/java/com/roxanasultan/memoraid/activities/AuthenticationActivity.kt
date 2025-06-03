@@ -3,7 +3,6 @@ package com.roxanasultan.memoraid.activities
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -31,7 +30,6 @@ class AuthenticationActivity : AppCompatActivity() {
         val lastUser = getLastLoggedUser()
 
         if (lastUser != null && isBiometricEnabledForUser(lastUser)) {
-            Log.d("AuthenticationActivity", "Biometric authentication enabled for user: $lastUser")
             showAuthLayout()
             startBiometricAuth()
         } else {
