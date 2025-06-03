@@ -2,9 +2,10 @@ package com.roxanasultan.memoraid.patient.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.ListenerRegistration
 import com.roxanasultan.memoraid.models.Medicine
 import com.roxanasultan.memoraid.models.User
-import com.roxanasultan.memoraid.repositories.MedicineRepository
+import com.roxanasultan.memoraid.repositories.MedicationRepository
 import com.roxanasultan.memoraid.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MedicationViewModel @Inject constructor(
-    private val medicineRepository: MedicineRepository,
+    private val medicationRepository: MedicationRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
     private val _medicine = MutableStateFlow<MutableList<Medicine>>(mutableListOf())
@@ -26,6 +27,8 @@ class MedicationViewModel @Inject constructor(
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
 
+    private var snapshotListener: ListenerRegistration? = null
+
     fun loadUser() {
         viewModelScope.launch {
             _user.value = userRepository.getUser()
@@ -33,20 +36,28 @@ class MedicationViewModel @Inject constructor(
     }
 
     fun loadMedicine(date: String, userId: String) {
-        viewModelScope.launch {
-            _medicine.value = medicineRepository.loadMedicine(date, userId).toMutableList()
+        snapshotListener?.remove()
+
+        snapshotListener = medicationRepository.observeMedication(date, userId) { updatedMedication ->
+            _medicine.value = updatedMedication.toMutableList()
         }
     }
 
+//    fun loadMedicine(date: String, userId: String) {
+//        viewModelScope.launch {
+//            _medicine.value = medicationRepository.loadMedicine(date, userId).toMutableList()
+//        }
+//    }
+
     fun loadAllMedicationForUser(userId: String) {
         viewModelScope.launch {
-            _allMedication.value = medicineRepository.loadAllMedicationForUser(userId).toMutableList()
+            _allMedication.value = medicationRepository.loadAllMedicationForUser(userId).toMutableList()
         }
     }
 
     fun setAlarm(medicationId: String, hasAlarm: Boolean) {
         viewModelScope.launch {
-            medicineRepository.setAlarm(medicationId, hasAlarm)
+            medicationRepository.setAlarm(medicationId, hasAlarm)
         }
     }
 }

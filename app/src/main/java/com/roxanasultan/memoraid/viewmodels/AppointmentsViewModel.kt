@@ -2,6 +2,7 @@ package com.roxanasultan.memoraid.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.ListenerRegistration
 import com.roxanasultan.memoraid.models.Appointment
 import com.roxanasultan.memoraid.models.User
 import com.roxanasultan.memoraid.repositories.AppointmentRepository
@@ -13,10 +14,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AppointmentViewModel @Inject constructor(
+class AppointmentsViewModel @Inject constructor(
     private val appointmentRepository: AppointmentRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
+    private var snapshotListener: ListenerRegistration? = null
 
     private val _appointments = MutableStateFlow<MutableList<Appointment>>(mutableListOf())
     val appointments: StateFlow<MutableList<Appointment>> get() = _appointments
@@ -31,8 +33,10 @@ class AppointmentViewModel @Inject constructor(
     }
 
     fun loadAppointments(date: String, userId: String) {
-        viewModelScope.launch {
-            _appointments.value = appointmentRepository.loadAppointments(date, userId).toMutableList()
+        snapshotListener?.remove()
+
+        snapshotListener = appointmentRepository.observeAppointments(date, userId) { updatedAppointments ->
+            _appointments.value = updatedAppointments.toMutableList()
         }
     }
 
@@ -55,5 +59,10 @@ class AppointmentViewModel @Inject constructor(
             val success = appointmentRepository.deleteAppointment(appointmentId)
             onComplete(success)
         }
+    }
+
+    override fun onCleared() {
+        snapshotListener?.remove()
+        super.onCleared()
     }
 }

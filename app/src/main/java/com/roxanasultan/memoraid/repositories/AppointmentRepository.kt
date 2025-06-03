@@ -3,6 +3,7 @@ package com.roxanasultan.memoraid.repositories
 import com.roxanasultan.memoraid.models.Appointment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -18,6 +19,20 @@ class AppointmentRepository @Inject constructor(
 
     private fun requireUserId(): String {
         return auth.currentUser?.uid ?: throw SecurityException("User not authenticated")
+    }
+
+    fun observeAppointments(date: String, userId: String, onDataChange: (List<Appointment>) -> Unit): ListenerRegistration {
+        return firestore.collection("appointments")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("date", date)
+            .addSnapshotListener { snapshot, _ ->
+                if (snapshot != null && !snapshot.isEmpty) {
+                    val appointments = snapshot.toObjects(Appointment::class.java)
+                    onDataChange(appointments)
+                } else {
+                    onDataChange(emptyList())
+                }
+            }
     }
 
     suspend fun loadAppointments(date: String, userId: String): List<Appointment> {

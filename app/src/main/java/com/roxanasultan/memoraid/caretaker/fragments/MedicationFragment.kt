@@ -20,7 +20,7 @@ import com.roxanasultan.memoraid.caretaker.adapters.MedicationAdapter
 import com.roxanasultan.memoraid.databinding.FragmentMedicineCaretakerBinding
 import com.roxanasultan.memoraid.models.Medicine
 import com.roxanasultan.memoraid.utils.VerticalSpaceItemDecoration
-import com.roxanasultan.memoraid.caretaker.viewmodels.MedicationViewModel
+import com.roxanasultan.memoraid.viewmodels.MedicationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat

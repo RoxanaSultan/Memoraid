@@ -86,6 +86,8 @@ class AccountFragment : Fragment() {
                             .placeholder(R.drawable.default_profile_picture)
 //                        .circleCrop()
                             .into(binding.profilePicture)
+
+                        binding.checkboxBiometricLogin.isChecked = isBiometricEnabledForUser(it.email)
                     }
                 }
             }

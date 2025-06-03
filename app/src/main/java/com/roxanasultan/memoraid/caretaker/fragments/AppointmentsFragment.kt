@@ -31,7 +31,7 @@ import com.roxanasultan.memoraid.databinding.FragmentAppointmentsCaretakerBindin
 import com.roxanasultan.memoraid.models.Appointment
 import com.roxanasultan.memoraid.utils.VerticalSpaceItemDecoration
 import com.roxanasultan.memoraid.caretaker.adapters.AppointmentAdapter
-import com.roxanasultan.memoraid.caretaker.viewmodels.AppointmentsViewModel
+import com.roxanasultan.memoraid.viewmodels.AppointmentsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import com.roxanasultan.memoraid.notifications.ReminderScheduler

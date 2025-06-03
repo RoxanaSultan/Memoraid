@@ -3,6 +3,8 @@ package com.roxanasultan.memoraid.repositories
 import com.roxanasultan.memoraid.models.Habit
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.roxanasultan.memoraid.models.Medicine
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,6 +19,19 @@ class HabitRepository @Inject constructor(
 
     private fun requireUserId(): String {
         return auth.currentUser?.uid ?: throw SecurityException("User not authenticated")
+    }
+
+    fun observeHabits(userId: String, onDataChange: (List<Habit>) -> Unit): ListenerRegistration {
+        return firestore.collection("habits")
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { snapshot, _ ->
+                if (snapshot != null && !snapshot.isEmpty) {
+                    val habits = snapshot.toObjects(Habit::class.java)
+                    onDataChange(habits)
+                } else {
+                    onDataChange(emptyList())
+                }
+            }
     }
 
     suspend fun loadHabits(userId: String): List<Habit> {

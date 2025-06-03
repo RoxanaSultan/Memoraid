@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.roxanasultan.memoraid.models.Medicine
 import com.roxanasultan.memoraid.models.User
-import com.roxanasultan.memoraid.repositories.MedicineRepository
+import com.roxanasultan.memoraid.repositories.MedicationRepository
 import com.roxanasultan.memoraid.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MedicationViewModel @Inject constructor(
-    private val medicineRepository: MedicineRepository,
+    private val medicationRepository: MedicationRepository,
     private val userRepository: UserRepository
 
 ) : ViewModel() {
@@ -32,27 +32,27 @@ class MedicationViewModel @Inject constructor(
 
     fun loadMedicine(date: String, userId: String) {
         viewModelScope.launch {
-            _medicine.value = medicineRepository.loadMedicine(date, userId).toMutableList()
+            _medicine.value = medicationRepository.loadMedicine(date, userId).toMutableList()
         }
     }
 
     fun addMedicine(medicine: Medicine, onSuccess: (String) -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
-            val id = medicineRepository.addMedicine(medicine)
+            val id = medicationRepository.addMedicine(medicine)
             if (id != null) onSuccess(id) else onFailure()
         }
     }
 
     fun updateMedicine(medicine: Medicine, onSuccess: () -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
-            val success = medicineRepository.updateMedicine(medicine)
+            val success = medicationRepository.updateMedicine(medicine)
             if (success) onSuccess() else onFailure()
         }
     }
 
     fun deleteMedicine(medicineId: String, onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
-            val success = medicineRepository.deleteMedicine(medicineId)
+            val success = medicationRepository.deleteMedicine(medicineId)
             onComplete(success)
         }
     }

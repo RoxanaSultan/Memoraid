@@ -16,7 +16,7 @@ import com.roxanasultan.memoraid.patient.adapters.MedicineAdapter
 import com.roxanasultan.memoraid.databinding.FragmentMedicineBinding
 import com.roxanasultan.memoraid.models.Medicine
 import com.roxanasultan.memoraid.utils.VerticalSpaceItemDecoration
-import com.roxanasultan.memoraid.patient.viewmodels.MedicationViewModel
+import com.roxanasultan.memoraid.viewmodels.MedicationViewModel
 import com.roxanasultan.memoraid.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch

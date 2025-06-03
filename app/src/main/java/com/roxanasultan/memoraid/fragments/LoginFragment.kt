@@ -62,6 +62,8 @@ class LoginFragment : Fragment() {
                     val email = firebaseAuth.currentUser?.email ?: return@onSuccess
                     val password = binding.loginPassword.text.toString().trim()
 
+                    prefs.edit().putString("last_logged_user", email).apply()
+
                     if (password.isNotEmpty()) {
                         saveCredentials(email, password)
                     }
@@ -76,7 +78,6 @@ class LoginFragment : Fragment() {
                 }
             }
         }
-
         binding.loginButton.setOnClickListener {
             val credential = binding.loginCredential.text.toString().trim()
             val password = binding.loginPassword.text.toString().trim()

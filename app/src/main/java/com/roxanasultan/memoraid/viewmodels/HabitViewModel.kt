@@ -2,6 +2,7 @@ package com.roxanasultan.memoraid.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.ListenerRegistration
 import com.roxanasultan.memoraid.models.Habit
 import com.roxanasultan.memoraid.models.User
 import com.roxanasultan.memoraid.repositories.HabitRepository
@@ -26,6 +27,8 @@ class HabitViewModel @Inject constructor(
     private val _selectedPatient = MutableStateFlow<User?>(null)
     val selectedPatient: StateFlow<User?> get() = _selectedPatient
 
+    private var snapshotListener: ListenerRegistration? = null
+
     fun loadUser() {
         viewModelScope.launch {
             _user.value = userRepository.getUser()
@@ -39,10 +42,18 @@ class HabitViewModel @Inject constructor(
     }
 
     fun loadHabits(userId: String) {
-        viewModelScope.launch {
-            _habits.value = habitsRepository.loadHabits(userId).toMutableList()
+        snapshotListener?.remove()
+
+        snapshotListener = habitsRepository.observeHabits(userId) { updatedHabits ->
+            _habits.value = updatedHabits.toMutableList()
         }
     }
+
+//    fun loadHabits(userId: String) {
+//        viewModelScope.launch {
+//            _habits.value = habitsRepository.loadHabits(userId).toMutableList()
+//        }
+//    }
 
     fun addHabit(habit: Habit, onSuccess: (String) -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {

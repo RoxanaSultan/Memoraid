@@ -17,7 +17,7 @@ import com.roxanasultan.memoraid.databinding.FragmentAppointmentsBinding
 import com.roxanasultan.memoraid.models.Appointment
 import com.roxanasultan.memoraid.utils.VerticalSpaceItemDecoration
 import com.roxanasultan.memoraid.patient.adapters.AppointmentAdapter
-import com.roxanasultan.memoraid.patient.viewmodels.AppointmentsViewModel
+import com.roxanasultan.memoraid.viewmodels.AppointmentsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 

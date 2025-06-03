@@ -3,6 +3,7 @@ package com.roxanasultan.memoraid.patient.viewmodels
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.ListenerRegistration
 import com.roxanasultan.memoraid.models.Album
 import com.roxanasultan.memoraid.repositories.AlbumRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlbumViewModel @Inject constructor(
-    private val repository: AlbumRepository
+    private val albumRepository: AlbumRepository
 ) : ViewModel() {
 
     private val _albums = MutableStateFlow<MutableList<Album>>(mutableListOf())
@@ -27,20 +28,20 @@ class AlbumViewModel @Inject constructor(
 
     fun loadAlbums() {
         viewModelScope.launch {
-            _albums.value = repository.loadAlbums().toMutableList()
+            _albums.value = albumRepository.loadAlbums().toMutableList()
         }
     }
 
     fun createAlbum(type: String, onSuccess: (String) -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
-            val id = repository.createAlbum(type)
+            val id = albumRepository.createAlbum(type)
             if (id != null) onSuccess(id) else onFailure()
         }
     }
 
     fun deleteAlbum(albumId: String, onComplete: () -> Unit) {
         viewModelScope.launch {
-            val result = repository.deleteAlbum(albumId)
+            val result = albumRepository.deleteAlbum(albumId)
             if (result) {
                 loadAlbums()
             }
@@ -50,14 +51,14 @@ class AlbumViewModel @Inject constructor(
 
     fun loadAlbumDetails(albumId: String) {
         viewModelScope.launch {
-            _albumDetails.value = repository.loadAlbumDetails(albumId)
+            _albumDetails.value = albumRepository.loadAlbumDetails(albumId)
         }
     }
 
     suspend fun saveAlbumDetails(album: Album): Boolean {
         _isSaving.value = true
         return try {
-            val success = repository.saveAlbumDetails(album)
+            val success = albumRepository.saveAlbumDetails(album)
             _isSaving.value = false
             success
         } catch (e: Exception) {
@@ -68,19 +69,19 @@ class AlbumViewModel @Inject constructor(
 
     fun removeImageFromFirestore(image: String) {
         viewModelScope.launch {
-            repository.removeImageFromFirestore(image)
+            albumRepository.removeImageFromFirestore(image)
         }
     }
 
     fun removeImageFromStorage(image: String) {
         viewModelScope.launch {
-            repository.removeImageFromStorage(image)
+            albumRepository.removeImageFromStorage(image)
         }
     }
 
     fun uploadImageToStorage(image: Uri, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
         viewModelScope.launch {
-            val uploadedImage = repository.uploadImageToStorage(image)
+            val uploadedImage = albumRepository.uploadImageToStorage(image)
             if (uploadedImage != null) {
                 onSuccess(uploadedImage)
             } else {
@@ -91,7 +92,7 @@ class AlbumViewModel @Inject constructor(
 
     fun checkIfImageExistsInStorage(image: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
-            val exists = repository.checkIfImageExistsInStorage(image)
+            val exists = albumRepository.checkIfImageExistsInStorage(image)
             onResult(exists)
         }
     }

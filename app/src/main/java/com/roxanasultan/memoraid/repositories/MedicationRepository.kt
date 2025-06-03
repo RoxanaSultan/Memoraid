@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Singleton
-class MedicineRepository @Inject constructor(
+class MedicationRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore
 ) {
@@ -22,6 +22,20 @@ class MedicineRepository @Inject constructor(
 
     private fun requireUserId(): String {
         return auth.currentUser?.uid ?: throw SecurityException("User not authenticated")
+    }
+
+    fun observeMedication(date: String, userId: String, onDataChange: (List<Medicine>) -> Unit): ListenerRegistration {
+        return firestore.collection("medicine")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("date", date)
+            .addSnapshotListener { snapshot, _ ->
+                if (snapshot != null && !snapshot.isEmpty) {
+                    val medication = snapshot.toObjects(Medicine::class.java)
+                    onDataChange(medication)
+                } else {
+                    onDataChange(emptyList())
+                }
+            }
     }
 
     suspend fun loadMedicine(date: String, userId: String): List<Medicine> {
