@@ -35,39 +35,17 @@ class HabitAdapter(
             val isDateChecked = habit.checkedDates.contains(date)
 
             binding.habitName.text = habit.name
+
+            binding.habitCheckBox.setOnCheckedChangeListener(null)
             binding.habitCheckBox.isChecked = isDateChecked
             updateLayout(isDateChecked, binding)
 
-            binding.habitCheckBox.setOnCheckedChangeListener(null)
-
             binding.habitCheckBox.setOnCheckedChangeListener { _, isChecked ->
-                toggleCheckedDate(habit, isChecked, date)
+                if (isChecked != habit.checkedDates.contains(date)) {
+                    onCheckClick(habit)
+                }
                 updateLayout(isChecked, binding)
             }
-        }
-
-        private fun toggleCheckedDate(habit: Habit, isChecked: Boolean, today: String) {
-            val db = FirebaseFirestore.getInstance()
-            val habitRef = db.collection("habits").document(habit.id)
-
-            val updatedDates = ArrayList(habit.checkedDates)
-
-            if (isChecked) {
-                if (!updatedDates.contains(today)) {
-                    updatedDates.add(today)
-                }
-            } else {
-                updatedDates.remove(today)
-            }
-
-            habitRef.update("checkedDates", updatedDates)
-                .addOnSuccessListener {
-                    habit.checkedDates.clear()
-                    habit.checkedDates.addAll(updatedDates)
-                }
-                .addOnFailureListener {
-                    // poți adăuga un toast sau log
-                }
         }
     }
 

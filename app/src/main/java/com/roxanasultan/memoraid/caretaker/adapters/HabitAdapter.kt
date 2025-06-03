@@ -1,6 +1,7 @@
 package com.roxanasultan.memoraid.caretaker.adapters
 
 import android.graphics.Typeface
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -40,13 +41,14 @@ class HabitAdapter(
 
             binding.habitCheckBox.setOnCheckedChangeListener(null)
             binding.habitCheckBox.isChecked = isDateChecked
+            updateLayout(isDateChecked, binding)
 
             binding.habitCheckBox.setOnCheckedChangeListener { _, isChecked ->
-                onCheckClick(habit)
+                if (isChecked != habit.checkedDates.contains(date)) {
+                    onCheckClick(habit)
+                }
                 updateLayout(isChecked, binding)
             }
-
-            updateLayout(isDateChecked, binding)
 
             binding.editButton.setOnClickListener {
                 onEditClick(habit)
@@ -59,6 +61,7 @@ class HabitAdapter(
     }
 
     private fun updateLayout(completed: Boolean, binding: ItemHabitCaretakerBinding) {
+        Log.d("HabitAdapter", "Updating layout for habit: ${binding.habitName.text}, completed: $completed")
         if (completed) {
             binding.root.alpha = 0.5f
             binding.root.background =
