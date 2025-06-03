@@ -66,6 +66,8 @@ class LoginFragment : Fragment() {
                         saveCredentials(email, password)
                     }
 
+                    prefs.edit().putString("last_logged_user", email).apply()
+
                     if (!isBiometricEnabledForUser(email)) {
                         showEnableBiometricDialog(email)
                     } else {
