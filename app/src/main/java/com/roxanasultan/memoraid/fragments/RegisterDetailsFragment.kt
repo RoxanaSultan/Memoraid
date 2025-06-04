@@ -51,6 +51,8 @@ class RegisterDetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        Toast.makeText(requireContext(), "Your account has been created, please fill in your account information!", Toast.LENGTH_LONG).show()
+
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 sharedViewModel.clearData()
@@ -58,14 +60,39 @@ class RegisterDetailsFragment : Fragment() {
             }
         })
 
-        setupDatePickers()
         autofillFromGoogle()
 
         binding.secondRegisterContinueButton.setOnClickListener {
-            val day = binding.dayPicker.value
-            val month = binding.monthPicker.value
-            val year = binding.yearPicker.value
-            handleContinue(year, month, day)
+            val username = binding.registerUsername.text.toString().trim()
+            val phoneNumber = binding.registerPhoneNumber.text.toString().trim()
+            val datePicker = binding.registerBirthdate
+            val firstName = binding.registerFirstname.text.toString().trim()
+            val lastName = binding.registerLastname.text.toString().trim()
+
+            val calendar = Calendar.getInstance().apply { set(datePicker.year, datePicker.month, datePicker.dayOfMonth) }
+            val birthdate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(calendar.time)
+
+            if (selectedImageUri != null) {
+                sharedViewModel.setProfilePicture(selectedImageUri.toString())
+            }
+
+            sharedViewModel.setFirstName(if (firstName.isEmpty()) "No first name" else firstName)
+            sharedViewModel.setLastName(if (lastName.isEmpty()) "No last name" else lastName)
+            sharedViewModel.setBirthdate(if (birthdate.isEmpty()) "No birthdate" else birthdate)
+
+            lifecycleScope.launch {
+                if (validateInput(username, phoneNumber)) {
+                    lifecycleScope.launch {
+                        if (registerViewModel.isUsernameUnique(username) && registerViewModel.isPhoneNumberUnique(phoneNumber)) {
+                            sharedViewModel.setUsername(username)
+                            sharedViewModel.setPhoneNumber(phoneNumber)
+                            findNavController().navigate(R.id.action_registerDetailsFragment_to_registerPatientsFragment)
+                        } else {
+                            Toast.makeText(requireContext(), "Username or phone number is already taken.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
         }
 
         binding.editPictureButton.setOnClickListener {
@@ -103,29 +130,6 @@ class RegisterDetailsFragment : Fragment() {
         }
     }
 
-    private fun handleContinue(year: Int, month: Int, dayOfMonth: Int) {
-        val username = binding.registerUsername.text.toString().trim()
-        val firstName = binding.registerFirstname.text.toString().trim()
-        val lastName = binding.registerLastname.text.toString().trim()
-        val phoneNumber = binding.registerPhoneNumber.text.toString().trim()
-        val birthdate = String.format("%02d-%02d-%04d", dayOfMonth, month, year)
-
-        sharedViewModel.setFirstName(if (firstName.isEmpty()) "No first name" else firstName)
-        sharedViewModel.setLastName(if (lastName.isEmpty()) "No last name" else lastName)
-        sharedViewModel.setPhoneNumber(if (phoneNumber.isEmpty()) "No phone number" else phoneNumber)
-        sharedViewModel.setBirthdate(birthdate)
-
-        if (selectedImageUri != null) {
-            sharedViewModel.setProfilePicture(selectedImageUri.toString())
-        }
-
-        lifecycleScope.launch {
-            if (validateInput(username, phoneNumber)) {
-                findNavController().navigate(R.id.action_registerDetailsFragment_to_registerPatientsFragment)
-            }
-        }
-    }
-
     private suspend fun validateInput(username: String, phoneNumber: String): Boolean {
         if (username.isEmpty() || phoneNumber.isEmpty()) {
             Toast.makeText(requireContext(), "Username and Phone number cannot be empty.", Toast.LENGTH_SHORT).show()
@@ -150,18 +154,6 @@ class RegisterDetailsFragment : Fragment() {
         sharedViewModel.setUsername(username)
         sharedViewModel.setPhoneNumber(phoneNumber)
         return true
-    }
-
-    private fun setupDatePickers() {
-        val calendar = Calendar.getInstance()
-        binding.dayPicker.minValue = 1
-        binding.dayPicker.maxValue = 31
-        binding.monthPicker.minValue = 1
-        binding.monthPicker.maxValue = 12
-        val currentYear = calendar.get(Calendar.YEAR)
-        binding.yearPicker.minValue = 1900
-        binding.yearPicker.maxValue = currentYear
-        binding.yearPicker.value = 2000
     }
 
     private fun showModal() {

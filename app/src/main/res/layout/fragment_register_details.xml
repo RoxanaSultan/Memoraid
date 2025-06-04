@@ -109,37 +109,17 @@
         android:textColor="@color/blue"
         android:textSize="16sp" />
 
-
-    <LinearLayout
+    <DatePicker
         android:id="@+id/register_birthdate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintWidth_percent="0.5"
-        android:orientation="horizontal"
         app:layout_constraintTop_toBottomOf="@id/register_birthdate_text"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:background="@drawable/layout_background"
-        android:padding="10dp"
-        android:gravity="center">
-
-        <NumberPicker
-            android:id="@+id/day_picker"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"/>
-
-        <NumberPicker
-            android:id="@+id/month_picker"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"/>
-
-        <NumberPicker
-            android:id="@+id/year_picker"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
+        android:layout_gravity="center"
+        android:calendarViewShown="false"
+        android:datePickerMode="spinner"
+        android:layout_marginBottom="16dp" />
 
     <android.widget.Button
         android:id="@+id/second_register_continue_button"

@@ -59,4 +59,17 @@ class LoginRepository @Inject constructor(
 
         return !snapshot.isEmpty
     }
+
+    suspend fun loginWithGoogleEmail(email: String): Result<Unit> {
+        return try {
+            val user = auth.fetchSignInMethodsForEmail(email).await()
+            if (user.signInMethods?.isNotEmpty() == true) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("No sign-in methods for email"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

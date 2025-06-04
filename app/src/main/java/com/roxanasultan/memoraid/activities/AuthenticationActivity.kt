@@ -24,8 +24,43 @@ class AuthenticationActivity : AppCompatActivity() {
     private lateinit var biometricHelper: BiometricHelper
     private val prefs by lazy { getSharedPreferences("memoraid_prefs", MODE_PRIVATE) }
 
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//
+//        val lastUser = getLastLoggedUser()
+//
+//        if (lastUser != null && isBiometricEnabledForUser(lastUser)) {
+//            showAuthLayout()
+//            startBiometricAuth()
+//        } else {
+//            lifecycleScope.launch {
+//                authenticationViewModel.authCheckState.collectLatest { result ->
+//                    if (result != null) {
+//                        if (result.isSuccess) {
+//                            val intent = Intent(this@AuthenticationActivity, MainActivity::class.java)
+//                            startActivity(intent)
+//                            finish()
+//                        } else {
+//                            showAuthLayout()
+//                        }
+//                    }
+//                }
+//            }
+//            authenticationViewModel.checkIfUserLoggedIn()
+//        }
+//    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val firebaseUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        if (firebaseUser != null) {
+            // Dacă userul e deja logat în Firebase, sari direct în MainActivity
+            val intent = Intent(this@AuthenticationActivity, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+            return
+        }
 
         val lastUser = getLastLoggedUser()
 

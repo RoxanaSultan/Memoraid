@@ -105,4 +105,11 @@ class LoginViewModel @Inject constructor(
             }
         }
     }
+
+    fun loginWithGoogleEmail(email: String) {
+        viewModelScope.launch {
+            val result = repository.loginWithGoogleEmail(email)
+            _loginState.value = result
+        }
+    }
 }

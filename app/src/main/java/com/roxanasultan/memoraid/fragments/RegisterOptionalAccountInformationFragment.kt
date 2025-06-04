@@ -51,41 +51,27 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val dayPicker: NumberPicker = binding.dayPicker
-        val monthPicker: NumberPicker = binding.monthPicker
-        val yearPicker: NumberPicker = binding.yearPicker
-
-        dayPicker.minValue = 1
-        dayPicker.maxValue = 31
-
-        monthPicker.minValue = 1
-        monthPicker.maxValue = 12
-
-        yearPicker.minValue = 1900
-        yearPicker.maxValue = Calendar.getInstance().get(Calendar.YEAR)
-
-        var selectedYear = yearPicker.value
-        var selectedMonth = monthPicker.value
-        var selectedDayOfMonth = dayPicker.value
-
-        dayPicker.setOnValueChangedListener { _, _, newVal ->
-            selectedDayOfMonth = newVal
-        }
-
-        monthPicker.setOnValueChangedListener { _, _, newVal ->
-            selectedMonth = newVal
-        }
-
-        yearPicker.setOnValueChangedListener { _, _, newVal ->
-            selectedYear = newVal
-        }
-
         binding.editPictureButton.setOnClickListener {
             showModal()
         }
 
         binding.secondRegisterContinueButton.setOnClickListener {
-            handleContinue(selectedYear, selectedMonth, selectedDayOfMonth)
+            val datePicker = binding.registerBirthdate
+            val firstName = binding.registerFirstname.text.toString().trim()
+            val lastName = binding.registerLastname.text.toString().trim()
+
+            val calendar = Calendar.getInstance().apply { set(datePicker.year, datePicker.month, datePicker.dayOfMonth) }
+            val birthdate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(calendar.time)
+
+            if (selectedImageUri != null) {
+                sharedViewModel.setProfilePicture(selectedImageUri.toString())
+            }
+
+            sharedViewModel.setFirstName(if (firstName.isEmpty()) "No first name" else firstName)
+            sharedViewModel.setLastName(if (lastName.isEmpty()) "No last name" else lastName)
+            sharedViewModel.setBirthdate(if (birthdate.isEmpty()) "No birthdate" else birthdate)
+
+            findNavController().navigate(R.id.action_registerOptionalAccountInfoFragment_to_registerPatientsFragment)
         }
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
@@ -157,31 +143,6 @@ class RegisterOptionalAccountInformationFragment : Fragment() {
             Glide.with(this).load(photoUri).placeholder(R.drawable.default_profile_picture)
                 .into(binding.profilePicture)
         }
-    }
-
-    private fun handleContinue(year: Int, month: Int, dayOfMonth: Int) {
-        val firstName = binding.registerFirstname.text.toString().trim()
-        val lastName = binding.registerLastname.text.toString().trim()
-
-        val calendar = Calendar.getInstance().apply { set(year, month - 1, dayOfMonth) }
-        val birthdate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(calendar.time)
-
-        if (selectedImageUri != null) {
-                sharedViewModel.setProfilePicture(selectedImageUri.toString())
-        }
-        proceedToNextStep(firstName, lastName, birthdate)
-    }
-
-    private fun proceedToNextStep(
-        firstName: String,
-        lastName: String,
-        birthdate: String
-    ) {
-        sharedViewModel.setFirstName(if (firstName.isEmpty()) "No first name" else firstName)
-        sharedViewModel.setLastName(if (lastName.isEmpty()) "No last name" else lastName)
-        sharedViewModel.setBirthdate(if (birthdate.isEmpty()) "No birthdate" else birthdate)
-
-        findNavController().navigate(R.id.action_registerOptionalAccountInfoFragment_to_registerPatientsFragment)
     }
 
     override fun onRequestPermissionsResult(

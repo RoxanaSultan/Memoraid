@@ -68,6 +68,7 @@
             app:destination="@id/fragment_register_patients" />
     </fragment>
 
+
     <fragment
         android:id="@+id/fragment_register_optional_account_info"
         android:name="com.roxanasultan.memoraid.fragments.RegisterOptionalAccountInformationFragment"

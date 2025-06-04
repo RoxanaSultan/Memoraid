@@ -141,7 +141,12 @@ class RegisterPatientsFragment : Fragment() {
         val profilePictureUrl = sharedViewModel.profilePictureUrl.value
         val selectedPatientsList = selectedPatients
 
-        sharedViewModel.setSelectedPatient(selectedPatients[0])
+        if (selectedPatients.isNotEmpty()) {
+            sharedViewModel.setSelectedPatient(selectedPatients[0])
+        } else {
+            sharedViewModel.setSelectedPatient(null)
+        }
+
         sharedViewModel.setRole(role)
 
         val userInfo = hashMapOf(

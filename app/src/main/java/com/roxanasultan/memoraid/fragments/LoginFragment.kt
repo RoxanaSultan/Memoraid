@@ -24,7 +24,6 @@ import com.roxanasultan.memoraid.viewmodels.LoginViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class LoginFragment : Fragment() {
@@ -36,8 +35,22 @@ class LoginFragment : Fragment() {
     private lateinit var googleSignInClient: GoogleSignInClient
     private val firebaseAuth = FirebaseAuth.getInstance()
     private val RC_SIGN_IN = 9001
+
+    // SharedPreferences simple pentru flaguri și email
     private val prefs by lazy {
         requireContext().getSharedPreferences("memoraid_prefs", MODE_PRIVATE)
+    }
+
+    // EncryptedSharedPreferences pentru stocare sigură parole
+    private val securePrefs by lazy {
+        val masterKey = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+        EncryptedSharedPreferences.create(
+            "secret_prefs",
+            masterKey,
+            requireContext(),
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -62,10 +75,16 @@ class LoginFragment : Fragment() {
                     val email = firebaseAuth.currentUser?.email ?: return@onSuccess
                     val password = binding.loginPassword.text.toString().trim()
 
+                    // Salvează ultimul user care s-a logat
                     prefs.edit().putString("last_logged_user", email).apply()
 
                     if (password.isNotEmpty()) {
+                        // Login cu parolă - salvează și parola + ultima metodă login
                         saveCredentials(email, password)
+                        saveLastLoginMethod(email, "password")
+                    } else {
+                        // Login fără parolă (google) - nu salva parola, dar salvează metoda
+                        saveLastLoginMethod(email, "google")
                     }
 
                     if (!isBiometricEnabledForUser(email)) {
@@ -78,6 +97,7 @@ class LoginFragment : Fragment() {
                 }
             }
         }
+
         binding.loginButton.setOnClickListener {
             val credential = binding.loginCredential.text.toString().trim()
             val password = binding.loginPassword.text.toString().trim()
@@ -113,12 +133,71 @@ class LoginFragment : Fragment() {
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == RC_SIGN_IN) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+            try {
+                val account = task.getResult(ApiException::class.java)!!
+                val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+                firebaseAuth.signInWithCredential(credential)
+                    .addOnCompleteListener { authResult ->
+                        if (authResult.isSuccessful) {
+                            val email = firebaseAuth.currentUser?.email
+                            if (email != null) {
+                                loginViewModel.doesProfileExist(email) { exists ->
+                                    if (exists) {
+                                        // Salvează metoda ca google, fără parolă
+                                        saveLastLoginMethod(email, "google")
+                                        navigateToMain()
+                                    } else {
+                                        val lastAccount = GoogleSignIn.getLastSignedInAccount(requireContext())
+                                        val bundle = Bundle().apply {
+                                            putString("google_name", lastAccount?.displayName ?: "")
+                                            putString("google_email", lastAccount?.email ?: "")
+                                            putString("google_photo", lastAccount?.photoUrl?.toString() ?: "")
+                                        }
+                                        findNavController().navigate(R.id.action_loginFragment_to_registerDetailsFragment, bundle)
+                                    }
+                                }
+                            }
+                        } else {
+                            val exception = authResult.exception
+                            if (exception is com.google.firebase.auth.FirebaseAuthUserCollisionException) {
+                                Toast.makeText(requireContext(),
+                                    "An account associated with this email address already exists. Please log in using your email and password.",
+                                    Toast.LENGTH_LONG).show()
+                            } else {
+                                Toast.makeText(requireContext(), "Google sign-in failed: ${exception?.localizedMessage}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+            } catch (e: ApiException) {
+                Toast.makeText(requireContext(), "Google sign-in error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private fun checkBiometricLogin() {
-        getSavedCredentials()?.let { (email, password) ->
-            if (isBiometricEnabledForUser(email)) {
+        val email = prefs.getString("last_logged_user", null) ?: return
+        if (!isBiometricEnabledForUser(email)) return
+
+        val lastMethod = getLastLoginMethod(email)
+        if (lastMethod == "password") {
+            val creds = getSavedCredentials()
+            if (creds != null && creds.first == email) {
                 showBiometricPrompt {
-                    loginViewModel.login(email, password)
+                    loginViewModel.login(creds.first, creds.second)
                 }
+            }
+        } else if (lastMethod == "google") {
+            // Nu face login automat cu email doar!
+            // Mai bine lansează Google Sign-In flow
+            showBiometricPrompt {
+                // Lansează intentul de login Google
+                val signInIntent = googleSignInClient.signInIntent
+                startActivityForResult(signInIntent, RC_SIGN_IN)
             }
         }
     }
@@ -148,29 +227,22 @@ class LoginFragment : Fragment() {
     }
 
     private fun saveCredentials(email: String, password: String) {
-        val masterKey = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
-        val sharedPrefs = EncryptedSharedPreferences.create(
-            "secret_prefs",
-            masterKey,
-            requireContext(),
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-        sharedPrefs.edit().putString("email", email).putString("password", password).apply()
+        securePrefs.edit().putString("email", email).putString("password", password).apply()
     }
 
     private fun getSavedCredentials(): Pair<String, String>? {
-        val masterKey = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
-        val sharedPrefs = EncryptedSharedPreferences.create(
-            "secret_prefs",
-            masterKey,
-            requireContext(),
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-        val email = sharedPrefs.getString("email", null)
-        val password = sharedPrefs.getString("password", null)
+        val email = securePrefs.getString("email", null)
+        val password = securePrefs.getString("password", null)
         return if (email != null && password != null) Pair(email, password) else null
+    }
+
+    private fun saveLastLoginMethod(email: String, method: String) {
+        // method poate fi "password" sau "google"
+        prefs.edit().putString("last_login_method_for_$email", method).apply()
+    }
+
+    private fun getLastLoginMethod(email: String): String? {
+        return prefs.getString("last_login_method_for_$email", null)
     }
 
     private fun isBiometricEnabledForUser(userId: String): Boolean {
