@@ -20,7 +20,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
 import com.roxanasultan.memoraid.helpers.AlarmScheduler
-import com.roxanasultan.memoraid.patient.viewmodels.MedicationViewModel
+import com.roxanasultan.memoraid.viewmodels.MedicationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import com.roxanasultan.memoraid.viewmodels.UserViewModel
 import kotlinx.coroutines.launch
@@ -250,6 +250,7 @@ class MainActivity : AppCompatActivity() {
             medicationViewModel.allMedication.collect { medications ->
                 for (medication in medications) {
                     if (!medication.hasAlarm) {
+                        Log.d("MainActivity", "Scheduling alarm for medication: ${medication.name}")
                         AlarmScheduler.scheduleAlarmForMedication(this@MainActivity, medication)
                         medicationViewModel.setAlarm(medication.id, true)
                     }

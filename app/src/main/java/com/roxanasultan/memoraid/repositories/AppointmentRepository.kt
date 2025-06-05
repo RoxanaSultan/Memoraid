@@ -22,12 +22,14 @@ class AppointmentRepository @Inject constructor(
     }
 
     fun observeAppointments(date: String, userId: String, onDataChange: (List<Appointment>) -> Unit): ListenerRegistration {
+        val selectedDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).parse(date)
+
         return firestore.collection("appointments")
             .whereEqualTo("userId", userId)
-            .whereEqualTo("date", date)
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null && !snapshot.isEmpty) {
                     val appointments = snapshot.toObjects(Appointment::class.java)
+                        .filter { it.isActiveOnDate(selectedDate) }
                     onDataChange(appointments)
                 } else {
                     onDataChange(emptyList())

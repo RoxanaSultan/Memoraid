@@ -7,23 +7,26 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.google.firebase.firestore.FirebaseFirestore
 import com.roxanasultan.memoraid.R
 import com.roxanasultan.memoraid.activities.MainActivity
 import com.roxanasultan.memoraid.activities.MedicineReminderActivity
-import android.os.PowerManager
+import com.roxanasultan.memoraid.helpers.AlarmScheduler
+import com.roxanasultan.memoraid.models.Medicine
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d("AlarmReceiver", "Alarm received!")
-
         val name = intent.getStringExtra("name") ?: ""
         val dose = intent.getStringExtra("dose") ?: "0"
         val date = intent.getStringExtra("date") ?: ""
         val time = intent.getStringExtra("time") ?: ""
         val note = intent.getStringExtra("note") ?: ""
         val medicationId = intent.getStringExtra("medicationId") ?: ""
+
+        Log.d("AlarmReceiver", "Alarm received for medication $name")
 
         val fullScreenIntent = Intent(context, MedicineReminderActivity::class.java).apply {
             putExtra("name", name)
@@ -86,5 +89,17 @@ class AlarmReceiver : BroadcastReceiver() {
             .build()
 
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+
+        val db = FirebaseFirestore.getInstance()
+        db.collection("medicine").document(medicationId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val medicine = document.toObject(Medicine::class.java)
+                    if (medicine != null) {
+                        val now = java.util.Calendar.getInstance().time
+                        AlarmScheduler.scheduleAlarmForMedication(context, medicine, fromDate = now)
+                    }
+                }
+            }
     }
 }

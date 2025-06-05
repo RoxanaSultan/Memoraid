@@ -25,12 +25,14 @@ class MedicationRepository @Inject constructor(
     }
 
     fun observeMedication(date: String, userId: String, onDataChange: (List<Medicine>) -> Unit): ListenerRegistration {
+        val selectedDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).parse(date)
+
         return firestore.collection("medicine")
             .whereEqualTo("userId", userId)
-            .whereEqualTo("date", date)
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null && !snapshot.isEmpty) {
                     val medication = snapshot.toObjects(Medicine::class.java)
+                        .filter { it.isActiveOnDate(selectedDate) }
                     onDataChange(medication)
                 } else {
                     onDataChange(emptyList())
