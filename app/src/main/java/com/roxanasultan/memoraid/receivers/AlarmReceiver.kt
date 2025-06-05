@@ -16,17 +16,18 @@ import com.roxanasultan.memoraid.activities.MainActivity
 import com.roxanasultan.memoraid.activities.MedicineReminderActivity
 import com.roxanasultan.memoraid.helpers.AlarmScheduler
 import com.roxanasultan.memoraid.models.Medicine
+import com.roxanasultan.memoraid.receivers.SnoozeReceiver
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        Log.d("AlarmReceiver", "Alarm received!")
+
         val name = intent.getStringExtra("name") ?: ""
         val dose = intent.getStringExtra("dose") ?: "0"
         val date = intent.getStringExtra("date") ?: ""
         val time = intent.getStringExtra("time") ?: ""
         val note = intent.getStringExtra("note") ?: ""
         val medicationId = intent.getStringExtra("medicationId") ?: ""
-
-        Log.d("AlarmReceiver", "Alarm received for medication $name")
 
         val fullScreenIntent = Intent(context, MedicineReminderActivity::class.java).apply {
             putExtra("name", name)

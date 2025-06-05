@@ -122,6 +122,7 @@
             </intent-filter>
         </service>
         <receiver android:name=".notifications.AppointmentReminderReceiver" />
+        <receiver android:name=".receivers.SnoozeReceiver" android:exported="true" />
         <receiver android:name=".receivers.AlarmReceiver"
             android:exported="true"/>
         <receiver

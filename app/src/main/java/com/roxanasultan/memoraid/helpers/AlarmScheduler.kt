@@ -94,8 +94,18 @@ object AlarmScheduler {
 
         return when (medicine.frequency.uppercase()) {
             "ONCE" -> {
-                val medDate = sdf.parse(medicine.date)
-                if (medDate != null && medDate.after(fromDate)) medDate else null
+                val medDateOnly = sdf.parse(medicine.date) ?: return null
+
+                val medDateTime = Calendar.getInstance().apply {
+                    time = medDateOnly
+                    val timeParts = medicine.time.split(":")
+                    set(Calendar.HOUR_OF_DAY, timeParts.getOrNull(0)?.toIntOrNull() ?: 0)
+                    set(Calendar.MINUTE, timeParts.getOrNull(1)?.toIntOrNull() ?: 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.time
+
+                return if (medDateTime.after(fromDate)) medDateTime else null
             }
 
             "DAILY" -> {
@@ -122,26 +132,46 @@ object AlarmScheduler {
             }
 
             "EVERY X DAYS" -> {
+                val startDate = sdf.parse(medicine.date) ?: return null
                 val x = medicine.everyXDays ?: return null
-                calendar.add(Calendar.DAY_OF_MONTH, x)
-                calendar.time
+
+                val daysDiff = ((fromDate.time - startDate.time) / (1000 * 60 * 60 * 24)).toInt()
+                val daysUntilNext = if (daysDiff < 0) 0 else x - (daysDiff % x)
+
+                val nextDate = Calendar.getInstance().apply {
+                    time = fromDate
+                    add(Calendar.DAY_OF_MONTH, daysUntilNext)
+                }
+                return nextDate.time
             }
 
             "WEEKLY" -> {
                 val days = medicine.weeklyDays?.map { it.uppercase() } ?: return null
-                for (i in 1..7) {
-                    calendar.add(Calendar.DAY_OF_MONTH, 1)
-                    val dayOfWeek = calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault())?.uppercase()
-                    if (days.contains(dayOfWeek)) return calendar.time
+                for (i in 0..6) {
+                    val day = Calendar.getInstance().apply {
+                        time = fromDate
+                        add(Calendar.DAY_OF_MONTH, i)
+                    }
+                    val dayOfWeek = day.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault())?.uppercase()
+                    if (days.contains(dayOfWeek)) return day.time
                 }
                 null
             }
 
             "MONTHLY" -> {
                 val day = medicine.monthlyDay ?: return null
-                calendar.add(Calendar.MONTH, 1)
-                calendar.set(Calendar.DAY_OF_MONTH, day)
-                calendar.time
+                val testCal = Calendar.getInstance().apply {
+                    time = fromDate
+                    set(Calendar.DAY_OF_MONTH, day)
+                }
+
+                if (testCal.time.after(fromDate)) {
+                    return testCal.time
+                }
+
+                testCal.add(Calendar.MONTH, 1)
+                testCal.set(Calendar.DAY_OF_MONTH, day)
+                return testCal.time
             }
 
             else -> null
