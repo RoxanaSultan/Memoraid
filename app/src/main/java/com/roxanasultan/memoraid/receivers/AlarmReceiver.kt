@@ -16,18 +16,18 @@ import com.roxanasultan.memoraid.activities.MainActivity
 import com.roxanasultan.memoraid.activities.MedicineReminderActivity
 import com.roxanasultan.memoraid.helpers.AlarmScheduler
 import com.roxanasultan.memoraid.models.Medicine
-import com.roxanasultan.memoraid.receivers.SnoozeReceiver
+import java.util.*
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d("AlarmReceiver", "Alarm received!")
-
         val name = intent.getStringExtra("name") ?: ""
         val dose = intent.getStringExtra("dose") ?: "0"
         val date = intent.getStringExtra("date") ?: ""
         val time = intent.getStringExtra("time") ?: ""
         val note = intent.getStringExtra("note") ?: ""
         val medicationId = intent.getStringExtra("medicationId") ?: ""
+
+        Log.d("AlarmReceiver", "Alarm received for medication $name")
 
         val fullScreenIntent = Intent(context, MedicineReminderActivity::class.java).apply {
             putExtra("name", name)
@@ -97,10 +97,77 @@ class AlarmReceiver : BroadcastReceiver() {
                 if (document.exists()) {
                     val medicine = document.toObject(Medicine::class.java)
                     if (medicine != null) {
-                        val now = java.util.Calendar.getInstance().time
-                        AlarmScheduler.scheduleAlarmForMedication(context, medicine, fromDate = now)
+                        val nextDate = getNextDate(medicine)
+                        AlarmScheduler.scheduleAlarmForMedication(context, medicine, nextDate)
                     }
                 }
             }
+    }
+
+
+    fun getNextDate(medicine: Medicine): Date? {
+        val calendar = Calendar.getInstance()
+        val today = calendar.time
+
+        fun dayOfWeekFromString(day: String): Int {
+            return when (day.lowercase(Locale.getDefault())) {
+                "sunday" -> Calendar.SUNDAY
+                "monday" -> Calendar.MONDAY
+                "tuesday" -> Calendar.TUESDAY
+                "wednesday" -> Calendar.WEDNESDAY
+                "thursday" -> Calendar.THURSDAY
+                "friday" -> Calendar.FRIDAY
+                "saturday" -> Calendar.SATURDAY
+                else -> Calendar.MONDAY // default
+            }
+        }
+
+        when (medicine.frequency.lowercase(Locale.getDefault())) {
+            "DAILY" -> {
+                // Adaugă o zi
+                calendar.add(Calendar.DAY_OF_YEAR, 1)
+                return calendar.time
+            }
+            "WEEKLY" -> {
+                // Avem o listă de zile (ex: ["Monday", "Wednesday"])
+                val todayDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+                val weeklyDays = medicine.weeklyDays ?: return today // fallback
+
+                // Convertim zilele în numere Calendar.DAY_OF_WEEK
+                val daysOfWeek = weeklyDays.map { dayOfWeekFromString(it) }
+
+                // Căutăm prima zi din săptămână din daysOfWeek care este după azi
+                val sortedDays = daysOfWeek.sorted()
+                for (day in sortedDays) {
+                    if (day > todayDayOfWeek) {
+                        val daysToAdd = day - todayDayOfWeek
+                        calendar.add(Calendar.DAY_OF_YEAR, daysToAdd)
+                        return calendar.time
+                    }
+                }
+                // Dacă nu am găsit niciuna după azi, alegem prima zi din lista săptămânii de săptămâna viitoare
+                val firstDay = sortedDays.first()
+                val daysToAdd = 7 - todayDayOfWeek + firstDay
+                calendar.add(Calendar.DAY_OF_YEAR, daysToAdd)
+                return calendar.time
+            }
+            "EVERY X DAYS" -> {
+                val x = medicine.everyXDays ?: 1
+                calendar.add(Calendar.DAY_OF_YEAR, x)
+                return calendar.time
+            }
+            "MONTHLY" -> {
+                val monthlyDay = medicine.monthlyDay ?: calendar.get(Calendar.DAY_OF_MONTH)
+                // Mutăm luna la următoarea lună
+                calendar.add(Calendar.MONTH, 1)
+                // Setăm ziua din lună la cea dorită
+                val maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+                calendar.set(Calendar.DAY_OF_MONTH, monthlyDay.coerceAtMost(maxDay))
+                return calendar.time
+            }
+            else -> {
+                return null
+            }
+        }
     }
 }

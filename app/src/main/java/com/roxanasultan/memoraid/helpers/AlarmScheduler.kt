@@ -16,29 +16,37 @@ import java.util.Date
 import java.util.Locale
 
 object AlarmScheduler {
-    fun scheduleAlarmForMedication(context: Context, medication: Medicine, fromDate: Date = Calendar.getInstance().time) {
+    fun scheduleAlarmForMedication(context: Context, medication: Medicine, date: Date? = Calendar.getInstance().time) {
+        Log.d("AlarmScheduler", "scheduleAlarmForMedication called with medication: ${medication.name}, date: $date")
+
+        if (date == null) {
+            Log.e("AlarmScheduler", "Date is null, cannot schedule alarm.")
+            return
+        }
+
+        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        val dateAsString = formatter.format(date)
+
         val timeList = medication.time.split(":")
         val hour = timeList.getOrNull(0)?.toIntOrNull() ?: 0
         val minute = timeList.getOrNull(1)?.toIntOrNull() ?: 0
 
         val medicationId = medication.id
         val name = medication.name
-        val date = medication.date
+        val dateMedication = dateAsString
         val dose = medication.dose
         val note = medication.note
         val timeMedication = medication.time
 
-        val nextDate = getNextAlarmDate(medication, fromDate) ?: return
-
-        Log.d("AlarmScheduler", "Scheduling alarm for medication: $medicationId at $hour:$minute")
-        Log.d("AlarmScheduler", "Medication details: Name=$name, Dose=$dose, Time=$timeMedication, Date=$date, Note=$note")
+        Log.d("AlarmScheduler", "Scheduling alarm for medication: $medicationId at $hour:$minute in $date")
+        Log.d("AlarmScheduler", "Medication details: Name=$name, Dose=$dose, Time=$timeMedication, Date=$dateMedication, Note=$note")
 
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("medicationId", medicationId)
             putExtra("name", name)
             putExtra("dose", dose)
             putExtra("time", timeMedication)
-            putExtra("date", date)
+            putExtra("date", dateMedication)
             putExtra("note", note)
         }
 
@@ -50,14 +58,12 @@ object AlarmScheduler {
         )
 
         val calendar = Calendar.getInstance().apply {
-            time = nextDate
+            time = date
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
-
-        Log.d("AlarmScheduler", "Next alarm date: ${calendar.time}")
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
@@ -121,12 +127,10 @@ object AlarmScheduler {
                     set(Calendar.MILLISECOND, 0)
                 }
 
-                // Dacă e înainte de ora programată, întoarce azi
                 if (originalTime.before(medTime)) {
                     return medTime.time
                 }
 
-                // Dacă a trecut ora, întoarce mâine
                 medTime.add(Calendar.DAY_OF_MONTH, 1)
                 return medTime.time
             }
@@ -135,43 +139,95 @@ object AlarmScheduler {
                 val startDate = sdf.parse(medicine.date) ?: return null
                 val x = medicine.everyXDays ?: return null
 
-                val daysDiff = ((fromDate.time - startDate.time) / (1000 * 60 * 60 * 24)).toInt()
-                val daysUntilNext = if (daysDiff < 0) 0 else x - (daysDiff % x)
+                val timeParts = medicine.time.split(":")
+                val hour = timeParts.getOrNull(0)?.toIntOrNull() ?: 0
+                val minute = timeParts.getOrNull(1)?.toIntOrNull() ?: 0
 
-                val nextDate = Calendar.getInstance().apply {
+                val calendarNow = Calendar.getInstance().apply { time = fromDate }
+
+                // Setăm ora din zi pentru comparație exactă
+                val calendarNowWithTime = Calendar.getInstance().apply {
                     time = fromDate
-                    add(Calendar.DAY_OF_MONTH, daysUntilNext)
+                    set(Calendar.HOUR_OF_DAY, hour)
+                    set(Calendar.MINUTE, minute)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
                 }
-                return nextDate.time
+
+                val startCalendar = Calendar.getInstance().apply {
+                    time = startDate
+                    set(Calendar.HOUR_OF_DAY, hour)
+                    set(Calendar.MINUTE, minute)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+
+                val diffMillis = calendarNow.timeInMillis - startCalendar.timeInMillis
+                val daysDiff = (diffMillis / (1000 * 60 * 60 * 24)).toInt()
+
+                return if (daysDiff < 0) {
+                    // Azi e înainte de start, deci returnează startDate
+                    startCalendar.time
+                } else {
+                    // E azi zi validă? (verificăm modulo)
+                    val isTodayValid = daysDiff % x == 0
+                    if (isTodayValid && calendarNow.before(calendarNowWithTime)) {
+                        // Azi e o zi validă și ora n-a trecut
+                        calendarNowWithTime.time
+                    } else {
+                        // Caută următoarea zi validă (adaugă x - (daysDiff % x))
+                        val daysUntilNext = if (isTodayValid) x else x - (daysDiff % x)
+                        val nextValid = Calendar.getInstance().apply {
+                            time = calendarNow.time
+                            add(Calendar.DAY_OF_MONTH, daysUntilNext)
+                            set(Calendar.HOUR_OF_DAY, hour)
+                            set(Calendar.MINUTE, minute)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }
+                        nextValid.time
+                    }
+                }
             }
 
             "WEEKLY" -> {
                 val days = medicine.weeklyDays?.map { it.uppercase() } ?: return null
-                for (i in 0..6) {
+                for (i in 0..13) { // caută următoarea zi din săptămâna următoare (2 săptămâni max)
                     val day = Calendar.getInstance().apply {
                         time = fromDate
                         add(Calendar.DAY_OF_MONTH, i)
+                        val timeParts = medicine.time.split(":")
+                        set(Calendar.HOUR_OF_DAY, timeParts.getOrNull(0)?.toIntOrNull() ?: 0)
+                        set(Calendar.MINUTE, timeParts.getOrNull(1)?.toIntOrNull() ?: 0)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
                     }
                     val dayOfWeek = day.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault())?.uppercase()
-                    if (days.contains(dayOfWeek)) return day.time
+                    if (days.contains(dayOfWeek) && day.time.after(fromDate)) {
+                        return day.time
+                    }
                 }
                 null
             }
 
             "MONTHLY" -> {
                 val day = medicine.monthlyDay ?: return null
-                val testCal = Calendar.getInstance().apply {
+                val next = Calendar.getInstance().apply {
                     time = fromDate
                     set(Calendar.DAY_OF_MONTH, day)
+                    val timeParts = medicine.time.split(":")
+                    set(Calendar.HOUR_OF_DAY, timeParts.getOrNull(0)?.toIntOrNull() ?: 0)
+                    set(Calendar.MINUTE, timeParts.getOrNull(1)?.toIntOrNull() ?: 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
                 }
 
-                if (testCal.time.after(fromDate)) {
-                    return testCal.time
+                if (!next.time.after(fromDate)) {
+                    next.add(Calendar.MONTH, 1)
+                    next.set(Calendar.DAY_OF_MONTH, day)
                 }
 
-                testCal.add(Calendar.MONTH, 1)
-                testCal.set(Calendar.DAY_OF_MONTH, day)
-                return testCal.time
+                return next.time
             }
 
             else -> null

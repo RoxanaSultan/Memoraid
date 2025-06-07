@@ -25,7 +25,12 @@ import dagger.hilt.android.AndroidEntryPoint
 import com.roxanasultan.memoraid.viewmodels.UserViewModel
 import kotlinx.coroutines.launch
 import androidx.work.*
+import com.roxanasultan.memoraid.models.Medicine
 import com.roxanasultan.memoraid.workers.RescheduleAlarmsWorker
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
@@ -251,10 +256,112 @@ class MainActivity : AppCompatActivity() {
                 for (medication in medications) {
                     if (!medication.hasAlarm) {
                         Log.d("MainActivity", "Scheduling alarm for medication: ${medication.name}")
-                        AlarmScheduler.scheduleAlarmForMedication(this@MainActivity, medication)
-                        medicationViewModel.setAlarm(medication.id, true)
+
+                        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+                        val date: Date = formatter.parse(medication.date) ?: Date()
+
+                        val today = Calendar.getInstance().apply {
+                            set(Calendar.HOUR_OF_DAY, 0)
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }.time
+
+                        if (date == today) {
+                            // Timpul din medication.time (ex: "14:30")
+                            val timeParts = medication.time.split(":")
+                            val medHour = timeParts.getOrNull(0)?.toIntOrNull() ?: 0
+                            val medMinute = timeParts.getOrNull(1)?.toIntOrNull() ?: 0
+
+                            // Ora curentă
+                            val now = Calendar.getInstance()
+                            val currentHour = now.get(Calendar.HOUR_OF_DAY)
+                            val currentMinute = now.get(Calendar.MINUTE)
+
+                            // Compară timpul
+                            if (currentHour > medHour || (currentHour == medHour && currentMinute >= medMinute)) {
+                                // Timpul a trecut sau e exact acum
+                                Log.d("MainActivity", "Ora pentru ${medication.name} a trecut deja.")
+                                val nextDate = getNextDate(medication)
+                                AlarmScheduler.scheduleAlarmForMedication(this@MainActivity, medication, nextDate)
+                            } else {
+                                val nextDate = getNextDate(medication)
+                                AlarmScheduler.scheduleAlarmForMedication(this@MainActivity, medication, date)
+                                medicationViewModel.setAlarm(medication.id, true)
+                            }
+                        } else {
+                            val nextDate = getNextDate(medication)
+                            AlarmScheduler.scheduleAlarmForMedication(this@MainActivity, medication, date)
+                            medicationViewModel.setAlarm(medication.id, true)
+                        }
                     }
                 }
+            }
+        }
+    }
+
+    fun getNextDate(medicine: Medicine): Date? {
+        val calendar = Calendar.getInstance()
+        val today = calendar.time
+
+        fun dayOfWeekFromString(day: String): Int {
+            return when (day.lowercase(Locale.getDefault())) {
+                "sunday" -> Calendar.SUNDAY
+                "monday" -> Calendar.MONDAY
+                "tuesday" -> Calendar.TUESDAY
+                "wednesday" -> Calendar.WEDNESDAY
+                "thursday" -> Calendar.THURSDAY
+                "friday" -> Calendar.FRIDAY
+                "saturday" -> Calendar.SATURDAY
+                else -> Calendar.MONDAY // default
+            }
+        }
+
+        when (medicine.frequency) {
+            "DAILY" -> {
+                // Adaugă o zi
+                calendar.add(Calendar.DAY_OF_YEAR, 1)
+                return calendar.time
+            }
+            "WEEKLY" -> {
+                // Avem o listă de zile (ex: ["Monday", "Wednesday"])
+                val todayDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+                val weeklyDays = medicine.weeklyDays ?: return today // fallback
+
+                // Convertim zilele în numere Calendar.DAY_OF_WEEK
+                val daysOfWeek = weeklyDays.map { dayOfWeekFromString(it) }
+
+                // Căutăm prima zi din săptămână din daysOfWeek care este după azi
+                val sortedDays = daysOfWeek.sorted()
+                for (day in sortedDays) {
+                    if (day > todayDayOfWeek) {
+                        val daysToAdd = day - todayDayOfWeek
+                        calendar.add(Calendar.DAY_OF_YEAR, daysToAdd)
+                        return calendar.time
+                    }
+                }
+                // Dacă nu am găsit niciuna după azi, alegem prima zi din lista săptămânii de săptămâna viitoare
+                val firstDay = sortedDays.first()
+                val daysToAdd = 7 - todayDayOfWeek + firstDay
+                calendar.add(Calendar.DAY_OF_YEAR, daysToAdd)
+                return calendar.time
+            }
+            "EVERY X DAYS" -> {
+                val x = medicine.everyXDays ?: 1
+                calendar.add(Calendar.DAY_OF_YEAR, x)
+                return calendar.time
+            }
+            "MONTHLY" -> {
+                val monthlyDay = medicine.monthlyDay ?: calendar.get(Calendar.DAY_OF_MONTH)
+                // Mutăm luna la următoarea lună
+                calendar.add(Calendar.MONTH, 1)
+                // Setăm ziua din lună la cea dorită
+                val maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+                calendar.set(Calendar.DAY_OF_MONTH, monthlyDay.coerceAtMost(maxDay))
+                return calendar.time
+            }
+            else -> {
+                return null
             }
         }
     }

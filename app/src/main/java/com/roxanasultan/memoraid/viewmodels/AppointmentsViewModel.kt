@@ -34,7 +34,6 @@ class AppointmentsViewModel @Inject constructor(
 
     fun loadAppointments(date: String, userId: String) {
         snapshotListener?.remove()
-
         snapshotListener = appointmentRepository.observeAppointments(date, userId) { updatedAppointments ->
             _appointments.value = updatedAppointments.toMutableList()
         }

@@ -101,9 +101,16 @@ class MedicineReminderActivity : AppCompatActivity() {
         Log.d("MedicineReminderActivity", "Alarm dismissed")
 
         try {
-            if (::mediaPlayer.isInitialized && mediaPlayer.isPlaying) {
-                mediaPlayer.stop()
-                mediaPlayer.release()
+            if (::mediaPlayer.isInitialized) {
+                try {
+                    if (mediaPlayer.isPlaying) {
+                        mediaPlayer.stop()
+                    }
+                } catch (e: IllegalStateException) {
+                    Log.w("MedicineReminderActivity", "MediaPlayer is in illegal state during stop", e)
+                } finally {
+                    mediaPlayer.release()
+                }
             }
         } catch (e: Exception) {
             Log.e("MedicineReminderActivity", "Error stopping media player", e)
