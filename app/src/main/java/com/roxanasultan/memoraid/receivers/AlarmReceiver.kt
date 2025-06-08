@@ -98,6 +98,7 @@ class AlarmReceiver : BroadcastReceiver() {
                     val medicine = document.toObject(Medicine::class.java)
                     if (medicine != null) {
                         val nextDate = getNextDate(medicine)
+                        Log.d("AlarmReceiver", "Next date for medication $name: $nextDate")
                         AlarmScheduler.scheduleAlarmForMedication(context, medicine, nextDate)
                     }
                 }
@@ -122,13 +123,13 @@ class AlarmReceiver : BroadcastReceiver() {
             }
         }
 
-        when (medicine.frequency.lowercase(Locale.getDefault())) {
-            "DAILY" -> {
+        when (medicine.frequency) {
+            "Daily" -> {
                 // Adaugă o zi
                 calendar.add(Calendar.DAY_OF_YEAR, 1)
                 return calendar.time
             }
-            "WEEKLY" -> {
+            "Weekly" -> {
                 // Avem o listă de zile (ex: ["Monday", "Wednesday"])
                 val todayDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
                 val weeklyDays = medicine.weeklyDays ?: return today // fallback
@@ -151,12 +152,12 @@ class AlarmReceiver : BroadcastReceiver() {
                 calendar.add(Calendar.DAY_OF_YEAR, daysToAdd)
                 return calendar.time
             }
-            "EVERY X DAYS" -> {
+            "Every X days" -> {
                 val x = medicine.everyXDays ?: 1
                 calendar.add(Calendar.DAY_OF_YEAR, x)
                 return calendar.time
             }
-            "MONTHLY" -> {
+            "Monthly" -> {
                 val monthlyDay = medicine.monthlyDay ?: calendar.get(Calendar.DAY_OF_MONTH)
                 // Mutăm luna la următoarea lună
                 calendar.add(Calendar.MONTH, 1)

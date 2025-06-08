@@ -285,12 +285,10 @@ class MainActivity : AppCompatActivity() {
                                 val nextDate = getNextDate(medication)
                                 AlarmScheduler.scheduleAlarmForMedication(this@MainActivity, medication, nextDate)
                             } else {
-                                val nextDate = getNextDate(medication)
                                 AlarmScheduler.scheduleAlarmForMedication(this@MainActivity, medication, date)
                                 medicationViewModel.setAlarm(medication.id, true)
                             }
                         } else {
-                            val nextDate = getNextDate(medication)
                             AlarmScheduler.scheduleAlarmForMedication(this@MainActivity, medication, date)
                             medicationViewModel.setAlarm(medication.id, true)
                         }
@@ -318,12 +316,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         when (medicine.frequency) {
-            "DAILY" -> {
+            "Daily" -> {
                 // Adaugă o zi
                 calendar.add(Calendar.DAY_OF_YEAR, 1)
                 return calendar.time
             }
-            "WEEKLY" -> {
+            "Weekly" -> {
                 // Avem o listă de zile (ex: ["Monday", "Wednesday"])
                 val todayDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
                 val weeklyDays = medicine.weeklyDays ?: return today // fallback
@@ -346,12 +344,12 @@ class MainActivity : AppCompatActivity() {
                 calendar.add(Calendar.DAY_OF_YEAR, daysToAdd)
                 return calendar.time
             }
-            "EVERY X DAYS" -> {
+            "Every X days" -> {
                 val x = medicine.everyXDays ?: 1
                 calendar.add(Calendar.DAY_OF_YEAR, x)
                 return calendar.time
             }
-            "MONTHLY" -> {
+            "Monthly" -> {
                 val monthlyDay = medicine.monthlyDay ?: calendar.get(Calendar.DAY_OF_MONTH)
                 // Mutăm luna la următoarea lună
                 calendar.add(Calendar.MONTH, 1)
