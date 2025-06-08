@@ -16,6 +16,7 @@ import com.roxanasultan.memoraid.activities.MainActivity
 import com.roxanasultan.memoraid.activities.MedicineReminderActivity
 import com.roxanasultan.memoraid.helpers.AlarmScheduler
 import com.roxanasultan.memoraid.models.Medicine
+import java.text.SimpleDateFormat
 import java.util.*
 
 class AlarmReceiver : BroadcastReceiver() {
@@ -110,6 +111,8 @@ class AlarmReceiver : BroadcastReceiver() {
 
 
     fun getNextDate(medicine: Medicine, date: Date): Date? {
+        var nextDate: Date? = null
+
         val calendar = Calendar.getInstance().apply {
             time = date
         }
@@ -131,7 +134,7 @@ class AlarmReceiver : BroadcastReceiver() {
             "Daily" -> {
                 // Adaugă o zi
                 calendar.add(Calendar.DAY_OF_YEAR, 1)
-                return calendar.time
+                nextDate = calendar.time
             }
             "Weekly" -> {
                 // Avem o listă de zile (ex: ["Monday", "Wednesday"])
@@ -154,12 +157,12 @@ class AlarmReceiver : BroadcastReceiver() {
                 val firstDay = sortedDays.first()
                 val daysToAdd = 7 - todayDayOfWeek + firstDay
                 calendar.add(Calendar.DAY_OF_YEAR, daysToAdd)
-                return calendar.time
+                nextDate = calendar.time
             }
             "Every X days" -> {
                 val x = medicine.everyXDays ?: 1
                 calendar.add(Calendar.DAY_OF_YEAR, x)
-                return calendar.time
+                nextDate = calendar.time
             }
             "Monthly" -> {
                 val monthlyDay = medicine.monthlyDay ?: calendar.get(Calendar.DAY_OF_MONTH)
@@ -168,11 +171,21 @@ class AlarmReceiver : BroadcastReceiver() {
                 // Setăm ziua din lună la cea dorită
                 val maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
                 calendar.set(Calendar.DAY_OF_MONTH, monthlyDay.coerceAtMost(maxDay))
-                return calendar.time
+                nextDate = calendar.time
             }
             else -> {
                 return null
             }
+        }
+
+        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        val dateAsString = formatter.format(nextDate)
+
+        if (medicine.skippedDates != null && medicine.skippedDates.contains(dateAsString))
+        {
+            return getNextDate(medicine, nextDate)
+        } else {
+            return nextDate
         }
     }
 }

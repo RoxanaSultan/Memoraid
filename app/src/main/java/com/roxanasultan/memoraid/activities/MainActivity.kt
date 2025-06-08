@@ -281,8 +281,7 @@ class MainActivity : AppCompatActivity() {
                             // Compară timpul
                             if (currentHour > medHour || (currentHour == medHour && currentMinute >= medMinute)) {
                                 // Timpul a trecut sau e exact acum
-                                Log.d("MainActivity", "Ora pentru ${medication.name} a trecut deja.")
-                                val nextDate = getNextDate(medication)
+                                val nextDate = getNextDate(medication, date)
                                 AlarmScheduler.scheduleAlarmForMedication(this@MainActivity, medication, nextDate)
                             } else {
                                 AlarmScheduler.scheduleAlarmForMedication(this@MainActivity, medication, date)
@@ -298,9 +297,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun getNextDate(medicine: Medicine): Date? {
-        val calendar = Calendar.getInstance()
-        val today = calendar.time
+    fun getNextDate(medicine: Medicine, date: Date): Date? {
+        var nextDate: Date? = null
+
+        val calendar = Calendar.getInstance().apply {
+            time = date
+        }
 
         fun dayOfWeekFromString(day: String): Int {
             return when (day.lowercase(Locale.getDefault())) {
@@ -319,12 +321,12 @@ class MainActivity : AppCompatActivity() {
             "Daily" -> {
                 // Adaugă o zi
                 calendar.add(Calendar.DAY_OF_YEAR, 1)
-                return calendar.time
+                nextDate = calendar.time
             }
             "Weekly" -> {
                 // Avem o listă de zile (ex: ["Monday", "Wednesday"])
                 val todayDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-                val weeklyDays = medicine.weeklyDays ?: return today // fallback
+                val weeklyDays = medicine.weeklyDays ?: return date // fallback
 
                 // Convertim zilele în numere Calendar.DAY_OF_WEEK
                 val daysOfWeek = weeklyDays.map { dayOfWeekFromString(it) }
@@ -342,12 +344,12 @@ class MainActivity : AppCompatActivity() {
                 val firstDay = sortedDays.first()
                 val daysToAdd = 7 - todayDayOfWeek + firstDay
                 calendar.add(Calendar.DAY_OF_YEAR, daysToAdd)
-                return calendar.time
+                nextDate = calendar.time
             }
             "Every X days" -> {
                 val x = medicine.everyXDays ?: 1
                 calendar.add(Calendar.DAY_OF_YEAR, x)
-                return calendar.time
+                nextDate = calendar.time
             }
             "Monthly" -> {
                 val monthlyDay = medicine.monthlyDay ?: calendar.get(Calendar.DAY_OF_MONTH)
@@ -356,11 +358,21 @@ class MainActivity : AppCompatActivity() {
                 // Setăm ziua din lună la cea dorită
                 val maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
                 calendar.set(Calendar.DAY_OF_MONTH, monthlyDay.coerceAtMost(maxDay))
-                return calendar.time
+                nextDate = calendar.time
             }
             else -> {
                 return null
             }
+        }
+
+        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        val dateAsString = formatter.format(nextDate)
+
+        if (medicine.skippedDates != null && medicine.skippedDates.contains(dateAsString))
+        {
+            return getNextDate(medicine, nextDate)
+        } else {
+            return nextDate
         }
     }
 
