@@ -97,7 +97,10 @@ class AlarmReceiver : BroadcastReceiver() {
                 if (document.exists()) {
                     val medicine = document.toObject(Medicine::class.java)
                     if (medicine != null) {
-                        val nextDate = getNextDate(medicine)
+                        val calendar = Calendar.getInstance()
+                        val today = calendar.time
+
+                        val nextDate = getNextDate(medicine, today)
                         Log.d("AlarmReceiver", "Next date for medication $name: $nextDate")
                         AlarmScheduler.scheduleAlarmForMedication(context, medicine, nextDate)
                     }
@@ -106,9 +109,10 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
 
-    fun getNextDate(medicine: Medicine): Date? {
-        val calendar = Calendar.getInstance()
-        val today = calendar.time
+    fun getNextDate(medicine: Medicine, date: Date): Date? {
+        val calendar = Calendar.getInstance().apply {
+            time = date
+        }
 
         fun dayOfWeekFromString(day: String): Int {
             return when (day.lowercase(Locale.getDefault())) {
@@ -132,7 +136,7 @@ class AlarmReceiver : BroadcastReceiver() {
             "Weekly" -> {
                 // Avem o listă de zile (ex: ["Monday", "Wednesday"])
                 val todayDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-                val weeklyDays = medicine.weeklyDays ?: return today // fallback
+                val weeklyDays = medicine.weeklyDays ?: return date // fallback
 
                 // Convertim zilele în numere Calendar.DAY_OF_WEEK
                 val daysOfWeek = weeklyDays.map { dayOfWeekFromString(it) }
