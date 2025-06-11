@@ -14,11 +14,11 @@ import android.view.WindowManager
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.roxanasultan.memoraid.R
-import com.roxanasultan.memoraid.databinding.ActivityPillReminderBinding
+import com.roxanasultan.memoraid.databinding.ActivityAppointmentReminderBinding
 
-class MedicineReminderActivity : AppCompatActivity() {
+class AppointmentReminderActivity  : AppCompatActivity() {
 
-    private var _binding: ActivityPillReminderBinding? = null
+    private var _binding: ActivityAppointmentReminderBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var mediaPlayer: MediaPlayer
@@ -28,22 +28,22 @@ class MedicineReminderActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        _binding = ActivityPillReminderBinding.inflate(layoutInflater)
+        _binding = ActivityAppointmentReminderBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        Log.d("MedicineReminderActivity", "Activity launched")
+        Log.d("AppointmentReminderActivity", "Activity launched")
 
-        val name = intent.getStringExtra("name") ?: "Unknown Medication"
-        val dose = intent.getStringExtra("dose") ?: "Unknown Dose"
+        val name = intent.getStringExtra("name") ?: "Unknown Appointment"
+        val doctor = intent.getStringExtra("doctor") ?: "Unknown Doctor"
         val time = intent.getStringExtra("time") ?: "Unknown Time"
         val date = intent.getStringExtra("date") ?: "Unknown Date"
-        val note = intent.getStringExtra("note") ?: "No additional notes"
+        val location = intent.getStringExtra("location") ?: "Unknown Location"
 
-        binding.medication.text = name
-        binding.dose.text = dose
+        binding.appointment.text = name
+        binding.doctor.text = doctor
         binding.time.text = time
         binding.date.text = date
-        binding.note.text = note
+        binding.location.text = location
 
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(
@@ -74,20 +74,20 @@ class MedicineReminderActivity : AppCompatActivity() {
             @Suppress("DEPRECATION")
             vibrator.vibrate(vibrationPattern, 0)
         }
-        Log.d("MedicineReminderActivity", "Vibration started")
+        Log.d("AppointmentReminderActivity", "Vibration started")
 
         try {
             mediaPlayer = MediaPlayer().apply {
                 val alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
                     ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-                setDataSource(this@MedicineReminderActivity, alarmUri)
+                setDataSource(this@AppointmentReminderActivity, alarmUri)
                 isLooping = true
                 prepare()
                 start()
             }
-            Log.d("MedicineReminderActivity", "Alarm sound started")
+            Log.d("AppointmentReminderActivity", "Alarm sound started")
         } catch (e: Exception) {
-            Log.e("MedicineReminderActivity", "Error starting alarm sound", e)
+            Log.e("AppointmentReminderActivity", "Error starting alarm sound", e)
         }
 
         findViewById<Button>(R.id.btnDismiss).setOnClickListener {
@@ -97,7 +97,7 @@ class MedicineReminderActivity : AppCompatActivity() {
     }
 
     private fun stopAlarm() {
-        Log.d("MedicineReminderActivity", "Alarm dismissed")
+        Log.d("AppointmentReminderActivity", "Alarm dismissed")
 
         try {
             if (::mediaPlayer.isInitialized) {
@@ -106,13 +106,13 @@ class MedicineReminderActivity : AppCompatActivity() {
                         mediaPlayer.stop()
                     }
                 } catch (e: IllegalStateException) {
-                    Log.w("MedicineReminderActivity", "MediaPlayer is in illegal state during stop", e)
+                    Log.w("AppointmentReminderActivity", "MediaPlayer is in illegal state during stop", e)
                 } finally {
                     mediaPlayer.release()
                 }
             }
         } catch (e: Exception) {
-            Log.e("MedicineReminderActivity", "Error stopping media player", e)
+            Log.e("AppointmentReminderActivity", "Error stopping media player", e)
         }
 
         if (::vibrator.isInitialized) {
@@ -121,7 +121,7 @@ class MedicineReminderActivity : AppCompatActivity() {
 
         if (::wakeLock.isInitialized && wakeLock.isHeld) {
             wakeLock.release()
-            Log.d("MedicineReminderActivity", "WakeLock released")
+            Log.d("AppointmentReminderActivity", "WakeLock released")
         }
     }
 

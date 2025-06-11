@@ -314,7 +314,8 @@ class AppointmentsFragment : Fragment() {
                     weeklyDays = weeklyDays,
                     monthlyDay = monthlyDay,
                     skippedDates = emptyList(),
-                    endDate = null
+                    endDate = null,
+                    nextAlarm = date
                 ) ?: Appointment(
                     appointment?.id ?: "",
                     title,
@@ -330,7 +331,8 @@ class AppointmentsFragment : Fragment() {
                     weeklyDays = weeklyDays,
                     monthlyDay = monthlyDay,
                     skippedDates = emptyList(),
-                    endDate = null
+                    endDate = null,
+                    nextAlarm = date
                 )
 
                 saveAppointment(newAppointment)
@@ -475,7 +477,6 @@ class AppointmentsFragment : Fragment() {
                     onSuccess = {
                         Toast.makeText(requireContext(), "Appointment updated successfully", Toast.LENGTH_SHORT).show()
                         loadAppointments(sharedViewModel.selectedDate.value ?: "", appointmentsViewModel.user.value?.selectedPatient ?: "")
-                        ReminderScheduler.scheduleReminder(requireContext(), appointment)
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error updating appointment", Toast.LENGTH_SHORT).show()
@@ -487,8 +488,6 @@ class AppointmentsFragment : Fragment() {
                     onSuccess = { id ->
                         Toast.makeText(requireContext(), "Appointment added successfully", Toast.LENGTH_SHORT).show()
                         loadAppointments(sharedViewModel.selectedDate.value ?: "", appointmentsViewModel.user.value?.selectedPatient ?: "")
-
-                        ReminderScheduler.scheduleReminder(requireContext(), appointment.copy(id = id))
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Error saving appointment", Toast.LENGTH_SHORT).show()

@@ -56,26 +56,19 @@ data class Medicine(
         }
 
         return when (frequency) {
-            "Once" -> {
-                parsedStartDate == targetDate
-            }
-
+            "Once" -> parsedStartDate == targetDate
             "Daily" -> true
-
             "Every X days" -> {
                 if (everyXDays == null) return false
                 val diffDays = ((targetDate.time - parsedStartDate.time) / (1000 * 60 * 60 * 24)).toInt()
                 diffDays >= 0 && diffDays % everyXDays == 0
             }
-
             "Weekly" -> {
                 dayOfWeek != null && weeklyDays?.contains(dayOfWeek) == true
             }
-
             "Monthly" -> {
                 monthlyDay != null && monthlyDay == dayOfMonth
             }
-
             else -> false
         }
     }

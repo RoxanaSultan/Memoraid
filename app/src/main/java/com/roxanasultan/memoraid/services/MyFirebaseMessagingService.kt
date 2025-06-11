@@ -14,66 +14,60 @@ import com.roxanasultan.memoraid.R
 import com.roxanasultan.memoraid.activities.MainActivity
 import com.roxanasultan.memoraid.helpers.AlarmScheduler
 import com.roxanasultan.memoraid.models.Medicine
+import com.roxanasultan.memoraid.models.Appointment
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
-    private val CHANNEL_ID = "medication_channel"
+    private val CHANNEL_ID = "memoraid_channel"
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d("MyFirebaseMessagingService", "Message received: ${remoteMessage.data}")
 
-        val medId = remoteMessage.data["medId"]
+        val type = remoteMessage.data["type"]
+        val id = remoteMessage.data["id"]
         val isDeleted = remoteMessage.data["deleted"] == "true"
         val isUpdated = remoteMessage.data["updated"] == "true"
         val isAdded = remoteMessage.data["added"] == "true"
 
-        Log.d("FCM", "medId: $medId, isDeleted: $isDeleted, isUpdated: $isUpdated, isAdded: $isAdded")
+        Log.d("FCM", "type: $type, id: $id, deleted: $isDeleted, updated: $isUpdated, added: $isAdded")
 
-        if (!medId.isNullOrEmpty()) {
-            val firestore = FirebaseFirestore.getInstance()
-            firestore.collection("medicine").document(medId).get()
-                .addOnSuccessListener { document ->
-                    val medicine = document.toObject(Medicine::class.java)
-                    if (medicine != null) {
-                        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-                        val date: Date? = try {
-                            formatter.parse(medicine.nextAlarm)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                            null
-                        }
+        if (id.isNullOrEmpty()) return
 
-                        if (date != null) {
-                            if (isDeleted) {
-                                Log.d("FCM", "Cancelling alarm for deleted medication: ${medicine.name}")
-                                AlarmScheduler.cancelAlarmForMedication(this, medicine, date)
-                            } else if (isUpdated) {
-                                Log.d("FCM", "Cancelling alarm for deleted medication: ${medicine.name}")
-                                AlarmScheduler.cancelAlarmForMedication(this, medicine, date)
-                                Log.d("FCM", "Scheduling updated alarm for medication: ${medicine.name}")
-                                val nextDate = getNextDate(medicine, date)
-                                AlarmScheduler.scheduleAlarmForMedication(this, medicine, nextDate)
-                            } else if (isAdded) {
-                                Log.d("FCM", "Scheduling updated alarm for medication: ${medicine.name}")
-                                AlarmScheduler.scheduleAlarmForMedication(this, medicine, date)
-                            }
-                        }
-                        else {
-                            Log.e("FCM", "date is null")
+        val firestore = FirebaseFirestore.getInstance()
+
+        when (type) {
+            "medication" -> {
+                firestore.collection("medicine").document(id).get()
+                    .addOnSuccessListener { document ->
+                        val medicine = document.toObject(Medicine::class.java)
+                        if (medicine != null) {
+                            handleMedicationNotification(medicine, isDeleted, isUpdated, isAdded)
                         }
                     }
-                }
-                .addOnFailureListener {
-                    Log.e("FCM", "Failed to fetch medicine $medId", it)
-                }
+                    .addOnFailureListener {
+                        Log.e("FCM", "Failed to fetch medicine $id", it)
+                    }
+            }
+
+            "appointment" -> {
+                firestore.collection("appointments").document(id).get()
+                    .addOnSuccessListener { document ->
+                        val appointment = document.toObject(Appointment::class.java)
+                        if (appointment != null) {
+                            handleAppointmentNotification(appointment, isDeleted, isUpdated, isAdded)
+                        }
+                    }
+                    .addOnFailureListener {
+                        Log.e("FCM", "Failed to fetch appointment $id", it)
+                    }
+            }
         }
 
-        val title = remoteMessage.data["title"] ?: "Medication Alert"
-        val body = remoteMessage.data["body"] ?: "Check your medication list."
+        // Show Notification
+        val title = remoteMessage.data["title"] ?: "Memoraid Notification"
+        val body = remoteMessage.data["body"] ?: "Check your reminders."
 
         createNotificationChannel()
 
@@ -90,33 +84,102 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, pendingIntentFlags)
 
-        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.medicine)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
+        when (type) {
+            "medication" -> {
+                val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.medicine)
+                    .setContentTitle(title)
+                    .setContentText(body)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setAutoCancel(true)
+                    .setContentIntent(pendingIntent)
 
-        val notificationManager = getSystemService(NotificationManager::class.java)
-        notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
+                val notificationManager = getSystemService(NotificationManager::class.java)
+                notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
+            }
+            "appointment" -> {
+                val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.appointment)
+                    .setContentTitle(title)
+                    .setContentText(body)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setAutoCancel(true)
+                    .setContentIntent(pendingIntent)
+
+                val notificationManager = getSystemService(NotificationManager::class.java)
+                notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
+            }
+        }
+    }
+
+    private fun handleMedicationNotification(medicine: Medicine, deleted: Boolean, updated: Boolean, added: Boolean) {
+        Log.d("MyFirebaseMessagingService", "handleMedicationNotification called with medicine: ${medicine.name}, deleted: $deleted, updated: $updated, added: $added")
+        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        val date: Date? = try {
+            formatter.parse(medicine.nextAlarm)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+
+        if (date != null) {
+            if (deleted) {
+                Log.d("MyFirebaseMessagingService", "Cancelling alarm for deleted medication: ${medicine.name}")
+                AlarmScheduler.cancelAlarmForMedication(this, medicine, date)
+            } else if (updated) {
+                Log.d("MyFirebaseMessagingService", "Updating alarm for medication: ${medicine.name}")
+                AlarmScheduler.cancelAlarmForMedication(this, medicine, date)
+                val nextDate = getNextDateForMedication(medicine, date)
+                Log.d("MyFirebaseMessagingService", "Next date for medication ${medicine.name}: $nextDate")
+                nextDate?.let { AlarmScheduler.scheduleAlarmForMedication(this, medicine, it) }
+            } else if (added) {
+                Log.d("MyFirebaseMessagingService", "Scheduling alarm for added medication: ${medicine.name}")
+                AlarmScheduler.scheduleAlarmForMedication(this, medicine, date)
+            }
+        }
+    }
+
+    private fun handleAppointmentNotification(appointment: Appointment, deleted: Boolean, updated: Boolean, added: Boolean) {
+        val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
+        val date: Date? = try {
+            formatter.parse("${appointment.date} ${appointment.time}")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+
+        if (date != null) {
+            if (deleted) {
+                Log.d("MyFirebaseMessagingService", "Cancelling alarm for deleted appointment: ${appointment.name}")
+                AlarmScheduler.cancelAlarmForAppointment(this, appointment, date)
+            } else if (updated) {
+                Log.d("MyFirebaseMessagingService", "Cancelling alarm for deleted appointment: ${appointment.name}")
+                AlarmScheduler.cancelAlarmForAppointment(this, appointment, date)
+                val nextDate = getNextDateForAppointment(appointment, date)
+                Log.d("MyFirebaseMessagingService", "Next date for appointment ${appointment.name}: $nextDate")
+                nextDate?.let { AlarmScheduler.scheduleAlarmForAppointment(this, appointment, it) }
+            } else if (added) {
+                Log.d("MyFirebaseMessagingService", "Scheduling alarm for added appointment: ${appointment.name}")
+                AlarmScheduler.scheduleAlarmForAppointment(this, appointment, date)
+            }
+        }
     }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Medication Notifications",
+                "Memoraid Notifications",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Channel for medication notifications"
+                description = "Channel for medication and appointment notifications"
             }
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
         }
     }
 
-    fun getNextDate(medicine: Medicine, date: Date): Date? {
+    fun getNextDateForMedication(medicine: Medicine, date: Date): Date? {
         var nextDate: Date? = null
 
         val calendar = Calendar.getInstance().apply {
@@ -189,8 +252,90 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         if (medicine.skippedDates != null && medicine.skippedDates.contains(dateAsString))
         {
-            return getNextDate(medicine, nextDate)
+            return getNextDateForMedication(medicine, nextDate)
         } else if (medicine.endDate != null && dateAsString >= medicine.endDate){
+            return null
+        }
+        else {
+            return nextDate
+        }
+    }
+
+    fun getNextDateForAppointment(appointment: Appointment, date: Date): Date? {
+        var nextDate: Date? = null
+
+        val calendar = Calendar.getInstance().apply {
+            time = date
+        }
+
+        fun dayOfWeekFromString(day: String): Int {
+            return when (day.lowercase(Locale.getDefault())) {
+                "sunday" -> Calendar.SUNDAY
+                "monday" -> Calendar.MONDAY
+                "tuesday" -> Calendar.TUESDAY
+                "wednesday" -> Calendar.WEDNESDAY
+                "thursday" -> Calendar.THURSDAY
+                "friday" -> Calendar.FRIDAY
+                "saturday" -> Calendar.SATURDAY
+                else -> Calendar.MONDAY // default
+            }
+        }
+
+        when (appointment.frequency) {
+            "Daily" -> {
+                // Adaugă o zi
+                calendar.add(Calendar.DAY_OF_YEAR, 1)
+                nextDate = calendar.time
+            }
+            "Weekly" -> {
+                // Avem o listă de zile (ex: ["Monday", "Wednesday"])
+                val todayDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+                val weeklyDays = appointment.weeklyDays ?: return date // fallback
+
+                // Convertim zilele în numere Calendar.DAY_OF_WEEK
+                val daysOfWeek = weeklyDays.map { dayOfWeekFromString(it) }
+
+                // Căutăm prima zi din săptămână din daysOfWeek care este după azi
+                val sortedDays = daysOfWeek.sorted()
+                for (day in sortedDays) {
+                    if (day > todayDayOfWeek) {
+                        val daysToAdd = day - todayDayOfWeek
+                        calendar.add(Calendar.DAY_OF_YEAR, daysToAdd)
+                        return calendar.time
+                    }
+                }
+                // Dacă nu am găsit niciuna după azi, alegem prima zi din lista săptămânii de săptămâna viitoare
+                val firstDay = sortedDays.first()
+                val daysToAdd = 7 - todayDayOfWeek + firstDay
+                calendar.add(Calendar.DAY_OF_YEAR, daysToAdd)
+                nextDate = calendar.time
+            }
+            "Every X days" -> {
+                val x = appointment.everyXDays ?: 1
+                calendar.add(Calendar.DAY_OF_YEAR, x)
+                nextDate = calendar.time
+            }
+            "Monthly" -> {
+                val monthlyDay = appointment.monthlyDay ?: calendar.get(Calendar.DAY_OF_MONTH)
+                // Mutăm luna la următoarea lună
+                calendar.add(Calendar.MONTH, 1)
+                // Setăm ziua din lună la cea dorită
+                val maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+                calendar.set(Calendar.DAY_OF_MONTH, monthlyDay.coerceAtMost(maxDay))
+                nextDate = calendar.time
+            }
+            else -> {
+                return null
+            }
+        }
+
+        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        val dateAsString = formatter.format(nextDate)
+
+        if (appointment.skippedDates != null && appointment.skippedDates.contains(dateAsString))
+        {
+            return getNextDateForAppointment(appointment, nextDate)
+        } else if (appointment.endDate != null && dateAsString >= appointment.endDate){
             return null
         }
         else {
