@@ -26,18 +26,12 @@ exports.notifyNewMedication = onDocumentCreated("medicine/{medId}", async (event
 
     const message = {
       token: fcmToken,
-      notification: {
-        title: "New medication added!",
-        body: `Medication ${medication.name} has been added to your calendar.`,
-      },
       android: {
         priority: "high",
-        notification: {
-          channelId: "medication_channel",
-        },
       },
       data: {
         navigate_to: "medication",
+        medId: event.params.medId,
       },
     };
 

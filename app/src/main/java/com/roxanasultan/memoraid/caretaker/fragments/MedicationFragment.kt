@@ -268,7 +268,8 @@ class MedicationFragment : Fragment() {
                     weeklyDays = weeklyDays,
                     monthlyDay = monthlyDay,
                     skippedDates = emptyList(),
-                    endDate = null
+                    endDate = null,
+                    nextAlarm = date
                 ) ?: Medicine(
                     name = name,
                     date = date,
@@ -281,7 +282,8 @@ class MedicationFragment : Fragment() {
                     weeklyDays = weeklyDays,
                     monthlyDay = monthlyDay,
                     skippedDates = emptyList(),
-                    endDate = null
+                    endDate = null,
+                    nextAlarm = date
                 )
 
                 saveMedicine(newMedicine)

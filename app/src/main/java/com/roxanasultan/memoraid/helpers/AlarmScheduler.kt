@@ -90,4 +90,31 @@ object AlarmScheduler {
             )
         }
     }
+
+    fun cancelAlarmForMedication(context: Context, medication: Medicine, date: Date) {
+        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        val dateAsString = formatter.format(date)
+
+        val medicationId = medication.id
+
+        val requestCode = (medicationId + dateAsString).hashCode()
+
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            putExtra("medicationId", medicationId)
+            putExtra("date", dateAsString)
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.cancel(pendingIntent)
+
+        Log.d("AlarmScheduler", "Cancelled alarm for medication $medicationId on date $dateAsString")
+    }
+
 }

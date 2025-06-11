@@ -21,10 +21,11 @@ data class Medicine(
     val weeklyDays: List<String>? = null,
     val monthlyDay: Int? = null,
     val skippedDates: List<String>? = null,
-    val endDate: String? = null
+    val endDate: String? = null,
+    val nextAlarm: String? = null,
 ) {
     fun isActiveOnDate(targetDate: Date?): Boolean {
-        if (targetDate == null) return false
+        if (targetDate == null || date.isBlank()) return false
 
         val calendar = Calendar.getInstance()
         calendar.time = targetDate
@@ -34,7 +35,14 @@ data class Medicine(
         val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         val formattedTargetDate = sdf.format(targetDate)
 
-        if (targetDate.before(sdf.parse(date))) return false
+        val parsedStartDate = try {
+            sdf.parse(date)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        }
+
+        if (parsedStartDate == null || targetDate.before(parsedStartDate)) return false
 
         if (skippedDates?.contains(formattedTargetDate) == true) return false
 
@@ -49,25 +57,14 @@ data class Medicine(
 
         return when (frequency) {
             "Once" -> {
-                val medDate = try {
-                    sdf.parse(date)
-                } catch (e: Exception) {
-                    null
-                }
-                medDate?.let { it == targetDate } ?: false
+                parsedStartDate == targetDate
             }
 
             "Daily" -> true
 
             "Every X days" -> {
-                val startDate = try {
-                    sdf.parse(date)
-                } catch (e: Exception) {
-                    null
-                } ?: return false
-
                 if (everyXDays == null) return false
-                val diffDays = ((targetDate.time - startDate.time) / (1000 * 60 * 60 * 24)).toInt()
+                val diffDays = ((targetDate.time - parsedStartDate.time) / (1000 * 60 * 60 * 24)).toInt()
                 diffDays >= 0 && diffDays % everyXDays == 0
             }
 

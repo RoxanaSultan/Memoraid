@@ -7,10 +7,16 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.roxanasultan.memoraid.R
 import com.roxanasultan.memoraid.activities.MainActivity
+import com.roxanasultan.memoraid.helpers.AlarmScheduler
+import com.roxanasultan.memoraid.models.Medicine
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
@@ -18,6 +24,33 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d("MyFirebaseMessagingService", "Message received: ${remoteMessage.data}")
+
+        val medId = remoteMessage.data["medId"]
+
+        if (!medId.isNullOrEmpty()) {
+            val firestore = FirebaseFirestore.getInstance()
+            firestore.collection("medicine").document(medId).get()
+                .addOnSuccessListener { document ->
+                    val medicine = document.toObject(Medicine::class.java)
+                    if (medicine != null) {
+                        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+                        val date: Date? = try {
+                            formatter.parse(medicine.date)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            null
+                        }
+
+                        if (date != null) {
+                            Log.d("FCM", "Scheduling alarm for medication: ${medicine.name} on date: ${medicine.date}")
+                            AlarmScheduler.scheduleAlarmForMedication(this, medicine, date)
+                        }
+                    }
+                }
+                .addOnFailureListener {
+                    Log.e("FCM", "Failed to fetch medicine $medId", it)
+                }
+        }
 
         val title = remoteMessage.notification?.title ?: "New medication added!"
         val body = remoteMessage.notification?.body ?: "New medication has been added to your calendar."
