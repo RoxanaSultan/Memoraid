@@ -184,7 +184,10 @@ class AlarmReceiver : BroadcastReceiver() {
         if (medicine.skippedDates != null && medicine.skippedDates.contains(dateAsString))
         {
             return getNextDate(medicine, nextDate)
-        } else {
+        } else if (medicine.endDate != null && dateAsString >= medicine.endDate){
+            return null
+        }
+        else {
             return nextDate
         }
     }
