@@ -55,7 +55,6 @@ class EditPatientsFragment : Fragment() {
             patients = emptyList(),
             context = requireContext()
         ) { patient ->
-            // Adaugă pacientul și resetează interfața
             viewModel.addPatientToCaretaker(patient)
             binding.searchEditText.text?.clear()
             binding.foundPatientsRecyclerView.visibility = View.GONE
@@ -79,10 +78,8 @@ class EditPatientsFragment : Fragment() {
 
     private fun setupObservers() {
         lifecycleScope.launchWhenStarted {
-            // Observer pentru pacienții asignați
             viewModel.patients.collect { patients ->
                 existingPatientAdapter.updatePatients(patients)
-                // Forțează refresh UI
                 binding.patientsRecyclerView.post {
                     existingPatientAdapter.notifyDataSetChanged()
                 }
@@ -90,7 +87,6 @@ class EditPatientsFragment : Fragment() {
         }
 
         lifecycleScope.launchWhenStarted {
-            // Observer pentru rezultatele căutării
             viewModel.searchResults.collect { results ->
                 if (results.isNotEmpty()) {
                     foundPatientAdapter.updatePatients(results)
@@ -113,7 +109,6 @@ class EditPatientsFragment : Fragment() {
                 }
             }
 
-            // Opțional: Focus automat pe câmpul de căutare
             requestFocus()
         }
     }

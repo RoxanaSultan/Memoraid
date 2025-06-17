@@ -322,6 +322,10 @@ class AppointmentsFragment : Fragment() {
                     // Cu o zi înainte
                     cal.time = baseDate
                     cal.add(Calendar.DAY_OF_YEAR, -1)
+                    cal.set(Calendar.HOUR_OF_DAY, 20)
+                    cal.set(Calendar.MINUTE, 0)
+                    cal.set(Calendar.SECOND, 0)
+                    cal.set(Calendar.MILLISECOND, 0)
                     val oneDayBefore = formatter.format(cal.time)
 
                     listOf(oneDayBefore, oneHourBefore, exact)

@@ -17,7 +17,6 @@ class AppointmentReminderReceiver : BroadcastReceiver() {
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Schimbăm cu activitatea full screen
         val fullScreenIntent = Intent(context, FullScreenAlertActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra("title", title)
@@ -43,10 +42,6 @@ class AppointmentReminderReceiver : BroadcastReceiver() {
 
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)
 
-        // ⚠️ Scoatem startActivity pentru că fullScreenIntent se ocupă deja
-        // context.startActivity(fullScreenIntent)
-
-        // Wake screen
         val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         val wakeLock = powerManager.newWakeLock(
             PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE,

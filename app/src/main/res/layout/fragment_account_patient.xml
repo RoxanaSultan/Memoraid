@@ -23,8 +23,8 @@
 
         <ImageButton
             android:id="@+id/edit_picture_button"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
             android:src="@drawable/edit"
             android:contentDescription="Edit picture"
             android:scaleType="centerCrop"
@@ -35,8 +35,8 @@
 
         <ImageButton
             android:id="@+id/switch_patient_button"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
             android:src="@drawable/drop_down"
             android:contentDescription="Switch patient"
             android:scaleType="centerCrop"

@@ -9,7 +9,7 @@ import com.roxanasultan.memoraid.databinding.ItemFoundPatientBinding
 import com.roxanasultan.memoraid.models.User
 
 class FoundPatientAdapter(
-    private var patients: List<User>, // Schimbat din List<User?>
+    private var patients: List<User>,
     private val context: Context,
     private val onAddClick: (User) -> Unit
 ) : RecyclerView.Adapter<FoundPatientAdapter.PatientViewHolder>() {
@@ -21,7 +21,7 @@ class FoundPatientAdapter(
 
     override fun onBindViewHolder(holder: PatientViewHolder, position: Int) {
         val patient = patients[position]
-        holder.bind(patient) // Nu mai e nevoie de verificare null
+        holder.bind(patient)
     }
 
     override fun getItemCount(): Int = patients.size

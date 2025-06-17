@@ -47,7 +47,7 @@ class ExistingPatientAdapter(
                 .setTitle("Are you sure?")
                 .setMessage("Do you really want to delete the patient?")
                 .setPositiveButton("Yes") { _, _ ->
-                    onDeleteClick(patient) // Se apelează callback-ul pentru ștergere
+                    onDeleteClick(patient)
                 }
                 .setNegativeButton("No", null)
                 .show()
