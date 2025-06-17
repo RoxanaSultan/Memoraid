@@ -45,6 +45,7 @@ import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.roxanasultan.memoraid.caretaker.adapters.PlaceAutocompleteAdapter
+import java.util.Date
 
 @AndroidEntryPoint
 class AppointmentsFragment : Fragment() {
@@ -299,6 +300,32 @@ class AppointmentsFragment : Fragment() {
             )
 
             if (isValid) {
+                val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
+                val baseDate: Date? = try {
+                    formatter.parse("$date $time")
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+
+                val nextAlarms: List<String> = if (baseDate != null) {
+                    val cal = Calendar.getInstance()
+
+                    // Ora exactă
+                    val exact = formatter.format(baseDate)
+
+                    // Cu o oră înainte
+                    cal.time = baseDate
+                    cal.add(Calendar.HOUR_OF_DAY, -1)
+                    val oneHourBefore = formatter.format(cal.time)
+
+                    // Cu o zi înainte
+                    cal.time = baseDate
+                    cal.add(Calendar.DAY_OF_YEAR, -1)
+                    val oneDayBefore = formatter.format(cal.time)
+
+                    listOf(oneDayBefore, oneHourBefore, exact)
+                } else emptyList()
                 val newAppointment = appointment?.copy(
                     id = appointment.id,
                     name = title,
@@ -315,7 +342,7 @@ class AppointmentsFragment : Fragment() {
                     monthlyDay = monthlyDay,
                     skippedDates = emptyList(),
                     endDate = null,
-                    nextAlarm = date
+                    nextAlarms = nextAlarms
                 ) ?: Appointment(
                     appointment?.id ?: "",
                     title,
@@ -332,7 +359,7 @@ class AppointmentsFragment : Fragment() {
                     monthlyDay = monthlyDay,
                     skippedDates = emptyList(),
                     endDate = null,
-                    nextAlarm = date
+                    nextAlarms = nextAlarms
                 )
 
                 saveAppointment(newAppointment)
@@ -422,7 +449,7 @@ class AppointmentsFragment : Fragment() {
             "Delete all"
         )
         AlertDialog.Builder(requireContext())
-            .setTitle("Delete Medicine")
+            .setTitle("Delete Appointment")
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> showDeleteConfirmation {

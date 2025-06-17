@@ -36,12 +36,10 @@ class LoginFragment : Fragment() {
     private val firebaseAuth = FirebaseAuth.getInstance()
     private val RC_SIGN_IN = 9001
 
-    // SharedPreferences simple pentru flaguri și email
     private val prefs by lazy {
         requireContext().getSharedPreferences("memoraid_prefs", MODE_PRIVATE)
     }
 
-    // EncryptedSharedPreferences pentru stocare sigură parole
     private val securePrefs by lazy {
         val masterKey = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
         EncryptedSharedPreferences.create(
@@ -75,15 +73,12 @@ class LoginFragment : Fragment() {
                     val email = firebaseAuth.currentUser?.email ?: return@onSuccess
                     val password = binding.loginPassword.text.toString().trim()
 
-                    // Salvează ultimul user care s-a logat
                     prefs.edit().putString("last_logged_user", email).apply()
 
                     if (password.isNotEmpty()) {
-                        // Login cu parolă - salvează și parola + ultima metodă login
                         saveCredentials(email, password)
                         saveLastLoginMethod(email, "password")
                     } else {
-                        // Login fără parolă (google) - nu salva parola, dar salvează metoda
                         saveLastLoginMethod(email, "google")
                     }
 
@@ -97,6 +92,23 @@ class LoginFragment : Fragment() {
                 }
             }
         }
+
+        var isPasswordVisible = false
+
+        binding.passwordToggle.setOnClickListener {
+            isPasswordVisible = !isPasswordVisible
+            if (isPasswordVisible) {
+                binding.loginPassword.inputType =
+                    android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                binding.passwordToggle.setImageResource(R.drawable.show_password)
+            } else {
+                binding.loginPassword.inputType =
+                    android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+                binding.passwordToggle.setImageResource(R.drawable.hide_password)
+            }
+            binding.loginPassword.setSelection(binding.loginPassword.text?.length ?: 0)
+        }
+
 
         binding.loginButton.setOnClickListener {
             val credential = binding.loginCredential.text.toString().trim()
@@ -148,7 +160,6 @@ class LoginFragment : Fragment() {
                             if (email != null) {
                                 loginViewModel.doesProfileExist(email) { exists ->
                                     if (exists) {
-                                        // Salvează metoda ca google, fără parolă
                                         saveLastLoginMethod(email, "google")
                                         navigateToMain()
                                     } else {
@@ -192,10 +203,7 @@ class LoginFragment : Fragment() {
                 }
             }
         } else if (lastMethod == "google") {
-            // Nu face login automat cu email doar!
-            // Mai bine lansează Google Sign-In flow
             showBiometricPrompt {
-                // Lansează intentul de login Google
                 val signInIntent = googleSignInClient.signInIntent
                 startActivityForResult(signInIntent, RC_SIGN_IN)
             }
@@ -237,7 +245,6 @@ class LoginFragment : Fragment() {
     }
 
     private fun saveLastLoginMethod(email: String, method: String) {
-        // method poate fi "password" sau "google"
         prefs.edit().putString("last_login_method_for_$email", method).apply()
     }
 

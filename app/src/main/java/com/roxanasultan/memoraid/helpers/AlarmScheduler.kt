@@ -109,31 +109,97 @@ object AlarmScheduler {
         Log.d("AlarmScheduler", "Cancelled alarm for medication ${medication.id} on date $dateAsString")
     }
 
-    fun scheduleAlarmForAppointment(context: Context, appointment: Appointment, date: Date? = Calendar.getInstance().time) {
-        Log.d("AlarmScheduler", "scheduleAlarmForAppointment called with appointment: ${appointment.name}, date: $date")
+//    fun scheduleAlarmForAppointment(context: Context, appointment: Appointment, date: Date? = Calendar.getInstance().time) {
+//        Log.d("AlarmScheduler", "scheduleAlarmForAppointment called with appointment: ${appointment.name}, date: $date")
+//
+//        if (date == null) {
+//            Log.e("AlarmScheduler", "Date is null, cannot schedule alarm.")
+//            return
+//        }
+//
+//        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+//        val dateAsString = formatter.format(date)
+//
+//        val timeList = appointment.time.split(":")
+//        val hour = timeList.getOrNull(0)?.toIntOrNull() ?: 0
+//        val minute = timeList.getOrNull(1)?.toIntOrNull() ?: 0
+//
+//        val intent = Intent(context, AlarmReceiver::class.java).apply {
+//            putExtra("appointmentId", appointment.id)
+//            putExtra("name", appointment.name)
+//            putExtra("doctor", appointment.doctor)
+//            putExtra("time", appointment.time)
+//            putExtra("date", dateAsString)
+//            putExtra("location", appointment.location)
+//        }
+//
+//        val requestCode = (appointment.id + dateAsString).hashCode()
+//
+//        val pendingIntent = PendingIntent.getBroadcast(
+//            context,
+//            requestCode,
+//            intent,
+//            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+//        )
+//
+//        val calendar = Calendar.getInstance().apply {
+//            time = date
+//            set(Calendar.HOUR_OF_DAY, hour)
+//            set(Calendar.MINUTE, minute)
+//            set(Calendar.SECOND, 0)
+//            set(Calendar.MILLISECOND, 0)
+//        }
+//
+//        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+//            val alarmPermissionIntent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+//                data = Uri.parse("package:${context.packageName}")
+//                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+//            }
+//            context.startActivity(alarmPermissionIntent)
+//            return
+//        }
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            alarmManager.setExactAndAllowWhileIdle(
+//                AlarmManager.RTC_WAKEUP,
+//                calendar.timeInMillis,
+//                pendingIntent
+//            )
+//        } else {
+//            alarmManager.setExact(
+//                AlarmManager.RTC_WAKEUP,
+//                calendar.timeInMillis,
+//                pendingIntent
+//            )
+//        }
+//
+//        Log.d("AlarmScheduler", "Appointment details: Name=${
+//            appointment.name
+//        }, Doctor=${appointment.doctor}, Location=${appointment.location}, Time=${appointment.time}, Date=$dateAsString")
+//    }
 
-        if (date == null) {
-            Log.e("AlarmScheduler", "Date is null, cannot schedule alarm.")
-            return
+    fun scheduleAlarmForAppointment(context: Context, appointment: Appointment, date: Date) {
+        val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
+        val dateTimeString = formatter.format(date)
+
+        Log.d("AlarmScheduler", "Scheduling alarm for appointment: ${appointment.name} on $dateTimeString")
+
+        val calendar = Calendar.getInstance().apply {
+            time = date
         }
 
-        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-        val dateAsString = formatter.format(date)
-
-        val timeList = appointment.time.split(":")
-        val hour = timeList.getOrNull(0)?.toIntOrNull() ?: 0
-        val minute = timeList.getOrNull(1)?.toIntOrNull() ?: 0
+        val requestCode = (appointment.id + dateTimeString).hashCode()
 
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("appointmentId", appointment.id)
             putExtra("name", appointment.name)
             putExtra("doctor", appointment.doctor)
-            putExtra("time", appointment.time)
-            putExtra("date", dateAsString)
+            putExtra("time", formatter.format(date).split(" ")[1]) // ora exactă
+            putExtra("date", formatter.format(date).split(" ")[0]) // doar data
             putExtra("location", appointment.location)
         }
-
-        val requestCode = (appointment.id + dateAsString).hashCode()
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
@@ -141,14 +207,6 @@ object AlarmScheduler {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
-        val calendar = Calendar.getInstance().apply {
-            time = date
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
@@ -175,20 +233,42 @@ object AlarmScheduler {
             )
         }
 
-        Log.d("AlarmScheduler", "Appointment details: Name=${
-            appointment.name
-        }, Doctor=${appointment.doctor}, Location=${appointment.location}, Time=${appointment.time}, Date=$dateAsString")
+        Log.d("AlarmScheduler", "✅ Alarm set for appointment ${appointment.name} at $dateTimeString")
     }
 
-    fun cancelAlarmForAppointment(context: Context, appointment: Appointment, date: Date) {
-        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-        val dateAsString = formatter.format(date)
+//    fun cancelAlarmForAppointment(context: Context, appointment: Appointment, date: Date) {
+//        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+//        val dateAsString = formatter.format(date)
+//
+//        val requestCode = (appointment.id + dateAsString).hashCode()
+//
+//        val intent = Intent(context, AlarmReceiver::class.java).apply {
+//            putExtra("appointmentId", appointment.id)
+//            putExtra("date", dateAsString)
+//        }
+//
+//        val pendingIntent = PendingIntent.getBroadcast(
+//            context,
+//            requestCode,
+//            intent,
+//            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+//        )
+//
+//        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+//        alarmManager.cancel(pendingIntent)
+//
+//        Log.d("AlarmScheduler", "Cancelled alarm for appointment ${appointment.id} on date $dateAsString")
+//    }
 
-        val requestCode = (appointment.id + dateAsString).hashCode()
+    fun cancelAlarmForAppointment(context: Context, appointment: Appointment, date: Date) {
+        val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
+        val dateTimeString = formatter.format(date)
+
+        val requestCode = (appointment.id + dateTimeString).hashCode()
 
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("appointmentId", appointment.id)
-            putExtra("date", dateAsString)
+            putExtra("date", dateTimeString.split(" ")[0]) // doar data
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
@@ -201,6 +281,7 @@ object AlarmScheduler {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmManager.cancel(pendingIntent)
 
-        Log.d("AlarmScheduler", "Cancelled alarm for appointment ${appointment.id} on date $dateAsString")
+        Log.d("AlarmScheduler", "❌ Cancelled alarm for appointment ${appointment.id} at $dateTimeString")
     }
+
 }

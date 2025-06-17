@@ -22,7 +22,7 @@ data class Medicine(
     val monthlyDay: Int? = null,
     val skippedDates: List<String>? = null,
     val endDate: String? = null,
-    val nextAlarm: String? = null,
+    var nextAlarm: String? = null,
 ) {
     fun isActiveOnDate(targetDate: Date?): Boolean {
         if (targetDate == null || date.isBlank()) return false

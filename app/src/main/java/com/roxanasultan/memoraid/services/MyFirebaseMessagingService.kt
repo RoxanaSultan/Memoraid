@@ -126,12 +126,14 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             if (deleted) {
                 Log.d("MyFirebaseMessagingService", "Cancelling alarm for deleted medication: ${medicine.name}")
                 AlarmScheduler.cancelAlarmForMedication(this, medicine, date)
+                medicine.nextAlarm = null
             } else if (updated) {
                 Log.d("MyFirebaseMessagingService", "Updating alarm for medication: ${medicine.name}")
                 AlarmScheduler.cancelAlarmForMedication(this, medicine, date)
                 val nextDate = getNextDateForMedication(medicine, date)
                 Log.d("MyFirebaseMessagingService", "Next date for medication ${medicine.name}: $nextDate")
                 nextDate?.let { AlarmScheduler.scheduleAlarmForMedication(this, medicine, it) }
+                medicine.nextAlarm = nextDate?.let { formatter.format(it) }
             } else if (added) {
                 Log.d("MyFirebaseMessagingService", "Scheduling alarm for added medication: ${medicine.name}")
                 AlarmScheduler.scheduleAlarmForMedication(this, medicine, date)
@@ -141,26 +143,102 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     private fun handleAppointmentNotification(appointment: Appointment, deleted: Boolean, updated: Boolean, added: Boolean) {
         val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
-        val date: Date? = try {
-            formatter.parse("${appointment.date} ${appointment.time}")
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
 
-        if (date != null) {
-            if (deleted) {
-                Log.d("MyFirebaseMessagingService", "Cancelling alarm for deleted appointment: ${appointment.name}")
-                AlarmScheduler.cancelAlarmForAppointment(this, appointment, date)
-            } else if (updated) {
-                Log.d("MyFirebaseMessagingService", "Cancelling alarm for deleted appointment: ${appointment.name}")
-                AlarmScheduler.cancelAlarmForAppointment(this, appointment, date)
-                val nextDate = getNextDateForAppointment(appointment, date)
-                Log.d("MyFirebaseMessagingService", "Next date for appointment ${appointment.name}: $nextDate")
-                nextDate?.let { AlarmScheduler.scheduleAlarmForAppointment(this, appointment, it) }
-            } else if (added) {
-                Log.d("MyFirebaseMessagingService", "Scheduling alarm for added appointment: ${appointment.name}")
-                AlarmScheduler.scheduleAlarmForAppointment(this, appointment, date)
+        if (deleted) {
+            Log.d("MyFirebaseMessagingService", "Cancelling alarms for deleted appointment: ${appointment.name}")
+            appointment.nextAlarms?.forEach { dateTimeString ->
+                val parsedDate = try {
+                    formatter.parse(dateTimeString)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+
+                if (parsedDate != null) {
+                    AlarmScheduler.cancelAlarmForAppointment(this, appointment, parsedDate)
+                }
+            }
+
+        } else if (updated) {
+            Log.d("MyFirebaseMessagingService", "Updating alarms for appointment: ${appointment.name}")
+
+            appointment.nextAlarms?.forEach { dateTimeString ->
+                val parsedDate = try {
+                    formatter.parse(dateTimeString)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+
+                if (parsedDate != null) {
+                    AlarmScheduler.cancelAlarmForAppointment(this, appointment, parsedDate)
+                }
+            }
+
+            val baseDate = try {
+                formatter.parse("${appointment.date} ${appointment.time}")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+
+            val newAlarms = mutableListOf<String>()
+            baseDate?.let {
+                val cal = Calendar.getInstance()
+
+                cal.time = it
+                newAlarms.add(formatter.format(cal.time))
+
+                cal.time = it
+                cal.add(Calendar.HOUR_OF_DAY, -1)
+                newAlarms.add(formatter.format(cal.time))
+
+                cal.time = it
+                cal.add(Calendar.DAY_OF_YEAR, -1)
+                cal.set(Calendar.HOUR_OF_DAY, 20)
+                cal.set(Calendar.MINUTE, 0)
+                cal.set(Calendar.SECOND, 0)
+                cal.set(Calendar.MILLISECOND, 0)
+                newAlarms.add(formatter.format(cal.time))
+            }
+
+            newAlarms.forEach { dateTimeString ->
+                val parsedDate = try {
+                    formatter.parse(dateTimeString)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+
+                if (parsedDate != null) {
+                    AlarmScheduler.scheduleAlarmForAppointment(this, appointment, parsedDate)
+                }
+            }
+
+            FirebaseFirestore.getInstance()
+                .collection("appointments")
+                .document(appointment.id)
+                .update("nextAlarms", newAlarms)
+                .addOnSuccessListener {
+                    Log.d("MyFirebaseMessagingService", "nextAlarms updated in Firestore")
+                }
+                .addOnFailureListener {
+                    Log.e("MyFirebaseMessagingService", "Failed to update nextAlarms", it)
+                }
+
+        } else if (added) {
+            Log.d("MyFirebaseMessagingService", "Scheduling alarms for added appointment: ${appointment.name}")
+            appointment.nextAlarms?.forEach { dateTimeString ->
+                val parsedDate = try {
+                    formatter.parse(dateTimeString)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+
+                if (parsedDate != null) {
+                    AlarmScheduler.scheduleAlarmForAppointment(this, appointment, parsedDate)
+                }
             }
         }
     }
@@ -201,14 +279,13 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         when (medicine.frequency) {
             "Daily" -> {
-                // Adaugă o zi
                 calendar.add(Calendar.DAY_OF_YEAR, 1)
                 nextDate = calendar.time
             }
             "Weekly" -> {
                 // Avem o listă de zile (ex: ["Monday", "Wednesday"])
                 val todayDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-                val weeklyDays = medicine.weeklyDays ?: return date // fallback
+                val weeklyDays = medicine.weeklyDays ?: return date
 
                 // Convertim zilele în numere Calendar.DAY_OF_WEEK
                 val daysOfWeek = weeklyDays.map { dayOfWeekFromString(it) }

@@ -18,6 +18,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 class UserRepository @Inject constructor(
     private val database: FirebaseFirestore,
@@ -86,6 +87,30 @@ class UserRepository @Inject constructor(
             .addOnFailureListener {
                 onResult(null)
             }
+    }
+
+    fun getPatientLocationFlow(patientId: String): Flow<GeoPoint?> = callbackFlow {
+        val listenerRegistration = firebaseCollection.document(patientId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val location = snapshot?.getGeoPoint("location")
+                trySend(location).isSuccess
+            }
+        awaitClose { listenerRegistration.remove() }
+    }
+
+    fun updatePatientLocation(userId: String, lat: Double, lon: Double) {
+        val locationMap = mapOf("latitude" to lat, "longitude" to lon)
+        val geoPoint = GeoPoint(lat, lon)
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(userId)
+            .update("location", geoPoint)
+            .addOnSuccessListener { Log.d("UserRepo", "Location updated") }
+            .addOnFailureListener { e -> Log.e("UserRepo", "Failed to update location", e) }
     }
 
     suspend fun getOtherPatients(): List<User?> {

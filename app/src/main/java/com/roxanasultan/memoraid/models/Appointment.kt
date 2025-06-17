@@ -23,7 +23,7 @@ data class Appointment(
     val monthlyDay: Int? = null,
     val skippedDates: List<String>? = null,
     val endDate: String? = null,
-    val nextAlarm: String? = null
+    val nextAlarms: List<String>? = null
 ) {
     fun isActiveOnDate(targetDate: Date?): Boolean {
         if (targetDate == null || date.isBlank()) return false

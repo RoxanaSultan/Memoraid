@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.launchIn
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
@@ -56,10 +58,8 @@ class UserViewModel @Inject constructor(
     }
 
     fun observePatientLocation(patientId: String) {
-        viewModelScope.launch {
-            userRepository.observePatientLocation(patientId).collect {
-                _patientLocation.value = it
-            }
-        }
+        userRepository.getPatientLocationFlow(patientId)
+            .onEach { location -> _patientLocation.value = location }
+            .launchIn(viewModelScope)
     }
 }
