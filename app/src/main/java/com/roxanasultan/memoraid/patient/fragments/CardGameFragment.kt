@@ -24,6 +24,9 @@ import com.roxanasultan.memoraid.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.sql.Timestamp
+import com.roxanasultan.memoraid.models.CardMatchingGame
+import com.roxanasultan.memoraid.models.Level
+import com.roxanasultan.memoraid.models.LastPlayedGame
 
 class CardGameFragment : Fragment() {
     private var _binding: FragmentCardGameBinding? = null
@@ -283,7 +286,7 @@ class CardGameFragment : Fragment() {
 
 
     private fun flipToBack(card: Card, button: Button) {
-        if (!card.isFlipped) return  // If already hidden, don't flip again
+        if (!card.isFlipped) return
 
         // Blochează interacțiunea cu toate cărțile în timpul animației
         binding.cardsGrid.children.forEach { it.isEnabled = false }
@@ -389,7 +392,7 @@ class CardGameFragment : Fragment() {
         }
     }
 
-    private var fireworksAnimating = true  // Variabilă de control pentru animațiile artificiilor
+    private var fireworksAnimating = true
     private var isGameWon = false
 
     private fun showWinPopup() {
@@ -431,7 +434,7 @@ class CardGameFragment : Fragment() {
     }
 
     private fun animateFireworks(fireworks: View, delay: Long) {
-        if (!fireworksAnimating) return  // Oprește animația dacă este închis pop-up-ul
+        if (!fireworksAnimating) return
 
         fireworks.visibility = View.VISIBLE
         fireworks.alpha = 0f
@@ -443,53 +446,45 @@ class CardGameFragment : Fragment() {
             .scaleX(1f)
             .scaleY(1f)
             .setDuration(1000)
-            .setStartDelay(delay)  // Adăugăm întârziere
+            .setStartDelay(delay)
             .withEndAction {
-                // Repetă animația pentru artificii, dar doar dacă pop-up-ul este deschis
                 if (fireworksAnimating) {
-                    animateFireworks(fireworks, 0)  // Poți ajusta întârzierea aici dacă vrei
+                    animateFireworks(fireworks, 0)
                 }
             }
             .start()
     }
 
     private fun animateMatchedCards(firstButton: Button, secondButton: Button) {
-        // Get the center of the screen (parent layout)
         val centerX = binding.root.width / 2f
         val centerY = binding.root.height / 2f
 
-        // Get the actual screen position of the first button
         val firstCardLocation = IntArray(2)
         firstButton.getLocationOnScreen(firstCardLocation)
         val firstCardStartX = firstCardLocation[0].toFloat()
         val firstCardStartY = firstCardLocation[1].toFloat()
 
-        // Get the actual screen position of the second button
         val secondCardLocation = IntArray(2)
         secondButton.getLocationOnScreen(secondCardLocation)
         val secondCardStartX = secondCardLocation[0].toFloat()
         val secondCardStartY = secondCardLocation[1].toFloat()
 
-        // Calculate translation to center
         val translationX1 = centerX - firstCardStartX - firstButton.width / 2f
         val translationY1 = centerY - firstCardStartY - firstButton.height / 2f
 
         val translationX2 = centerX - secondCardStartX - secondButton.width / 2f
         val translationY2 = centerY - secondCardStartY - secondButton.height / 2f
 
-        // Animate the first card towards the center
         val firstCardAnimX = ObjectAnimator.ofFloat(firstButton, "translationX", translationX1).apply { duration = 900 }
         val firstCardAnimY = ObjectAnimator.ofFloat(firstButton, "translationY", translationY1).apply { duration = 900 }
         val firstCardScaleX = ObjectAnimator.ofFloat(firstButton, "scaleX", 1.5f).apply { duration = 900 }
         val firstCardScaleY = ObjectAnimator.ofFloat(firstButton, "scaleY", 1.5f).apply { duration = 900 }
 
-        // Animate the second card towards the center
         val secondCardAnimX = ObjectAnimator.ofFloat(secondButton, "translationX", translationX2).apply { duration = 900 }
         val secondCardAnimY = ObjectAnimator.ofFloat(secondButton, "translationY", translationY2).apply { duration = 900 }
         val secondCardScaleX = ObjectAnimator.ofFloat(secondButton, "scaleX", 1.5f).apply { duration = 900 }
         val secondCardScaleY = ObjectAnimator.ofFloat(secondButton, "scaleY", 1.5f).apply { duration = 900 }
 
-        // Combine the animations for both cards
         AnimatorSet().apply {
             playTogether(
                 firstCardAnimX, firstCardAnimY, secondCardAnimX, secondCardAnimY, firstCardScaleX,
@@ -504,9 +499,7 @@ class CardGameFragment : Fragment() {
 
                 override fun onAnimationEnd(animation: Animator) {
                     Log.d("AnimateMatchedCards", "Animation ended")
-                    // Add delay before moving cards back
                     Handler(Looper.getMainLooper()).postDelayed({
-                        // Reset scale and move the cards back to their original position
                         scaleAndMoveBack(firstButton, secondButton)
                     }, 500)
                 }
@@ -523,21 +516,18 @@ class CardGameFragment : Fragment() {
     }
 
     private fun scaleAndMoveBack(firstButton: Button, secondButton: Button) {
-        // Animate scaling back to the original size (1x)
         val firstCardScaleX = ObjectAnimator.ofFloat(firstButton, "scaleX", 1f).apply { duration = 700 }
         val firstCardScaleY = ObjectAnimator.ofFloat(firstButton, "scaleY", 1f).apply { duration = 700 }
 
         val secondCardScaleX = ObjectAnimator.ofFloat(secondButton, "scaleX", 1f).apply { duration = 700 }
         val secondCardScaleY = ObjectAnimator.ofFloat(secondButton, "scaleY", 1f).apply { duration = 700 }
 
-        // Animate both cards to their original positions
         val firstCardBackX = ObjectAnimator.ofFloat(firstButton, "translationX", 0f).apply { duration = 700 }
         val firstCardBackY = ObjectAnimator.ofFloat(firstButton, "translationY", 0f).apply { duration = 700 }
 
         val secondCardBackX = ObjectAnimator.ofFloat(secondButton, "translationX", 0f).apply { duration = 700 }
         val secondCardBackY = ObjectAnimator.ofFloat(secondButton, "translationY", 0f).apply { duration = 700 }
 
-        // Combine all the animations
         AnimatorSet().apply {
             playTogether(
                 firstCardBackX, firstCardBackY, firstCardScaleX, firstCardScaleY,
@@ -595,32 +585,31 @@ class CardGameFragment : Fragment() {
         currentScore = calculateScore(elapsedTime)
         val moves = moveCount
 
-        // Verifică dacă există un document în colecția card_matching_game pentru userId-ul curent
         val gameRef = database.collection("card_matching_game")
             .whereEqualTo("userId", currentUser)
 
         gameRef.get().addOnSuccessListener { querySnapshot ->
             if (querySnapshot.isEmpty) {
-                // Dacă nu există un document pentru userId-ul curent, creează unul nou
-                val newGameData = mapOf(
-                    "userId" to currentUser,
-                    "totalScore" to currentScore,
-                    "levels" to listOf(
-                        mapOf(
-                            "level" to currentLevel,
-                            "bestTime" to elapsedTime,
-                            "leastMoves" to moves,
-                            "lastPlayedGames" to listOf(
-                                mapOf(
-                                    "date" to date,
-                                    "time" to currentTime,
-                                    "moves" to moves,
-                                    "score" to currentScore
-                                )
-                            ),
-                            "totalLevelScore" to currentScore
-                        )
-                    )
+                // Nu există date pentru utilizator, creăm un document nou
+                val lastGame = LastPlayedGame(
+                    date = date,
+                    moves = moves,
+                    time = currentTime,
+                    score = currentScore
+                )
+
+                val newLevel = Level(
+                    level = currentLevel.toString(),
+                    bestTime = currentTime,
+                    leastMoves = moves,
+                    lastPlayedGames = listOf(lastGame),
+                    totalLevelScore = currentScore
+                )
+
+                val newGameData = CardMatchingGame(
+                    userId = currentUser,
+                    totalScore = currentScore,
+                    levels = listOf(newLevel)
                 )
 
                 database.collection("card_matching_game")
@@ -632,65 +621,60 @@ class CardGameFragment : Fragment() {
                         Toast.makeText(requireContext(), "Error saving data: ${exception.message}", Toast.LENGTH_SHORT).show()
                     }
             } else {
-                // Dacă există un document, actualizează-l
+                // Există date pentru utilizator, actualizăm documentul
                 val document = querySnapshot.documents[0]
-                val userData = document.data
-                val levelsList = userData?.get("levels") as? List<Map<String, Any>> ?: emptyList()
+                val gameData = document.toObject(CardMatchingGame::class.java)
 
-                val levelData = levelsList.find { it["level"] == currentLevel }
+                if (gameData != null) {
+                    val levelsList = gameData.levels.toMutableList()
+                    val levelIndex = levelsList.indexOfFirst { it.level == currentLevel.toString() }
+                    val lastGame = LastPlayedGame(
+                        date = date,
+                        moves = moves,
+                        time = currentTime,
+                        score = currentScore
+                    )
 
-                val bestTime = (levelData?.get("bestTime") as? Long) ?: Long.MAX_VALUE
-                val leastMoves = (levelData?.get("leastMoves") as? Int) ?: Int.MAX_VALUE
-                val lastPlayedGames = (levelData?.get("lastPlayedGames") as? MutableList<Map<String, Any>>) ?: mutableListOf()
-                val totalScore = (userData?.get("totalScore") as? Long) ?: 0
-                val levelScoreSum = (levelData?.get("totalLevelScore") as? Long) ?: 0
+                    if (levelIndex != -1) {
+                        // Nivelul există deja, actualizăm datele nivelului
+                        val level = levelsList[levelIndex]
+                        val newBestTime = if (level.bestTime.toInt() == 0 || currentTime < level.bestTime) currentTime else level.bestTime
+                        val newLeastMoves = if (level.leastMoves == 0 || moves < level.leastMoves) moves else level.leastMoves
 
-                val newBestTime = if (elapsedTime < bestTime) elapsedTime else bestTime
-                val newLeastMoves = if (moves < leastMoves) moves else leastMoves
+                        val updatedLastPlayedGames = level.lastPlayedGames.toMutableList()
+                        if (updatedLastPlayedGames.size >= 10) updatedLastPlayedGames.removeAt(0)
+                        updatedLastPlayedGames.add(lastGame)
 
-                val newGameData = mapOf(
-                    "date" to date,
-                    "time" to currentTime,
-                    "moves" to moves,
-                    "totalLevelScore" to currentScore
-                )
-
-                if (lastPlayedGames.size >= 10) lastPlayedGames.removeAt(0)
-                lastPlayedGames.add(newGameData)
-
-                val newTotalScore = totalScore + currentScore
-                val newLevelScore = levelScoreSum + currentScore
-
-                val updatedLevels = levelsList.toMutableList()
-                val index = updatedLevels.indexOfFirst { it["level"] == currentLevel }
-                if (index != -1) {
-                    val updatedLevel = updatedLevels[index].toMutableMap()
-                    updatedLevel["bestTime"] = newBestTime
-                    updatedLevel["leastMoves"] = newLeastMoves
-                    updatedLevel["lastPlayedGames"] = lastPlayedGames
-                    updatedLevel["totalLevelScore"] = newLevelScore
-                    updatedLevels[index] = updatedLevel
-                } else {
-                    updatedLevels.add(
-                        mapOf(
-                            "level" to currentLevel,
-                            "bestTime" to newBestTime,
-                            "leastMoves" to newLeastMoves,
-                            "lastPlayedGames" to listOf(newGameData),
-                            "totalLevelScore" to newLevelScore
+                        levelsList[levelIndex] = level.copy(
+                            bestTime = newBestTime,
+                            leastMoves = newLeastMoves,
+                            lastPlayedGames = updatedLastPlayedGames,
+                            totalLevelScore = level.totalLevelScore + currentScore
                         )
-                    )
-                }
+                    } else {
+                        // Nivelul nu există, îl adăugăm
+                        val newLevel = Level(
+                            level = currentLevel.toString(),
+                            bestTime = currentTime,
+                            leastMoves = moves,
+                            lastPlayedGames = listOf(lastGame),
+                            totalLevelScore = currentScore
+                        )
+                        levelsList.add(newLevel)
+                    }
 
-                document.reference.update(
-                    mapOf(
-                        "totalScore" to newTotalScore,
-                        "levels" to updatedLevels
-                    )
-                ).addOnSuccessListener {
-//                    Toast.makeText(requireContext(), "Game data updated!", Toast.LENGTH_SHORT).show()
-                }.addOnFailureListener { exception ->
-                    Toast.makeText(requireContext(), "Error updating data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    val newTotalScore = gameData.totalScore + currentScore
+
+                    document.reference.update(
+                        mapOf(
+                            "totalScore" to newTotalScore,
+                            "levels" to levelsList
+                        )
+                    ).addOnSuccessListener {
+                        Toast.makeText(requireContext(), "Game data updated!", Toast.LENGTH_SHORT).show()
+                    }.addOnFailureListener { exception ->
+                        Toast.makeText(requireContext(), "Error updating data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }.addOnFailureListener { exception ->

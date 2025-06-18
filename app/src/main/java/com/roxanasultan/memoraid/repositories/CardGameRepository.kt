@@ -127,7 +127,7 @@ class CardGameRepository @Inject constructor(
                             val lastPlayedGames = levelMap["lastPlayedGames"] as? List<Map<String, Any>> ?: emptyList()
 
                             for (game in lastPlayedGames) {
-                                val totalLevelScore = game["totalLevelScore"] as? Long ?: 0L
+                                val totalLevelScore = game["score"] as? Long ?: 0L
                                 if (totalLevelScore > bestScore) {
                                     bestScore = totalLevelScore
                                 }
