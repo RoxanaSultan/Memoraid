@@ -38,6 +38,7 @@ class PatientLocationFragment : Fragment(), OnMapReadyCallback {
     private lateinit var map: GoogleMap
     private var patientMarker: Marker? = null
     private var patientIcon: BitmapDescriptor? = null
+    private var clickedMarker: Marker? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val view = inflater.inflate(R.layout.fragment_patient_location, container, false)
@@ -76,20 +77,52 @@ class PatientLocationFragment : Fragment(), OnMapReadyCallback {
         }
         map.isMyLocationEnabled = true
         patientIcon = getResizedPatientIcon(R.drawable.patient_icon, 100, 100)
+
+        map.setOnMarkerClickListener { marker ->
+            val latLng = marker.position
+            val geocoder = Geocoder(requireContext(), Locale.getDefault())
+            try {
+                val addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
+                if (!addresses.isNullOrEmpty()) {
+                    val address = addresses[0].getAddressLine(0)
+                    marker.title = address
+                    marker.showInfoWindow()
+                } else {
+                    marker.title = "Unknown location"
+                    marker.showInfoWindow()
+                }
+            } catch (e: Exception) {
+                marker.title = "Error getting address"
+                marker.showInfoWindow()
+                Log.e("Geocoding", "Failed to get address: ${e.message}")
+            }
+            true
+        }
     }
 
     private fun updatePatientMarker(lat: Double, lng: Double) {
         val latLng = LatLng(lat, lng)
+
+        val geocoder = Geocoder(requireContext(), Locale.getDefault())
+        val address = try {
+            val addresses = geocoder.getFromLocation(lat, lng, 1)
+            addresses?.firstOrNull()?.getAddressLine(0) ?: "Patient's Location"
+        } catch (e: Exception) {
+            Log.e("Geocoding", "Error: ${e.message}")
+            "Patient's Location"
+        }
+
         if (patientMarker == null) {
             patientMarker = map.addMarker(
                 MarkerOptions()
                     .position(latLng)
-                    .title("Patient's Location")
+                    .title(address)
                     .icon(patientIcon)
             )
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
         } else {
             patientMarker?.position = latLng
+            patientMarker?.title = address
             map.animateCamera(CameraUpdateFactory.newLatLng(latLng))
         }
     }

@@ -28,9 +28,9 @@ class LocationForegroundService : Service() {
     @Inject
     lateinit var userRepository: UserRepository
 
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var locationRequest: LocationRequest
-    private lateinit var locationCallback: LocationCallback
+    private var fusedLocationClient: FusedLocationProviderClient? = null
+    private var locationRequest: LocationRequest? = null
+    private var locationCallback: LocationCallback? = null
 
     companion object {
         const val MAX_ACCEPTABLE_ACCURACY = 50f
@@ -40,6 +40,16 @@ class LocationForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
 
+        createNotificationChannel()
+        val notification = NotificationCompat.Builder(this, "location_channel")
+            .setContentTitle("Memoraid is tracking your location")
+            .setContentText("Location updates are active")
+            .setSmallIcon(R.drawable.location)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+
+        startForeground(1, notification)
+
         CoroutineScope(Dispatchers.Main).launch {
             val userType = userRepository.getUserRole()
 
@@ -47,16 +57,6 @@ class LocationForegroundService : Service() {
                 stopSelf()
                 return@launch
             }
-
-            createNotificationChannel()
-            val notification = NotificationCompat.Builder(this@LocationForegroundService, "location_channel")
-                .setContentTitle("Memoraid is tracking your location")
-                .setContentText("Location updates are active")
-                .setSmallIcon(R.drawable.location)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .build()
-
-            startForeground(1, notification)
 
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this@LocationForegroundService)
 
@@ -95,16 +95,20 @@ class LocationForegroundService : Service() {
 
     private fun startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // Trebuie să ceri permisiunea de la UI
             return
         }
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+
+        fusedLocationClient?.requestLocationUpdates(
+            locationRequest!!,
+            locationCallback!!,
+            Looper.getMainLooper()
+        )
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
         super.onDestroy()
-        fusedLocationClient.removeLocationUpdates(locationCallback)
+        fusedLocationClient?.removeLocationUpdates(locationCallback!!)
     }
 }
