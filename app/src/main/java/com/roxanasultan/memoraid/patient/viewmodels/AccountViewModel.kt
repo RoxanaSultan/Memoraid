@@ -1,5 +1,6 @@
 package com.roxanasultan.memoraid.patient.viewmodels
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -54,6 +55,24 @@ class AccountViewModel @Inject constructor(
     fun fetchLastRouteLocation(userId: String) {
         userRepository.getLastRouteLocation(userId) { location ->
             _lastRouteLocation.value = location
+        }
+    }
+
+    fun uploadAndSaveProfilePicture(uri: Uri, userId: String) {
+        viewModelScope.launch {
+            userRepository.uploadAndSaveProfilePicture(uri, userId)
+        }
+    }
+
+    fun removeProfilePicture(userId: String) {
+        viewModelScope.launch {
+            userRepository.removeProfilePicture(userId)
+        }
+    }
+
+    fun deleteImageFromStorage(image: String) {
+        viewModelScope.launch {
+            userRepository.deleteImageFromStorage(image)
         }
     }
 

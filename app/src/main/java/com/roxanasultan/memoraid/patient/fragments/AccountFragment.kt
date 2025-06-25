@@ -5,19 +5,24 @@ import android.app.AlertDialog
 import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.telephony.SmsManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
@@ -31,6 +36,10 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @AndroidEntryPoint
 class AccountFragment : Fragment() {
@@ -39,6 +48,9 @@ class AccountFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val accountViewModel: AccountViewModel by viewModels()
+
+    private var selectedImageUri: Uri? = null
+    private var photoUri: Uri? = null
 
     private val LOCATION_PERMISSION_REQUEST_CODE = 2001
     private val SEND_SMS_PERMISSION_REQUEST_CODE = 1001
@@ -98,6 +110,20 @@ class AccountFragment : Fragment() {
             }
         }
 
+        binding.editPictureButton.setOnClickListener {
+            showModal()
+        }
+
+        binding.profilePicture.setOnClickListener {
+            val imageUrl = accountViewModel.user.value?.profilePictureUrl
+            if (!imageUrl.isNullOrEmpty()) {
+                val bundle = Bundle().apply {
+                    putString("image", imageUrl)
+                }
+                findNavController().navigate(R.id.action_accountFragment_to_fullScreenImageFragment, bundle)
+            }
+        }
+
         binding.emergencyButton.setOnClickListener {
             val emergencyNumbers = accountViewModel.user.value?.emergencyNumbers
             if (!emergencyNumbers.isNullOrEmpty()) {
@@ -120,6 +146,117 @@ class AccountFragment : Fragment() {
         }
 
         return binding.root
+    }
+
+    private fun showModal() {
+        val hasPicture = accountViewModel.user.value?.profilePictureUrl != null
+
+        val options = if (hasPicture) {
+            arrayOf("Take a Picture", "Choose from Gallery", "Remove Picture")
+        } else {
+            arrayOf("Take a Picture", "Choose from Gallery")
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Edit Picture")
+            .setItems(options) { _, which ->
+                val userId = accountViewModel.user.value?.id
+                val profilePictureUrl = accountViewModel.user.value?.profilePictureUrl
+
+                when (which) {
+                    0 -> {
+                        checkAndRequestPermissions()
+                    }
+                    1 -> {
+                        chooseImageFromGallery()
+                    }
+                    2 -> if (hasPicture && userId != null) {
+                        removeProfilePicture()
+                        accountViewModel.removeProfilePicture(userId)
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun removeProfilePicture() {
+        binding.profilePicture.setImageResource(R.drawable.default_profile_picture)
+        selectedImageUri = null
+    }
+
+    private fun checkAndRequestPermissions() {
+        val cameraPermission = Manifest.permission.CAMERA
+        val permissionCheck = ContextCompat.checkSelfPermission(requireContext(), cameraPermission)
+
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(cameraPermission), 1001)
+        } else {
+            takePicture()
+        }
+    }
+
+    private fun takePicture() {
+        val photoFile = createImageFile()
+        photoUri = FileProvider.getUriForFile(
+            requireContext(),
+            "com.roxanasultan.memoraid.fileprovider",
+            photoFile
+        )
+        cameraLauncher.launch(photoUri)
+    }
+
+    private fun chooseImageFromGallery() {
+        imagePickerLauncher.launch("image/*")
+    }
+
+    private val imagePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it
+
+            // Afișare în UI
+            Glide.with(this)
+                .load(it)
+                .placeholder(R.drawable.default_profile_picture)
+                .into(binding.profilePicture)
+
+            // Upload doar dacă există user
+            accountViewModel.user.value?.id?.let { userId ->
+                accountViewModel.user.value?.profilePictureUrl?.let { url ->
+                    accountViewModel.deleteImageFromStorage(url)
+                }
+
+                accountViewModel.uploadAndSaveProfilePicture(it, userId)
+            }
+        }
+    }
+
+    private val cameraLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success && photoUri != null) {
+            selectedImageUri = photoUri
+
+            Glide.with(this)
+                .load(photoUri)
+                .placeholder(R.drawable.default_profile_picture)
+                .into(binding.profilePicture)
+
+            accountViewModel.user.value?.id?.let { userId ->
+                accountViewModel.user.value?.profilePictureUrl?.let { url ->
+                    accountViewModel.deleteImageFromStorage(url)
+                }
+
+                accountViewModel.uploadAndSaveProfilePicture(photoUri!!, userId)
+            }
+        }
+    }
+
+    private fun createImageFile(): File {
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile("JPEG_${timestamp}_", ".jpg", storageDir)
     }
 
     private fun startLocationService() {
