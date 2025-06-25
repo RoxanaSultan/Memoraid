@@ -85,9 +85,9 @@ class CardGameFragment : Fragment() {
     private fun updateLevelsUI(levels: List<Map<String, Any>>) {
         levels.forEach { levelData ->
             val levelName = levelData["level"] as? String ?: "Unknown"
-            val leastMoves = levelData["leastMoves"] as? Long ?: Long.MAX_VALUE
+            val leastMoves = levelData["totalLevelScore"] as? Long ?: Long.MAX_VALUE
             val bestTime = levelData["bestTime"] as? Long ?: Long.MAX_VALUE
-            val totalScore = levelData["totalLevelScore"] as? Long ?: 0
+            val totalScore = levelData["leastMoves"] as? Long ?: 0
 
             val userId = cardGamesViewModel.user.value?.selectedPatient ?: ""
 

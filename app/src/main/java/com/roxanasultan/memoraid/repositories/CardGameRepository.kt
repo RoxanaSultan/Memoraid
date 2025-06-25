@@ -47,7 +47,7 @@ class CardGameRepository @Inject constructor(
                     val dayOfWeekName = SimpleDateFormat("EEEE", Locale.getDefault()).format(date)
                     val dateStr = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(date)
 
-                    val score = (game["totalLevelScore"] as? Long ?: (game["totalLevelScore"] as? Double)?.toLong()) ?: 0L
+                    val score = (game["score"] as? Long ?: (game["score"] as? Double)?.toLong()) ?: 0L
                     val moves = (game["moves"] as? Long ?: (game["moves"] as? Double)?.toLong()) ?: 0L
                     val time = (game["time"] as? Long ?: (game["time"] as? Double)?.toLong()) ?: 0L
 
