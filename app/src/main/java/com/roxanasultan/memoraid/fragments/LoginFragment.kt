@@ -26,6 +26,7 @@ import com.roxanasultan.memoraid.viewmodels.LoginViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
+import androidx.biometric.BiometricManager
 
 @AndroidEntryPoint
 class LoginFragment : Fragment() {
@@ -166,6 +167,34 @@ class LoginFragment : Fragment() {
         }
     }
 
+    private fun canDeviceUseBiometrics(): Boolean {
+        val biometricManager = BiometricManager.from(requireContext())
+        when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
+            BiometricManager.BIOMETRIC_SUCCESS -> {
+                Log.d("BiometricCheck", "App can authenticate using biometrics.")
+                return true
+            }
+            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
+                Log.e("BiometricCheck", "No biometric features available on this device.")
+                return false
+            }
+            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
+                Log.e("BiometricCheck", "Biometric features are currently unavailable.")
+                return false
+            }
+            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                // Utilizatorul nu și-a înregistrat nicio amprentă/față.
+                // Poți afișa un Toast pentru a-l informa, dacă dorești.
+                Log.e("BiometricCheck", "The user hasn't enrolled any biometrics.")
+                return false
+            }
+            else -> {
+                Log.e("BiometricCheck", "Biometric check returned an unknown status.")
+                return false
+            }
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -225,6 +254,8 @@ class LoginFragment : Fragment() {
     }
 
     private fun checkBiometricLogin() {
+        if (!canDeviceUseBiometrics()) return
+
         val email = prefs.getString("last_logged_user", null) ?: return
         Log.d("LoginFragment", "last_logged_user: $email")
         if (!isBiometricEnabledForUser(email)) return
@@ -260,6 +291,15 @@ class LoginFragment : Fragment() {
                 override fun onAuthenticationFailed() {
                     super.onAuthenticationFailed()
                     Toast.makeText(requireContext(), "Biometric auth failed", Toast.LENGTH_SHORT).show()
+                }
+
+                // ADAUGĂ ACEASTĂ SECȚIUNE
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    // Aici prinzi erorile precum "nu există date biometrice"
+                    Toast.makeText(requireContext(),
+                        "Authentication error: $errString",
+                        Toast.LENGTH_LONG).show()
                 }
             })
 
@@ -299,6 +339,12 @@ class LoginFragment : Fragment() {
     }
 
     private fun showEnableBiometricDialog(userId: String) {
+        if (!canDeviceUseBiometrics()) {
+            // Dacă nu se poate, pur și simplu navighează mai departe fără a întreba.
+            navigateToMain()
+            return
+        }
+
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setTitle("Enable biometric authentication?")
             .setMessage("Would you like to use fingerprint or face unlock for this account?")

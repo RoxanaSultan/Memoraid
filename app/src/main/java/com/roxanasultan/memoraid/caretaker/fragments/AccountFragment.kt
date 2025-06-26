@@ -35,6 +35,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import com.roxanasultan.memoraid.caretaker.viewmodels.AccountViewModel
 import java.text.ParseException
+import androidx.biometric.BiometricManager
 
 @AndroidEntryPoint
 class AccountFragment : Fragment() {
@@ -87,16 +88,46 @@ class AccountFragment : Fragment() {
 //                        .circleCrop()
                             .into(binding.profilePicture)
 
-                        binding.checkboxBiometricLogin.isChecked = isBiometricEnabledForUser(it.email)
+                        val canUseBiometrics = canDeviceUseBiometrics()
+                        val isBiometricSavedAsEnabled = isBiometricEnabledForUser(it.email)
+
+                        if (isBiometricSavedAsEnabled && !canUseBiometrics) {
+                            // Corectează starea salvată dacă dispozitivul nu mai suportă biometria
+                            setBiometricEnabledForUser(it.email, false)
+                            binding.checkboxBiometricLogin.isChecked = false
+                        } else {
+                            binding.checkboxBiometricLogin.isChecked = isBiometricSavedAsEnabled
+                        }
+
+                        // Poți face căsuța needitabilă dacă dispozitivul nu suportă deloc biometria
+                        binding.checkboxBiometricLogin.isEnabled = canUseBiometrics
                     }
                 }
             }
         }
 
-        binding.checkboxBiometricLogin.setOnCheckedChangeListener { _, isChecked ->
+        binding.checkboxBiometricLogin.setOnCheckedChangeListener { checkbox, isChecked ->
             val userId = accountViewModel.user.value?.email
-            if (userId != null) {
-                setBiometricEnabledForUser(userId, isChecked)
+            if (userId == null) return@setOnCheckedChangeListener
+
+            if (isChecked) {
+                // Utilizatorul încearcă să activeze biometria
+                if (canDeviceUseBiometrics()) {
+                    // Totul e ok, dispozitivul suportă biometria. Salvăm setarea.
+                    setBiometricEnabledForUser(userId, true)
+                } else {
+                    // Dispozitivul NU suportă biometria.
+                    // Informăm utilizatorul și resetăm căsuța la starea nebifată.
+                    Toast.makeText(
+                        requireContext(),
+                        "Biometric authentication is not available or not set up on this device.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    checkbox.isChecked = false // Foarte important: anulează acțiunea utilizatorului
+                }
+            } else {
+                // Utilizatorul dezactivează biometria, ceea ce este mereu permis.
+                setBiometricEnabledForUser(userId, false)
             }
         }
 
@@ -157,6 +188,16 @@ class AccountFragment : Fragment() {
                 logout()
             }
             .show()
+    }
+
+    private fun canDeviceUseBiometrics(): Boolean {
+        if (!isAdded) return false
+
+        val biometricManager = BiometricManager.from(requireContext())
+        when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
+            BiometricManager.BIOMETRIC_SUCCESS -> return true
+            else -> return false
+        }
     }
 
     private fun logout() {
