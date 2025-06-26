@@ -11,6 +11,7 @@ import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.google.firebase.firestore.FirebaseFirestore
 import com.roxanasultan.memoraid.R
+import com.roxanasultan.memoraid.activities.AppointmentReminderActivity
 import com.roxanasultan.memoraid.activities.MainActivity
 import com.roxanasultan.memoraid.activities.MedicineReminderActivity
 import com.roxanasultan.memoraid.helpers.AlarmScheduler
@@ -90,9 +91,17 @@ class AlarmReceiver : BroadcastReceiver() {
                 .addOnSuccessListener { document ->
                     val appointment = document.toObject(Appointment::class.java)
                     if (appointment != null) {
-                        val contentIntent = Intent(context, MainActivity::class.java)
-                        val contentPendingIntent = PendingIntent.getActivity(
-                            context, 101, contentIntent,
+                        val fullScreenIntent = Intent(context, AppointmentReminderActivity::class.java).apply {
+                            putExtra("appointmentId", appointment.id)
+                            putExtra("name", appointment.name)
+                            putExtra("location", appointment.location)
+                            putExtra("time", appointment.time)
+                            putExtra("date", appointment.date)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        }
+
+                        val fullScreenPendingIntent = PendingIntent.getActivity(
+                            context, 102, fullScreenIntent,
                             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                         )
 
@@ -101,7 +110,9 @@ class AlarmReceiver : BroadcastReceiver() {
                             .setContentTitle("Appointment Reminder")
                             .setContentText("You have an appointment: ${appointment.name}")
                             .setPriority(NotificationCompat.PRIORITY_HIGH)
-                            .setContentIntent(contentPendingIntent)
+                            .setCategory(NotificationCompat.CATEGORY_ALARM)
+                            .setContentIntent(fullScreenPendingIntent)
+                            .setFullScreenIntent(fullScreenPendingIntent, true)
                             .setAutoCancel(true)
                             .build()
 

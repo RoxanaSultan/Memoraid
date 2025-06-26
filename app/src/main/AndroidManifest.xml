@@ -95,6 +95,15 @@
             android:turnScreenOn="true"
             android:screenOrientation="portrait"
             android:exported="true" />
+        <activity
+            android:name=".activities.AppointmentReminderActivity"
+            android:launchMode="singleTop"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:screenOrientation="portrait"
+            android:exported="true" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.roxanasultan.memoraid.fileprovider"

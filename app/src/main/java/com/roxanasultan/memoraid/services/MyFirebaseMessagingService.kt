@@ -210,8 +210,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     null
                 }
 
-                if (parsedDate != null) {
+                if (parsedDate != null && parsedDate.after(Date())) {
                     AlarmScheduler.scheduleAlarmForAppointment(this, appointment, parsedDate)
+                } else {
+                    Log.d("MyFirebaseMessagingService", "Skipped alarm in the past: $dateTimeString")
                 }
             }
 
@@ -236,8 +238,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     null
                 }
 
-                if (parsedDate != null) {
+                if (parsedDate != null && parsedDate.after(Date())) {
                     AlarmScheduler.scheduleAlarmForAppointment(this, appointment, parsedDate)
+                } else {
+                    Log.d("MyFirebaseMessagingService", "Skipped alarm in the past: $dateTimeString")
                 }
             }
         }
