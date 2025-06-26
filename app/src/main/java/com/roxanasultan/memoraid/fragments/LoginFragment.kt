@@ -1,8 +1,10 @@
 package com.roxanasultan.memoraid.fragments
 
+import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -70,23 +72,42 @@ class LoginFragment : Fragment() {
         lifecycleScope.launchWhenStarted {
             loginViewModel.loginState.collect { result ->
                 result?.onSuccess {
-                    val email = firebaseAuth.currentUser?.email ?: return@onSuccess
-                    val password = binding.loginPassword.text.toString().trim()
+                    // Sursa de adevăr! Utilizatorul proaspăt autentificat.
+                    val user = firebaseAuth.currentUser ?: return@onSuccess
+                    val email = user.email ?: return@onSuccess
 
+                    // Salvează ultimul utilizator logat (pentru următoarea deschidere a aplicației)
                     prefs.edit().putString("last_logged_user", email).apply()
 
-                    if (password.isNotEmpty()) {
-                        saveCredentials(email, password)
-                        saveLastLoginMethod(email, "password")
-                    } else {
-                        saveLastLoginMethod(email, "google")
-                    }
+                    // Verifică dacă login-ul a fost făcut cu parolă
+                    val passwordProvider = user.providerData.any { it.providerId == "password" }
 
-                    if (!isBiometricEnabledForUser(email)) {
-                        showEnableBiometricDialog(email)
+                    if (passwordProvider) {
+                        // Luăm parola din câmpul de text.
+                        val passwordFromUi = binding.loginPassword.text.toString().trim()
+
+                        // Metoda se salvează întotdeauna ca "password" pentru acest provider. Asta e corect.
+                        saveLastLoginMethod(email, "password")
+
+                        // AICI ESTE CONDIȚIA CHEIE:
+                        // Salvăm credențialele DOAR dacă utilizatorul chiar a tastat o parolă.
+                        // La un login biometric, `passwordFromUi` va fi gol, iar acest cod nu se va executa.
+                        if (passwordFromUi.isNotEmpty()) {
+                            saveCredentials(email, passwordFromUi)
+                        }
+
+                        // Restul logicii rămâne la fel.
+                        if (!isBiometricEnabledForUser(email)) {
+                            showEnableBiometricDialog(email)
+                        } else {
+                            navigateToMain()
+                        }
                     } else {
+                        // Acest caz nu ar trebui să fie atins prin loginViewModel,
+                        // dar ca măsură de siguranță, navigăm direct
                         navigateToMain()
                     }
+
                 }?.onFailure {
                     Toast.makeText(requireContext(), "Error: ${it.message}", Toast.LENGTH_LONG).show()
                 }
@@ -158,9 +179,10 @@ class LoginFragment : Fragment() {
                         if (authResult.isSuccessful) {
                             val email = firebaseAuth.currentUser?.email
                             if (email != null) {
+//                                securePrefs.edit().putString("email", email).apply()
+                                saveLastLoginMethod(email, "google")
                                 loginViewModel.doesProfileExist(email) { exists ->
                                     if (exists) {
-                                        saveLastLoginMethod(email, "google")
                                         navigateToMain()
                                     } else {
                                         val lastAccount = GoogleSignIn.getLastSignedInAccount(requireContext())
@@ -190,11 +212,26 @@ class LoginFragment : Fragment() {
         }
     }
 
+    fun getGoogleSignInClientWithEmail(context: Context, email: String): GoogleSignInClient {
+        val webClientId = getString(R.string.web_client_id)
+
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(webClientId)
+            .requestEmail()
+            .setAccountName(email)
+            .build()
+
+        return GoogleSignIn.getClient(context, gso)
+    }
+
     private fun checkBiometricLogin() {
         val email = prefs.getString("last_logged_user", null) ?: return
+        Log.d("LoginFragment", "last_logged_user: $email")
         if (!isBiometricEnabledForUser(email)) return
 
         val lastMethod = getLastLoginMethod(email)
+        Log.d("LoginFragment", "last_login_method: $lastMethod")
+
         if (lastMethod == "password") {
             val creds = getSavedCredentials()
             if (creds != null && creds.first == email) {
@@ -204,7 +241,8 @@ class LoginFragment : Fragment() {
             }
         } else if (lastMethod == "google") {
             showBiometricPrompt {
-                val signInIntent = googleSignInClient.signInIntent
+                val googleClient = getGoogleSignInClientWithEmail(requireContext(), email)
+                val signInIntent = googleClient.signInIntent
                 startActivityForResult(signInIntent, RC_SIGN_IN)
             }
         }
